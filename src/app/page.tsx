@@ -625,7 +625,7 @@ export default function SignalsDashboard() {
                         {sig.status === 'ACTIVE' && (
                           <span className="bg-cyan-950/90 border border-cyan-500/50 text-cyan-300 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-pulse">
                             <Activity className="w-3.5 h-3.5 text-cyan-400" />
-                            ACTIVE STREAM
+                            EVALUATING (QUOTEX 1M STREAM)
                           </span>
                         )}
                         {sig.status === 'NO_SIGNAL' && (
