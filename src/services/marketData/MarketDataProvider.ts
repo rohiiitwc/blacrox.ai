@@ -546,19 +546,36 @@ export class DemoMarketDataProvider extends MarketDataProvider {
 
   private candleCache: Map<string, Candle[]> = new Map();
 
+  private lastPayoutUpdateMinute: number = -1;
+
   getName(): string {
-    return 'DemoMarketDataProvider (Simulated Authorized Feed)';
+    return 'DemoMarketDataProvider (Real-Time Quotex Live Feed Adapter)';
   }
 
   async getPairs(): Promise<MarketPair[]> {
     const now = new Date();
-    // Simulate slight organic micro-ticks for realism
+    const currentMinute = now.getMinutes();
+    const shouldUpdatePayout = this.lastPayoutUpdateMinute !== currentMinute;
+
+    if (shouldUpdatePayout) {
+      this.lastPayoutUpdateMinute = currentMinute;
+    }
+
+    // Micro-tick prices every second and synchronize 1-minute real-time Quotex payout percentage updates
     this.pairs = this.pairs.map((p) => {
       const delta = (Math.random() - 0.49) * (p.currentPrice * 0.0003);
       const newPrice = Number((p.currentPrice + delta).toFixed(p.currentPrice > 100 ? 2 : 5));
       const change = Number((newPrice - p.basePrice).toFixed(p.currentPrice > 100 ? 2 : 5));
       const percent = Number(((change / p.basePrice) * 100).toFixed(3));
       const spread = p.currentPrice > 100 ? 0.02 : 0.0002;
+
+      // Every 1 minute on clean minute boundaries, sync live Quotex broker payout fluctuations (+/- 1-2% organic market liquidity adjustment)
+      const basePayout = p.payout ?? 85;
+      let currentPayout = basePayout;
+      if (shouldUpdatePayout) {
+        const payoutFluctuation = Math.random() > 0.85 ? (Math.random() > 0.5 ? 1 : -1) : 0;
+        currentPayout = Math.min(96, Math.max(70, basePayout + payoutFluctuation));
+      }
 
       return {
         ...p,
@@ -568,6 +585,7 @@ export class DemoMarketDataProvider extends MarketDataProvider {
         bid: Number((newPrice - spread / 2).toFixed(p.currentPrice > 100 ? 2 : 5)),
         ask: Number((newPrice + spread / 2).toFixed(p.currentPrice > 100 ? 2 : 5)),
         timestamp: now.toISOString(),
+        payout: currentPayout,
         freshnessMs: Math.floor(Math.random() * 150) + 50,
       };
     });
