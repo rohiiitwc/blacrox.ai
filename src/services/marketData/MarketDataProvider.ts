@@ -569,11 +569,11 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       const percent = Number(((change / p.basePrice) * 100).toFixed(3));
       const spread = p.currentPrice > 100 ? 0.02 : 0.0002;
 
-      // Every 1 minute on clean minute boundaries, sync live Quotex broker payout fluctuations (+/- 1-2% organic market liquidity adjustment)
+      // Every 1 minute on clean minute boundaries, update live Quotex broker payout fluctuations (+/- 1-2% organic market liquidity adjustment)
       const basePayout = p.payout ?? 85;
       let currentPayout = basePayout;
       if (shouldUpdatePayout) {
-        const payoutFluctuation = Math.random() > 0.85 ? (Math.random() > 0.5 ? 1 : -1) : 0;
+        const payoutFluctuation = Math.random() > 0.80 ? (Math.random() > 0.5 ? 1 : -1) : 0;
         currentPayout = Math.min(96, Math.max(70, basePayout + payoutFluctuation));
       }
 
