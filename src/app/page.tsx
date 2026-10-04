@@ -230,7 +230,12 @@ export default function SignalsDashboard() {
         const pairData = pairs.find(p => p.name === s.pair || p.name.replace(/\s*\(OTC\)/i, '') === s.pair.replace(/\s*\(OTC\)/i, ''));
         return pairData ? pairData.category === categoryFilter : true;
       })
-      .sort((a, b) => new Date(b.signalTime || b.preparedTimestamp).getTime() - new Date(a.signalTime || a.preparedTimestamp).getTime());
+      .sort((a, b) => {
+        const timeA = new Date(a.signalTime || a.preparedTimestamp).getTime();
+        const timeB = new Date(b.signalTime || b.preparedTimestamp).getTime();
+        if (timeA !== timeB) return timeB - timeA;
+        return (b.id || '').localeCompare(a.id || '');
+      });
   }, [signals, minConfidence, categoryFilter, selectedPair, pairs]);
 
   const performanceStats = useMemo(() => {
@@ -893,7 +898,14 @@ export default function SignalsDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {signals.map((sig) => (
+                  {[...signals]
+                    .sort((a, b) => {
+                      const timeA = new Date(a.signalTime || a.preparedTimestamp).getTime();
+                      const timeB = new Date(b.signalTime || b.preparedTimestamp).getTime();
+                      if (timeA !== timeB) return timeB - timeA;
+                      return (b.id || '').localeCompare(a.id || '');
+                    })
+                    .map((sig) => (
                     <tr key={sig.id} className="hover:bg-slate-800/40 transition-colors">
                       <td className="p-3 font-bold text-white">{sig.pair}</td>
                       <td className="p-3">
