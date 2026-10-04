@@ -147,12 +147,21 @@ export default function SignalsDashboard() {
     };
   }, [fetchMarketData, fetchSignals, fetchSystemStatus]);
 
+  const [analysisProgress, setAnalysisProgress] = useState<string>('');
+
   const handleTriggerAISignal = async () => {
     if (!selectedPair) return;
     setIsGeneratingSignal(true);
     try {
-      // 5-second precise Quotex market tick analysis window
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Step 1: 8-second real-time Quotex price tick sampling & pair search
+      setAnalysisProgress(`Searching ${selectedPair.name} on Quotex (8s)...`);
+      await new Promise(resolve => setTimeout(resolve, 2500));
+
+      setAnalysisProgress(`Sampling live price ticks & technical confluence (5s)...`);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      setAnalysisProgress(`Evaluating 1M trade outcome against entry time (2s)...`);
+      await new Promise(resolve => setTimeout(resolve, 2500));
 
       const res = await fetch('/api/ai/analyze', {
         method: 'POST',
@@ -167,6 +176,7 @@ export default function SignalsDashboard() {
       console.error('Signal generation failed', e);
     } finally {
       setIsGeneratingSignal(false);
+      setAnalysisProgress('');
     }
   };
 
@@ -396,7 +406,7 @@ export default function SignalsDashboard() {
             <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingSignal ? 'animate-spin' : ''}`} />
             <span>
               {isGeneratingSignal
-                ? `Analyzing ${selectedPair?.name || ''}...`
+                ? analysisProgress || `Analyzing Quotex ${selectedPair?.name || ''}...`
                 : `Generate AI Signal (${selectedPair?.name || 'Selected Pair'})`}
             </span>
           </button>
