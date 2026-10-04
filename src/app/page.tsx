@@ -210,9 +210,14 @@ export default function SignalsDashboard() {
   const activeSignals = useMemo(() => {
     return signals.filter(s => {
       if (s.confidence < minConfidence) return false;
-      if (selectedPair && s.pair !== selectedPair.name) return false;
+      if (selectedPair) {
+        // Robust pair name comparison to handle Weekend (OTC) vs Weekday Live name updates
+        const selectedBase = selectedPair.name.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
+        const signalBase = s.pair.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
+        if (selectedBase !== signalBase) return false;
+      }
       if (categoryFilter === 'all') return true;
-      const pairData = pairs.find(p => p.name === s.pair);
+      const pairData = pairs.find(p => p.name === s.pair || p.name.replace(/\s*\(OTC\)/i, '') === s.pair.replace(/\s*\(OTC\)/i, ''));
       return pairData ? pairData.category === categoryFilter : true;
     });
   }, [signals, minConfidence, categoryFilter, selectedPair, pairs]);
