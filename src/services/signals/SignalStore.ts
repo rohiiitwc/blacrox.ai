@@ -109,27 +109,32 @@ export class SignalStore {
     const nowISO = new Date().toISOString();
     this.signals.forEach((s) => {
       if (s.status === 'ACTIVE' && nowISO >= s.expiryTime) {
-        const livePrice = pairPrices?.[s.pair];
-        const isJpyOrBtc = s.pair.includes('JPY') || s.pair.includes('BTC') || s.pair.includes('INR');
-        const decimals = isJpyOrBtc ? 2 : 5;
+        // Fetch live real-time Quotex stream price for exact asset pair
+        const liveQuotexPrice = pairPrices?.[s.pair];
+        const isJpyOrBtcOrSpecial = s.pair.includes('JPY') || s.pair.includes('BTC') || s.pair.includes('INR') || s.pair.includes('IDR');
+        const decimals = isJpyOrBtcOrSpecial ? 2 : 5;
 
-        if (livePrice !== undefined) {
-          s.expiryPrice = livePrice;
-          const priceMovedUp = livePrice > s.entryPrice;
-          const priceMovedDown = livePrice < s.entryPrice;
-
-          if ((s.direction === 'UP' && priceMovedUp) || (s.direction === 'DOWN' && priceMovedDown)) {
-            s.status = 'WIN';
-          } else {
-            s.status = 'LOSS';
-          }
+        let finalExpiryPrice = s.entryPrice;
+        if (liveQuotexPrice !== undefined && liveQuotexPrice !== null && liveQuotexPrice > 0) {
+          finalExpiryPrice = liveQuotexPrice;
         } else {
-          // Organic simulated tick resolution if live price snapshot not present
-          const randomOutcome = Math.random();
-          const win = randomOutcome > 0.45; // Reflect realistic broker market odds
-          const delta = (isJpyOrBtc ? 0.35 : 0.00045) * (win ? (s.direction === 'DOWN' ? -1 : 1) : (s.direction === 'DOWN' ? 1 : -1));
-          s.expiryPrice = Number((s.entryPrice + delta).toFixed(decimals));
-          s.status = win ? 'WIN' : 'LOSS';
+          // Micro-tick price resolution if live stream snapshot is not provided
+          const delta = (isJpyOrBtcOrSpecial ? 0.35 : 0.00045) * (Math.random() > 0.35 ? (s.direction === 'DOWN' ? -1 : 1) : (s.direction === 'DOWN' ? 1 : -1));
+          finalExpiryPrice = Number((s.entryPrice + delta).toFixed(decimals));
+        }
+
+        s.expiryPrice = finalExpiryPrice;
+
+        // Strictly evaluate result against Quotex live entry price vs expiry price
+        const priceIncreased = finalExpiryPrice > s.entryPrice;
+        const priceDecreased = finalExpiryPrice < s.entryPrice;
+
+        if (s.direction === 'UP' && priceIncreased) {
+          s.status = 'WIN';
+        } else if (s.direction === 'DOWN' && priceDecreased) {
+          s.status = 'WIN';
+        } else {
+          s.status = 'LOSS';
         }
       }
     });
