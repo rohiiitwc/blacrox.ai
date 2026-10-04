@@ -29,7 +29,7 @@ import {
 import { MarketPair, Candle, TechnicalIndicators, MarketSignal, SystemStatus } from '@/types/market';
 
 export default function SignalsDashboard() {
-  const [activeTab, setActiveTab] = useState<'signals' | 'chart' | 'logs' | 'performance' | 'engine' | 'system'>('signals');
+  const [activeTab, setActiveTab] = useState<'signals' | 'history' | 'chart' | 'logs' | 'performance' | 'engine' | 'system'>('signals');
 
   // Market & Signal state
   const [pairs, setPairs] = useState<MarketPair[]>([]);
@@ -271,6 +271,21 @@ export default function SignalsDashboard() {
             <span>Live Signals</span>
             <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'signals' ? 'bg-black/20 text-black' : 'bg-cyan-500/20 text-cyan-400'}`}>
               {activeSignals.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'history'
+                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Signal History</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'history' ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-300'}`}>
+              {signals.length}
             </span>
           </button>
 
@@ -747,6 +762,175 @@ export default function SignalsDashboard() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* DEDICATED SIGNAL HISTORY SECTION BELOW LIVE SIGNALS */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl space-y-4 p-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-cyan-400" />
+                  <h2 className="text-lg font-black tracking-wide text-white">GIVEN SIGNALS HISTORY</h2>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <span className="bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
+                    {signals.filter(s => s.status === 'WIN').length} WINS
+                  </span>
+                  <span className="bg-rose-950 border border-rose-800 text-rose-400 font-bold px-2.5 py-1 rounded-lg">
+                    {signals.filter(s => s.status === 'LOSS').length} LOSSES
+                  </span>
+                  <span className="bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded-lg">
+                    {signals.length} TOTAL
+                  </span>
+                </div>
+              </div>
+
+              {signals.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 font-mono text-xs">
+                  No signals recorded in history yet. Click "Generate AI Signal" above to record real-time trade signals.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase tracking-wider">
+                      <tr>
+                        <th className="p-3">Asset Pair</th>
+                        <th className="p-3">Direction</th>
+                        <th className="p-3 text-cyan-400">Entry Time (:00)</th>
+                        <th className="p-3">Expiry Time</th>
+                        <th className="p-3">Entry Price</th>
+                        <th className="p-3">Expiry Price</th>
+                        <th className="p-3">Confidence</th>
+                        <th className="p-3">Trade Result</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {signals.map((sig) => (
+                        <tr key={sig.id} className="hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3 font-bold text-white">{sig.pair}</td>
+                          <td className="p-3">
+                            {sig.direction === 'UP' && <span className="text-emerald-400 font-black">CALL ↑</span>}
+                            {sig.direction === 'DOWN' && <span className="text-rose-400 font-black">PUT ↓</span>}
+                            {sig.direction === 'NO_SIGNAL' && <span className="text-slate-500 font-medium">NO TRADE</span>}
+                          </td>
+                          <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">{formatTime(sig.signalTime)}</td>
+                          <td className="p-3 text-slate-400">{formatTime(sig.expiryTime)}</td>
+                          <td className="p-3 text-slate-200">{sig.entryPrice}</td>
+                          <td className="p-3 text-slate-200">{sig.expiryPrice || 'Completed'}</td>
+                          <td className="p-3 text-cyan-400 font-bold">{sig.confidence}%</td>
+                          <td className="p-3">
+                            {sig.status === 'WIN' && (
+                              <span className="bg-emerald-950 border border-emerald-500/50 text-emerald-400 font-black px-2 py-0.5 rounded text-[11px]">
+                                WIN (ITM)
+                              </span>
+                            )}
+                            {sig.status === 'LOSS' && (
+                              <span className="bg-rose-950 border border-rose-500/50 text-rose-400 font-black px-2 py-0.5 rounded text-[11px]">
+                                LOSS (OTM)
+                              </span>
+                            )}
+                            {sig.status === 'ACTIVE' && (
+                              <span className="bg-cyan-950 border border-cyan-500/50 text-cyan-300 font-black px-2 py-0.5 rounded text-[11px] animate-pulse">
+                                ACTIVE
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: DEDICATED SIGNAL HISTORY SECTION */}
+        {activeTab === 'history' && (
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <h1 className="text-xl font-black text-white flex items-center gap-2">
+                  <Clock className="w-6 h-6 text-cyan-400" />
+                  FULL GIVEN SIGNALS HISTORY ARCHIVE
+                </h1>
+                <p className="text-xs text-slate-400 mt-1">
+                  Complete Record of All AI Generated Quotex Trade Signals &amp; Performance Audits
+                </p>
+              </div>
+
+              <button
+                onClick={handleResetFeed}
+                className="flex items-center gap-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-700/60 font-bold text-xs px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Clear All History</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 font-mono text-xs">
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500">TOTAL SIGNALS GIVEN</span>
+                <p className="text-2xl font-black text-white mt-1">{signals.length}</p>
+              </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500">WINNING TRADES (ITM)</span>
+                <p className="text-2xl font-black text-emerald-400 mt-1">
+                  {signals.filter(s => s.status === 'WIN').length}
+                </p>
+              </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500">ACCURACY WIN RATE</span>
+                <p className="text-2xl font-black text-cyan-400 mt-1">
+                  {performanceStats.winRate}%
+                </p>
+              </div>
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <span className="text-slate-500">AVG CONFIDENCE SCORE</span>
+                <p className="text-2xl font-black text-cyan-300 mt-1">
+                  {performanceStats.avgConfidence}%
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-slate-900 text-slate-400 border-b border-slate-800 uppercase tracking-wider">
+                  <tr>
+                    <th className="p-3">Asset Pair</th>
+                    <th className="p-3">Signal Recommendation</th>
+                    <th className="p-3">Issued Time</th>
+                    <th className="p-3 text-emerald-400">Entry Time (:00)</th>
+                    <th className="p-3">Expiry Time</th>
+                    <th className="p-3">Entry Price</th>
+                    <th className="p-3">Expiry Price</th>
+                    <th className="p-3">AI Confidence</th>
+                    <th className="p-3">Result Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {signals.map((sig) => (
+                    <tr key={sig.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-3 font-bold text-white">{sig.pair}</td>
+                      <td className="p-3">
+                        {sig.direction === 'UP' && <span className="text-emerald-400 font-extrabold">CALL ↑</span>}
+                        {sig.direction === 'DOWN' && <span className="text-rose-400 font-extrabold">PUT ↓</span>}
+                        {sig.direction === 'NO_SIGNAL' && <span className="text-slate-500 font-medium">NO TRADE</span>}
+                      </td>
+                      <td className="p-3 text-slate-400">{formatTime(sig.preparedTimestamp)}</td>
+                      <td className="p-3 font-bold text-emerald-400 bg-emerald-950/20">{formatTime(sig.signalTime)}</td>
+                      <td className="p-3 text-slate-400">{formatTime(sig.expiryTime)}</td>
+                      <td className="p-3 text-slate-200">{sig.entryPrice}</td>
+                      <td className="p-3 text-slate-200">{sig.expiryPrice || 'Calculated'}</td>
+                      <td className="p-3 text-cyan-400 font-bold">{sig.confidence}%</td>
+                      <td className="p-3">
+                        {sig.status === 'WIN' && <span className="text-emerald-400 font-bold">WIN (ITM)</span>}
+                        {sig.status === 'LOSS' && <span className="text-rose-400 font-bold">LOSS (OTM)</span>}
+                        {sig.status === 'ACTIVE' && <span className="text-cyan-400 font-bold animate-pulse">ACTIVE</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
