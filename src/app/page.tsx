@@ -216,20 +216,21 @@ export default function SignalsDashboard() {
   }, [categoryFilter, pairs, fetchCandlesForPair]);
 
   const activeSignals = useMemo(() => {
-    return signals.filter(s => {
-      if (s.confidence < minConfidence) return false;
+    return signals
+      .filter(s => {
+        if (s.confidence < minConfidence) return false;
 
-      // Filter by pair if pair is selected, matching both clean name and OTC variants
-      if (selectedPair) {
-        const selectedBase = selectedPair.name.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
-        const signalBase = s.pair.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
-        // Allow newly generated signal for the active pair to remain visible
-        if (selectedBase !== signalBase) return false;
-      }
-      if (categoryFilter === 'all') return true;
-      const pairData = pairs.find(p => p.name === s.pair || p.name.replace(/\s*\(OTC\)/i, '') === s.pair.replace(/\s*\(OTC\)/i, ''));
-      return pairData ? pairData.category === categoryFilter : true;
-    });
+        // Filter by pair if pair is selected, matching both clean name and OTC variants
+        if (selectedPair) {
+          const selectedBase = selectedPair.name.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
+          const signalBase = s.pair.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
+          if (selectedBase !== signalBase) return false;
+        }
+        if (categoryFilter === 'all') return true;
+        const pairData = pairs.find(p => p.name === s.pair || p.name.replace(/\s*\(OTC\)/i, '') === s.pair.replace(/\s*\(OTC\)/i, ''));
+        return pairData ? pairData.category === categoryFilter : true;
+      })
+      .sort((a, b) => new Date(b.signalTime || b.preparedTimestamp).getTime() - new Date(a.signalTime || a.preparedTimestamp).getTime());
   }, [signals, minConfidence, categoryFilter, selectedPair, pairs]);
 
   const performanceStats = useMemo(() => {
