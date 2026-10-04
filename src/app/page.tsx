@@ -65,29 +65,35 @@ export default function SignalsDashboard() {
     }
   }, []);
 
-  const fetchMarketData = useCallback(async (initial = true) => {
+  const fetchMarketData = useCallback(async (initial = false) => {
     try {
       const res = await fetch('/api/markets');
       const data = await res.json();
       if (data.success && data.pairs) {
         setPairs(data.pairs);
         if (initial) {
-          const defaultP = data.pairs.find((p: MarketPair) => p.name === 'USD/JPY (OTC)') || data.pairs[0];
-          setSelectedPair(defaultP);
-          fetchCandlesForPair(defaultP.id);
+          setSelectedPair(prev => {
+            if (prev) return prev;
+            return data.pairs.find((p: MarketPair) => p.name === 'USD/JPY (OTC)') || data.pairs[0];
+          });
         }
       }
     } catch (e) {
       console.error('Failed to fetch market pairs', e);
     }
-  }, [fetchCandlesForPair]);
+  }, []);
 
   const fetchSignals = useCallback(async () => {
     try {
       const res = await fetch('/api/signals');
       const data = await res.json();
       if (data.success && data.signals) {
-        setSignals(data.signals);
+        setSignals(prev => {
+          // Merge newly generated signals from local state with store signals so they don't get overwritten
+          const storeSignalIds = new Set(data.signals.map((s: MarketSignal) => s.id));
+          const localOnly = prev.filter(s => !storeSignalIds.has(s.id));
+          return [...localOnly, ...data.signals];
+        });
       }
     } catch (e) {
       console.error('Failed to fetch signals', e);
@@ -114,7 +120,7 @@ export default function SignalsDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Polling market & signals data at stable 3-second interval
+  // Polling market & signals data at stable 5-second interval
   useEffect(() => {
     let isMounted = true;
 
@@ -133,7 +139,7 @@ export default function SignalsDashboard() {
       if (!isMounted) return;
       void fetchMarketData(false);
       void fetchSignals();
-    }, 3000);
+    }, 5000);
 
     return () => {
       isMounted = false;
@@ -152,11 +158,7 @@ export default function SignalsDashboard() {
       });
       const data = await res.json();
       if (data.success && data.signal) {
-        setSignals(prev => {
-          // Avoid duplicate signals glitching UI
-          if (prev.some(s => s.id === data.signal.id)) return prev;
-          return [data.signal, ...prev];
-        });
+        setSignals(prev => [data.signal, ...prev.filter(s => s.id !== data.signal.id)]);
       }
     } catch (e) {
       console.error('Signal generation failed', e);
@@ -185,6 +187,7 @@ export default function SignalsDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reset' })
       });
+      setSignals([]);
       await fetchSignals();
     } catch (e) {
       console.error('Failed to reset feed', e);
@@ -212,10 +215,12 @@ export default function SignalsDashboard() {
   const activeSignals = useMemo(() => {
     return signals.filter(s => {
       if (s.confidence < minConfidence) return false;
+
+      // Filter by pair if pair is selected, matching both clean name and OTC variants
       if (selectedPair) {
-        // Robust pair name comparison to handle Weekend (OTC) vs Weekday Live name updates
         const selectedBase = selectedPair.name.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
         const signalBase = s.pair.replace(/\s*\(OTC\)/i, '').replace(/[\/\_\s]/g, '').toLowerCase();
+        // Allow newly generated signal for the active pair to remain visible
         if (selectedBase !== signalBase) return false;
       }
       if (categoryFilter === 'all') return true;
