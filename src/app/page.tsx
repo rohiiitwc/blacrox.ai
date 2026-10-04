@@ -403,6 +403,60 @@ export default function SignalsDashboard() {
               </div>
             </div>
 
+            {/* QUOTEX MARKET PAIRS DIRECTORY & PAYOUT (%) PANEL */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-cyan-400" />
+                  <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Quotex Market Pairs &amp; Payouts ({categoryFilter === 'all' ? 'All Markets' : categoryFilter === 'otc' ? 'OTC Pairs' : categoryFilter === 'forex' ? 'Forex Pairs' : 'Crypto'})
+                  </h2>
+                </div>
+                <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-1 rounded-lg">
+                  {pairs.filter(p => categoryFilter === 'all' || p.category === categoryFilter).length} Pairs Available
+                </span>
+              </div>
+
+              {/* PAIR CHIPS GRID WITH PAYOUT PERCENTAGE BADGES */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+                {pairs
+                  .filter(p => categoryFilter === 'all' || p.category === categoryFilter)
+                  .map(p => {
+                    const isSelected = selectedPair?.id === p.id;
+                    const isPositive = p.priceChangePercent >= 0;
+
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedPair(p);
+                          fetchCandlesForPair(p.id);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-gradient-to-br from-cyan-950/90 to-slate-900 border-cyan-400 shadow-md shadow-cyan-500/20 scale-[1.02]'
+                            : 'bg-slate-950/90 border-slate-800/90 hover:border-cyan-500/50 hover:bg-slate-800/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-extrabold text-xs text-white truncate">{p.name}</span>
+                          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-mono font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
+                            +{p.payout}%
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mt-2 font-mono text-[11px]">
+                          <span className="text-slate-200 font-bold">{p.currentPrice}</span>
+                          <span className={`text-[10px] font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {isPositive ? '+' : ''}{p.priceChangePercent}%
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
+
             {/* SIGNALS GRID */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeSignals.map((sig) => {
