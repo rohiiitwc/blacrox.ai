@@ -245,14 +245,14 @@ export default function SignalsDashboard() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-lg tracking-wider text-white">QUOTEX <span className="text-cyan-400 font-normal">GEMINI AI SIGNALS</span></span>
+              <span className="font-extrabold text-lg tracking-wider text-white">QUOTEX <span className="text-cyan-400 font-normal">BLACROX AI SIGNALS</span></span>
               <span className="bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase tracking-wider">
-                GEMINI 1.5 PRO
+                BLACROX AI PRO
               </span>
             </div>
             <p className="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
-              <span>Quotex Real-Time Binary Stream • Google Gemini Signal Engine</span>
+              <span>Quotex Real-Time Binary Stream • Blacrox AI Signal Engine</span>
             </p>
           </div>
         </div>
@@ -334,7 +334,7 @@ export default function SignalsDashboard() {
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Gemini Engine</span>
+            <span>Blacrox Engine</span>
           </button>
 
           <button
@@ -589,7 +589,7 @@ export default function SignalsDashboard() {
 
                         {/* AI CONFIDENCE SCORE */}
                         <div className="text-right">
-                          <p className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Gemini AI Confidence</p>
+                          <p className="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Blacrox AI Confidence</p>
                           <div className="flex items-baseline justify-end gap-1 mt-1">
                             <span className="text-3xl font-black tracking-tight text-cyan-400 font-mono">
                               {sig.confidence}%
@@ -1120,19 +1120,19 @@ export default function SignalsDashboard() {
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
                 <span className="text-xs text-slate-400 font-medium">Avg AI Confidence</span>
                 <p className="text-3xl font-black text-cyan-300 font-mono mt-1">{performanceStats.avgConfidence}%</p>
-                <p className="text-[11px] text-slate-500 mt-1">Gemini AI Precision score</p>
+                <p className="text-[11px] text-slate-500 mt-1">Blacrox AI Precision score</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 5: GEMINI ENGINE */}
+        {/* TAB 5: BLACROX ENGINE */}
         {activeTab === 'engine' && (
           <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6">
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-cyan-400" />
-                Gemini AI Engine Configuration
+                Blacrox AI Engine Configuration
               </h2>
               <p className="text-xs text-slate-400 mt-1">
                 Configure your AI signal generation parameters and active LLM models.
@@ -1147,7 +1147,7 @@ export default function SignalsDashboard() {
                   onChange={(e) => setSelectedProvider(e.target.value as 'gemini' | 'openai' | 'demo')}
                   className="w-full bg-slate-950 border border-slate-800 text-cyan-400 font-bold p-3 rounded-xl outline-none"
                 >
-                  <option value="gemini">Google Gemini 1.5 Flash (Fastest Signal Generation)</option>
+                  <option value="gemini">Blacrox AI Engine (Fastest Signal Generation)</option>
                   <option value="openai">OpenAI GPT-4o (Deep Analysis)</option>
                   <option value="demo">Quant Technical Rule Engine (Demo)</option>
                 </select>
@@ -1181,7 +1181,7 @@ export default function SignalsDashboard() {
                 <p className="text-emerald-400 font-bold text-sm mt-1">{systemStatus?.marketFeedStatus || 'CONNECTED'}</p>
               </div>
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <span className="text-slate-500">GEMINI API STATUS</span>
+                <span className="text-slate-500">BLACROX API STATUS</span>
                 <p className="text-cyan-400 font-bold text-sm mt-1">{systemStatus?.geminiAvailable ? 'READY' : 'ONLINE'}</p>
               </div>
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
