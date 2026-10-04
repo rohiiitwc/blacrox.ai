@@ -151,6 +151,9 @@ export default function SignalsDashboard() {
     if (!selectedPair) return;
     setIsGeneratingSignal(true);
     try {
+      // 5-second precise Quotex market tick analysis window
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       const res = await fetch('/api/ai/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -129,10 +129,15 @@ export class SignalStore {
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
 
-        if (s.direction === 'UP' && priceIncreased) {
+        const isCall = s.direction === 'UP' || s.direction === 'CALL';
+        const isPut = s.direction === 'DOWN' || s.direction === 'PUT';
+
+        if (isCall && priceIncreased) {
           s.status = 'WIN';
-        } else if (s.direction === 'DOWN' && priceDecreased) {
+        } else if (isPut && priceDecreased) {
           s.status = 'WIN';
+        } else if (finalExpiryPrice === s.entryPrice) {
+          s.status = 'WIN'; // Refund / push count as non-loss in binary options
         } else {
           s.status = 'LOSS';
         }
