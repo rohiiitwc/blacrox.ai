@@ -129,8 +129,8 @@ export class SignalStore {
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
 
-        const isCall = s.direction === 'UP' || s.direction === 'CALL';
-        const isPut = s.direction === 'DOWN' || s.direction === 'PUT';
+        const isCall = s.direction === 'UP' || (s.direction as string) === 'CALL';
+        const isPut = s.direction === 'DOWN' || (s.direction as string) === 'PUT';
 
         if (isCall && priceIncreased) {
           s.status = 'WIN';
