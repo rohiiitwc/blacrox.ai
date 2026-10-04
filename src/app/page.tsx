@@ -104,7 +104,15 @@ export default function SignalsDashboard() {
     }
   }, []);
 
-  // Polling data
+  // Separate 1s clock timer from data polling to prevent layout re-render glitches
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Polling market & signals data at stable 3-second interval
   useEffect(() => {
     let isMounted = true;
 
@@ -121,10 +129,9 @@ export default function SignalsDashboard() {
 
     const interval = setInterval(() => {
       if (!isMounted) return;
-      setCurrentTime(new Date());
       void fetchMarketData(false);
       void fetchSignals();
-    }, 1000);
+    }, 3000);
 
     return () => {
       isMounted = false;
@@ -143,7 +150,11 @@ export default function SignalsDashboard() {
       });
       const data = await res.json();
       if (data.success && data.signal) {
-        setSignals(prev => [data.signal, ...prev]);
+        setSignals(prev => {
+          // Avoid duplicate signals glitching UI
+          if (prev.some(s => s.id === data.signal.id)) return prev;
+          return [data.signal, ...prev];
+        });
       }
     } catch (e) {
       console.error('Signal generation failed', e);
@@ -182,16 +193,19 @@ export default function SignalsDashboard() {
     setExpandedRationale(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Auto-switch selected pair when category filter changes
+  // Auto-switch selected pair only when categoryFilter changes
   useEffect(() => {
     if (pairs.length === 0) return;
     const available = pairs.filter(p => categoryFilter === 'all' || p.category === categoryFilter);
-    if (available.length > 0 && (!selectedPair || !available.some(p => p.id === selectedPair.id))) {
-      const newPair = available[0];
-      setSelectedPair(newPair);
-      fetchCandlesForPair(newPair.id);
+    if (available.length > 0) {
+      const currentSelectedInAvailable = available.some(p => selectedPair && p.id === selectedPair.id);
+      if (!currentSelectedInAvailable) {
+        const newPair = available[0];
+        setSelectedPair(newPair);
+        fetchCandlesForPair(newPair.id);
+      }
     }
-  }, [categoryFilter, pairs, selectedPair, fetchCandlesForPair]);
+  }, [categoryFilter, pairs, fetchCandlesForPair]);
 
   const activeSignals = useMemo(() => {
     return signals.filter(s => {
