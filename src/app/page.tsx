@@ -16,6 +16,7 @@ import {
   ArrowDownRight,
   Sparkles,
   Layers,
+  Search,
   LineChart as LineIcon
 } from 'lucide-react';
 import {
@@ -41,6 +42,7 @@ export default function SignalsDashboard() {
 
   // Filter & Control state
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'forex' | 'otc' | 'crypto'>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [minConfidence, setMinConfidence] = useState<number>(75);
   const [expandedRationale, setExpandedRationale] = useState<Record<string, boolean>>({});
   const [isGeneratingSignal, setIsGeneratingSignal] = useState<boolean>(false);
@@ -455,56 +457,103 @@ export default function SignalsDashboard() {
 
             {/* QUOTEX MARKET PAIRS DIRECTORY & PAYOUT (%) PANEL */}
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-3">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-cyan-400" />
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                     Quotex Market Pairs &amp; Payouts ({categoryFilter === 'all' ? 'All Markets' : categoryFilter === 'otc' ? 'OTC Pairs' : categoryFilter === 'forex' ? 'Forex Pairs' : 'Crypto'})
                   </h2>
                 </div>
-                <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-1 rounded-lg">
-                  {pairs.filter(p => categoryFilter === 'all' || p.category === categoryFilter).length} Pairs Available
-                </span>
+
+                {/* SEARCH INPUT BAR & PAIR COUNT */}
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search pairs (e.g. USD/JPY, BTC, OTC)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-slate-950/90 border border-slate-800 text-xs text-white placeholder-slate-500 rounded-xl pl-9 pr-3 py-1.5 focus:outline-none focus:border-cyan-400 transition-colors"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs font-bold px-1"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <span className="text-xs font-mono text-emerald-400 font-bold bg-emerald-950/80 border border-emerald-800/60 px-2.5 py-1 rounded-lg flex-shrink-0">
+                    {pairs.filter(p => {
+                      if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+                      if (!searchQuery.trim()) return true;
+                      const query = searchQuery.toLowerCase().replace(/[\/\_\s]/g, '');
+                      const pairClean = p.name.toLowerCase().replace(/[\/\_\s]/g, '');
+                      return p.name.toLowerCase().includes(searchQuery.toLowerCase()) || pairClean.includes(query);
+                    }).length} Pairs
+                  </span>
+                </div>
               </div>
 
               {/* PAIR CHIPS GRID WITH PAYOUT PERCENTAGE BADGES */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
-                {pairs
-                  .filter(p => categoryFilter === 'all' || p.category === categoryFilter)
-                  .map(p => {
-                    const isSelected = selectedPair?.id === p.id;
-                    const isPositive = p.priceChangePercent >= 0;
+              {pairs.filter(p => {
+                if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+                if (!searchQuery.trim()) return true;
+                const query = searchQuery.toLowerCase().replace(/[\/\_\s]/g, '');
+                const pairClean = p.name.toLowerCase().replace(/[\/\_\s]/g, '');
+                return p.name.toLowerCase().includes(searchQuery.toLowerCase()) || pairClean.includes(query);
+              }).length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs font-mono bg-slate-950/50 rounded-xl border border-slate-800/50">
+                  No market pairs matching "<span className="text-cyan-400">{searchQuery}</span>"
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
+                  {pairs
+                    .filter(p => {
+                      if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+                      if (!searchQuery.trim()) return true;
+                      const query = searchQuery.toLowerCase().replace(/[\/\_\s]/g, '');
+                      const pairClean = p.name.toLowerCase().replace(/[\/\_\s]/g, '');
+                      return p.name.toLowerCase().includes(searchQuery.toLowerCase()) || pairClean.includes(query);
+                    })
+                    .map(p => {
+                      const isSelected = selectedPair?.id === p.id;
+                      const isPositive = p.priceChangePercent >= 0;
 
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => {
-                          setSelectedPair(p);
-                          fetchCandlesForPair(p.id);
-                        }}
-                        className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
-                          isSelected
-                            ? 'bg-gradient-to-br from-cyan-950/90 to-slate-900 border-cyan-400 shadow-md shadow-cyan-500/20 scale-[1.02]'
-                            : 'bg-slate-950/90 border-slate-800/90 hover:border-cyan-500/50 hover:bg-slate-800/40'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-extrabold text-xs text-white truncate">{p.name}</span>
-                          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-mono font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
-                            +{p.payout}%
-                          </span>
-                        </div>
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => {
+                            setSelectedPair(p);
+                            fetchCandlesForPair(p.id);
+                          }}
+                          className={`p-2.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between cursor-pointer ${
+                            isSelected
+                              ? 'bg-gradient-to-br from-cyan-950/90 to-slate-900 border-cyan-400 shadow-md shadow-cyan-500/20 scale-[1.02]'
+                              : 'bg-slate-950/90 border-slate-800/90 hover:border-cyan-500/50 hover:bg-slate-800/40'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-extrabold text-xs text-white truncate">{p.name}</span>
+                            <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-mono font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
+                              +{p.payout}%
+                            </span>
+                          </div>
 
-                        <div className="flex items-baseline justify-between mt-2 font-mono text-[11px]">
-                          <span className="text-slate-200 font-bold">{p.currentPrice}</span>
-                          <span className={`text-[10px] font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {isPositive ? '+' : ''}{p.priceChangePercent}%
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
+                          <div className="flex items-baseline justify-between mt-2 font-mono text-[11px]">
+                            <span className="text-slate-200 font-bold">{p.currentPrice}</span>
+                            <span className={`text-[10px] font-semibold ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              {isPositive ? '+' : ''}{p.priceChangePercent}%
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
             </div>
 
             {/* SIGNALS GRID */}
