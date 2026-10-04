@@ -182,14 +182,26 @@ export default function SignalsDashboard() {
     setExpandedRationale(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Auto-switch selected pair when category filter changes
+  useEffect(() => {
+    if (pairs.length === 0) return;
+    const available = pairs.filter(p => categoryFilter === 'all' || p.category === categoryFilter);
+    if (available.length > 0 && (!selectedPair || !available.some(p => p.id === selectedPair.id))) {
+      const newPair = available[0];
+      setSelectedPair(newPair);
+      fetchCandlesForPair(newPair.id);
+    }
+  }, [categoryFilter, pairs, selectedPair, fetchCandlesForPair]);
+
   const activeSignals = useMemo(() => {
     return signals.filter(s => {
       if (s.confidence < minConfidence) return false;
+      if (selectedPair && s.pair !== selectedPair.name) return false;
       if (categoryFilter === 'all') return true;
       const pairData = pairs.find(p => p.name === s.pair);
       return pairData ? pairData.category === categoryFilter : true;
     });
-  }, [signals, minConfidence, categoryFilter, pairs]);
+  }, [signals, minConfidence, categoryFilter, selectedPair, pairs]);
 
   const performanceStats = useMemo(() => {
     const total = signals.filter(s => s.direction !== 'NO_SIGNAL').length;
@@ -332,7 +344,11 @@ export default function SignalsDashboard() {
             className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg transition-all shadow-md shadow-emerald-500/10 active:scale-95 text-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingSignal ? 'animate-spin' : ''}`} />
-            <span>{isGeneratingSignal ? 'Analyzing...' : 'Generate AI Signal'}</span>
+            <span>
+              {isGeneratingSignal
+                ? `Analyzing ${selectedPair?.name || ''}...`
+                : `Generate AI Signal (${selectedPair?.name || 'Selected Pair'})`}
+            </span>
           </button>
         </div>
       </header>
