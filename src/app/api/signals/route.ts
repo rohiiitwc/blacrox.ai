@@ -38,8 +38,8 @@ export async function POST(request: Request) {
     const store = SignalStore.getInstance();
 
     if (action === 'reset') {
-      store.clearAndReseed();
-      return NextResponse.json({ success: true, message: 'Signal feed reset and re-synced' });
+      store.clearAllSignals();
+      return NextResponse.json({ success: true, message: 'All signal history deleted' });
     }
 
     if (signalId && (newStatus === 'WIN' || newStatus === 'LOSS')) {

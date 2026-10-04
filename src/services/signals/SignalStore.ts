@@ -5,7 +5,7 @@ export class SignalStore {
   private signals: MarketSignal[] = [];
 
   private constructor() {
-    this.seedInitialHistory();
+    this.signals = [];
   }
 
   public static getInstance(): SignalStore {
@@ -160,8 +160,7 @@ export class SignalStore {
     }
   }
 
-  public clearAndReseed() {
+  public clearAllSignals() {
     this.signals = [];
-    this.seedInitialHistory();
   }
 }
