@@ -1037,21 +1037,106 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       freshnessMs: 50,
     },
     {
-      id: 'TONCOIN_OTC',
-      name: 'Toncoin (OTC)',
+      id: 'BITCOIN_CASH_OTC',
+      name: 'Bitcoin Cash (OTC)',
       category: 'crypto',
-      basePrice: 5.45,
-      currentPrice: 5.34,
-      priceChange: -0.11,
-      priceChangePercent: -2.02,
-      bid: 5.33,
-      ask: 5.35,
+      basePrice: 345.0,
+      currentPrice: 352.4,
+      priceChange: 7.4,
+      priceChangePercent: 2.14,
+      bid: 352.3,
+      ask: 352.5,
+      timestamp: new Date().toISOString(),
+      status: 'OPEN',
+      volatility: 'HIGH',
+      session: '24/7',
+      payout: 92,
+      freshnessMs: 50,
+    },
+    {
+      id: 'ETHEREUM_CLASSIC_OTC',
+      name: 'Ethereum Classic (OTC)',
+      category: 'crypto',
+      basePrice: 18.50,
+      currentPrice: 19.12,
+      priceChange: 0.62,
+      priceChangePercent: 3.35,
+      bid: 19.11,
+      ask: 19.13,
       timestamp: new Date().toISOString(),
       status: 'OPEN',
       volatility: 'HIGH',
       session: '24/7',
       payout: 92,
       freshnessMs: 55,
+    },
+    {
+      id: 'POLKADOT_OTC',
+      name: 'Polkadot (OTC)',
+      category: 'crypto',
+      basePrice: 4.20,
+      currentPrice: 4.38,
+      priceChange: 0.18,
+      priceChangePercent: 4.28,
+      bid: 4.37,
+      ask: 4.39,
+      timestamp: new Date().toISOString(),
+      status: 'OPEN',
+      volatility: 'HIGH',
+      session: '24/7',
+      payout: 92,
+      freshnessMs: 50,
+    },
+    {
+      id: 'ZCASH_OTC',
+      name: 'Zcash (OTC)',
+      category: 'crypto',
+      basePrice: 32.50,
+      currentPrice: 33.85,
+      priceChange: 1.35,
+      priceChangePercent: 4.15,
+      bid: 33.84,
+      ask: 33.86,
+      timestamp: new Date().toISOString(),
+      status: 'OPEN',
+      volatility: 'HIGH',
+      session: '24/7',
+      payout: 92,
+      freshnessMs: 60,
+    },
+    {
+      id: 'BINANCE_COIN_OTC',
+      name: 'Binance Coin (OTC)',
+      category: 'crypto',
+      basePrice: 580.0,
+      currentPrice: 594.5,
+      priceChange: 14.5,
+      priceChangePercent: 2.50,
+      bid: 594.4,
+      ask: 594.6,
+      timestamp: new Date().toISOString(),
+      status: 'OPEN',
+      volatility: 'HIGH',
+      session: '24/7',
+      payout: 92,
+      freshnessMs: 45,
+    },
+    {
+      id: 'TRUMP_OTC',
+      name: 'Trump (OTC)',
+      category: 'crypto',
+      basePrice: 12.80,
+      currentPrice: 13.65,
+      priceChange: 0.85,
+      priceChangePercent: 6.64,
+      bid: 13.64,
+      ask: 13.66,
+      timestamp: new Date().toISOString(),
+      status: 'OPEN',
+      volatility: 'HIGH',
+      session: '24/7',
+      payout: 92,
+      freshnessMs: 40,
     }
   ];
 
@@ -1060,19 +1145,21 @@ export class DemoMarketDataProvider extends MarketDataProvider {
   private lastPayoutUpdateMinute: number = -1;
 
   getName(): string {
-    return 'DemoMarketDataProvider (Real-Time Quotex Live Feed Adapter)';
+    return 'DemoMarketDataProvider (Real-Time Quotex Live & OTC Feed Adapter)';
   }
 
   async getPairs(): Promise<MarketPair[]> {
     const now = new Date();
     const currentMinute = now.getMinutes();
+    const dayOfWeek = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const shouldUpdatePayout = this.lastPayoutUpdateMinute !== currentMinute;
 
     if (shouldUpdatePayout) {
       this.lastPayoutUpdateMinute = currentMinute;
     }
 
-    // Micro-tick prices every second and synchronize 1-minute real-time Quotex payout percentage updates
+    // Micro-tick prices every second and synchronize 1-minute real-time Quotex payout & live/OTC status
     this.pairs = this.pairs.map((p) => {
       const delta = (Math.random() - 0.49) * (p.currentPrice * 0.0003);
       const newPrice = Number((p.currentPrice + delta).toFixed(p.currentPrice > 100 ? 2 : 5));
@@ -1080,7 +1167,25 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       const percent = Number(((change / p.basePrice) * 100).toFixed(3));
       const spread = p.currentPrice > 100 ? 0.02 : 0.0002;
 
-      // Every 1 minute on clean minute boundaries, update live Quotex broker payout fluctuations (+/- 1-2% organic market liquidity adjustment)
+      // Dynamically evaluate Weekend Sunday OTC vs Weekday Monday-Friday Live Session
+      let displayName = p.name;
+      let sessionType = p.session;
+
+      if (p.category === 'forex') {
+        if (isWeekend) {
+          // Weekend OTC mode for Forex
+          if (!displayName.includes('(OTC)')) {
+            displayName = `${p.name} (OTC)`;
+          }
+          sessionType = '24/7';
+        } else {
+          // Weekday Live mode for Forex (Monday to Friday)
+          displayName = p.name.replace(' (OTC)', '');
+          sessionType = 'LONDON';
+        }
+      }
+
+      // Every 1 minute on clean minute boundaries, update live Quotex broker payout fluctuations (+/- 1-2%)
       const basePayout = p.payout ?? 85;
       let currentPayout = basePayout;
       if (shouldUpdatePayout) {
@@ -1090,6 +1195,8 @@ export class DemoMarketDataProvider extends MarketDataProvider {
 
       return {
         ...p,
+        name: displayName,
+        session: sessionType,
         currentPrice: newPrice,
         priceChange: change,
         priceChangePercent: percent,
