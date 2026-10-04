@@ -387,7 +387,7 @@ export default function SignalsDashboard() {
                   >
                     <option value="all">All Markets</option>
                     <option value="forex">Forex Pairs</option>
-                    <option value="otc">OTC Pairs (&gt;90% Payout)</option>
+                    <option value="otc">OTC Pairs</option>
                     <option value="crypto">Crypto</option>
                   </select>
                 </div>
