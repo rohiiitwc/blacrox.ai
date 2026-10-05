@@ -1083,25 +1083,16 @@ export default function SignalsDashboard() {
 
                             return (
                               <g key={`quotex_candle_${payload.timestamp}`}>
-                                {/* High-to-Low Wick Line */}
-                                <line
-                                  x1={wickX}
-                                  y1={p.y}
-                                  x2={wickX}
-                                  y2={p.y + candleHeight}
-                                  stroke={candleColor}
-                                  strokeWidth={1.8}
-                                />
-                                {/* Open-to-Close Candle Box */}
+                                {/* Solid Clean Candle Bar without thin Japanese sticks */}
                                 <rect
                                   x={x}
-                                  y={bodyY}
-                                  width={Math.max(width, 5)}
-                                  height={bodyHeight}
+                                  y={p.y}
+                                  width={Math.max(width, 8)}
+                                  height={Math.max(p.height, 6)}
                                   fill={candleColor}
                                   stroke={candleColor}
-                                  strokeWidth={0.5}
-                                  rx={0.5}
+                                  strokeWidth={1}
+                                  rx={2}
                                 />
                               </g>
                             );
