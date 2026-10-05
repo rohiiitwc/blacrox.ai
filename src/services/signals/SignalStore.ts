@@ -132,16 +132,19 @@ export class SignalStore {
 
         s.expiryPrice = finalExpiryPrice;
 
-        // Strict trade result calculation against entry price vs final expiry price
+        // Strict trade result calculation from ENTRY PRICE vs EXPIRY PRICE
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
+        const priceEqual = finalExpiryPrice === s.entryPrice;
 
-        if (isCall) {
+        if (priceEqual) {
+          s.status = 'DRAW';
+        } else if (isCall) {
           s.status = priceIncreased ? 'WIN' : 'LOSS';
         } else if (isPut) {
           s.status = priceDecreased ? 'WIN' : 'LOSS';
         } else {
-          s.status = 'WIN';
+          s.status = 'NO_SIGNAL';
         }
       }
     });

@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'All signal history deleted' });
     }
 
-    if (signalId && (newStatus === 'WIN' || newStatus === 'LOSS')) {
+    if (signalId && (newStatus === 'WIN' || newStatus === 'LOSS' || newStatus === 'DRAW')) {
       store.updateSignalStatus(signalId, newStatus);
       return NextResponse.json({ success: true, signalId, status: newStatus });
     }

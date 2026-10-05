@@ -188,7 +188,7 @@ export default function SignalsDashboard() {
     }
   };
 
-  const handleOverrideStatus = async (signalId: string, newStatus: 'WIN' | 'LOSS') => {
+  const handleOverrideStatus = async (signalId: string, newStatus: 'WIN' | 'LOSS' | 'DRAW') => {
     try {
       setSignals(prev => prev.map(s => s.id === signalId ? { ...s, status: newStatus } : s));
       await fetch('/api/signals', {
@@ -416,6 +416,13 @@ export default function SignalsDashboard() {
         </div>
       </header>
 
+      {/* EDUCATIONAL DISCLAIMER BANNER */}
+      <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 text-center text-amber-300 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+        <Shield className="w-4 h-4 text-amber-400 shrink-0" />
+        <span>Real Time TRADING chart — NO REAL TRADES</span>
+        <span className="text-[10px] text-amber-400/80 font-normal border border-amber-500/30 rounded px-1.5 py-0.5 ml-2">EDUCATIONAL PAPER TRADING DASHBOARD</span>
+      </div>
+
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-4 lg:p-6 max-w-7xl w-full mx-auto space-y-6">
 
@@ -625,6 +632,12 @@ export default function SignalsDashboard() {
                             RESULT: LOSS
                           </span>
                         )}
+                        {sig.status === 'DRAW' && (
+                          <span className="bg-amber-950/90 border border-amber-500/50 text-amber-400 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            RESULT: DRAW
+                          </span>
+                        )}
                         {sig.status === 'ACTIVE' && (
                           <span className="bg-cyan-950/90 border border-cyan-500/50 text-cyan-300 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-pulse">
                             <Activity className="w-3.5 h-3.5 text-cyan-400" />
@@ -653,6 +666,13 @@ export default function SignalsDashboard() {
                           >
                             LOSS
                           </button>
+                          <button
+                            onClick={() => handleOverrideStatus(sig.id, 'DRAW')}
+                            title="Set result as DRAW"
+                            className={`px-1.5 py-0.5 text-[10px] font-bold rounded cursor-pointer transition-colors ${sig.status === 'DRAW' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-amber-400'}`}
+                          >
+                            DRAW
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -668,7 +688,7 @@ export default function SignalsDashboard() {
                               <div className="bg-emerald-500/20 p-2 rounded-xl border border-emerald-500/40">
                                 <ArrowUpRight className="w-6 h-6 stroke-[3]" />
                               </div>
-                              <span>CALL</span>
+                              <span>CALL (UP)</span>
                             </div>
                           )}
                           {isPut && (
@@ -676,7 +696,7 @@ export default function SignalsDashboard() {
                               <div className="bg-rose-500/20 p-2 rounded-xl border border-rose-500/40">
                                 <ArrowDownRight className="w-6 h-6 stroke-[3]" />
                               </div>
-                              <span>PUT</span>
+                              <span>PUT (DOWN)</span>
                             </div>
                           )}
                           {isNoSig && (
@@ -749,6 +769,12 @@ export default function SignalsDashboard() {
                             <span className="bg-rose-950 border border-rose-500/60 text-rose-300 font-black px-2.5 py-0.5 rounded text-xs flex items-center gap-1">
                               <XCircle className="w-3.5 h-3.5 text-rose-400" />
                               RESULT: LOSS (OTM 0% RETURN)
+                            </span>
+                          )}
+                          {sig.status === 'DRAW' && (
+                            <span className="bg-amber-950 border border-amber-500/60 text-amber-300 font-black px-2.5 py-0.5 rounded text-xs flex items-center gap-1">
+                              <RefreshCw className="w-3.5 h-3.5 text-amber-400" />
+                              RESULT: DRAW (PUSH / REFUND)
                             </span>
                           )}
                           {sig.status === 'ACTIVE' && (
