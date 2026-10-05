@@ -54,7 +54,7 @@ export default function SignalsDashboard() {
 
   const fetchCandlesForPair = useCallback(async (pairId: string) => {
     try {
-      const res = await fetch(`/api/markets?pairId=${pairId}`);
+      const res = await fetch(`/api/markets/${pairId}`);
       const data = await res.json();
       if (data.success) {
         setCandles(data.candles || []);
@@ -120,7 +120,7 @@ export default function SignalsDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Polling market & signals data at stable 5-second interval
+  // Polling market, signals & live chart candle stream
   useEffect(() => {
     let isMounted = true;
 
@@ -131,6 +131,9 @@ export default function SignalsDashboard() {
         fetchSignals(),
         fetchSystemStatus(),
       ]);
+      if (selectedPair) {
+        fetchCandlesForPair(selectedPair.id);
+      }
     };
 
     void loadData();
@@ -139,13 +142,16 @@ export default function SignalsDashboard() {
       if (!isMounted) return;
       void fetchMarketData(false);
       void fetchSignals();
-    }, 5000);
+      if (selectedPair) {
+        void fetchCandlesForPair(selectedPair.id);
+      }
+    }, 2000);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [fetchMarketData, fetchSignals, fetchSystemStatus]);
+  }, [fetchMarketData, fetchSignals, fetchSystemStatus, fetchCandlesForPair, selectedPair]);
 
   const [analysisProgress, setAnalysisProgress] = useState<string>('');
 
