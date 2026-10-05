@@ -1070,9 +1070,9 @@ export default function SignalsDashboard() {
         {/* TAB 2: QUOTEX LIVE CHART FEED & TRADING INTERFACE */}
         {activeTab === 'chart' && selectedPair && (
           <div className="space-y-6">
-            <div className="bg-[#101422] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="bg-[#0b0e19] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
               {/* TOP TOOLBAR */}
-              <div className="bg-[#161c2e] px-5 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="bg-[#121727] px-5 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   {/* Pair selector dropdown with flag icon */}
                   <div className="flex items-center gap-2 bg-[#0b0f1d] border border-slate-700/80 px-3 py-1.5 rounded-xl">
