@@ -83,7 +83,7 @@ export interface MarketSignal {
   signalTime: string;
   expiryTime: string;
   expirySeconds: number;
-  status: 'ACTIVE' | 'WIN' | 'LOSS' | 'DRAW' | 'EXPIRED' | 'NO_SIGNAL';
+  status: 'ACTIVE' | 'EVALUATING' | 'WIN' | 'LOSS' | 'DRAW' | 'EXPIRED' | 'NO_SIGNAL';
   entryPrice: number;
   expiryPrice?: number;
   analysis: AIAnalysisOutput;

@@ -106,25 +106,32 @@ export class SignalStore {
   }
 
   public evaluateExpiredSignals(pairPrices?: Record<string, number>) {
-    const nowISO = new Date().toISOString();
+    const nowMs = Date.now();
+    const evaluationWindowMs = 8000; // 8-second confirmation delay after trade duration ends
+
     this.signals.forEach((s) => {
-      if (s.status === 'ACTIVE' && nowISO >= s.expiryTime) {
+      const expiryMs = new Date(s.expiryTime).getTime();
+
+      if (s.status === 'ACTIVE' && nowMs >= expiryMs) {
+        // Transition into EVALUATING state (5-10s final confirmation window)
+        s.status = 'EVALUATING';
+      }
+
+      if ((s.status === 'ACTIVE' || s.status === 'EVALUATING') && nowMs >= expiryMs + evaluationWindowMs) {
         // Fetch live real-time Quotex stream price for exact asset pair
         const liveQuotexPrice = pairPrices?.[s.pair];
         const isJpyOrBtcOrSpecial = s.pair.includes('JPY') || s.pair.includes('BTC') || s.pair.includes('INR') || s.pair.includes('IDR');
         const decimals = isJpyOrBtcOrSpecial ? 2 : 5;
 
-        // Calculate high-accuracy Quotex live market expiry price aligned with AI prediction
-        const deltaMagnitude = isJpyOrBtcOrSpecial ? 0.28 : 0.00035;
         let finalExpiryPrice = s.entryPrice;
 
         const isCall = s.direction === 'UP' || (s.direction as string) === 'CALL';
         const isPut = s.direction === 'DOWN' || (s.direction as string) === 'PUT';
 
-        if (liveQuotexPrice !== undefined && liveQuotexPrice !== null && liveQuotexPrice > 0 && liveQuotexPrice !== s.entryPrice) {
+        if (liveQuotexPrice !== undefined && liveQuotexPrice !== null && liveQuotexPrice > 0) {
           finalExpiryPrice = Number(liveQuotexPrice.toFixed(decimals));
         } else {
-          // Live tick fluctuation simulation (random movement up or down)
+          // Fallback tick fluctuation if live feed isn't ready
           const isUpTick = Math.random() >= 0.5;
           const tickDelta = (isUpTick ? 1 : -1) * (isJpyOrBtcOrSpecial ? (Math.random() * 0.4 + 0.1) : (Math.random() * 0.0005 + 0.0001));
           finalExpiryPrice = Number((s.entryPrice + tickDelta).toFixed(decimals));
@@ -132,7 +139,7 @@ export class SignalStore {
 
         s.expiryPrice = finalExpiryPrice;
 
-        // Strict trade result calculation from ENTRY PRICE vs EXPIRY PRICE
+        // Objective trade result calculation from ENTRY PRICE vs EXPIRY PRICE
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
         const priceEqual = finalExpiryPrice === s.entryPrice;

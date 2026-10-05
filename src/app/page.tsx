@@ -641,7 +641,13 @@ export default function SignalsDashboard() {
                         {sig.status === 'ACTIVE' && (
                           <span className="bg-cyan-950/90 border border-cyan-500/50 text-cyan-300 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-pulse">
                             <Activity className="w-3.5 h-3.5 text-cyan-400" />
-                            EVALUATING (QUOTEX 1M STREAM)
+                            ACTIVE TRADE (RUNNING)
+                          </span>
+                        )}
+                        {sig.status === 'EVALUATING' && (
+                          <span className="bg-amber-950/90 border border-amber-500/50 text-amber-300 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-pulse">
+                            <RefreshCw className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                            CONFIRMING QUOTEX FINAL PRICE (5-10s)...
                           </span>
                         )}
                         {sig.status === 'NO_SIGNAL' && (
