@@ -275,145 +275,142 @@ export default function SignalsDashboard() {
   return (
     <div className="min-h-screen bg-[#070913] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
       {/* TOP NAVIGATION BAR */}
-      <header className="border-b border-slate-800/80 bg-[#0b0f1d]/90 backdrop-blur-md sticky top-0 z-50 px-4 py-2.5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-cyan-500 to-emerald-400 p-2 rounded-xl text-black font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <Radio className="w-5 h-5 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-lg tracking-wider text-white">QUOTEX <span className="text-cyan-400 font-normal">BLACROX AI SIGNALS</span></span>
-              <span className="bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 text-[10px] font-mono px-2 py-0.5 rounded-md uppercase tracking-wider">
-                BLACROX AI PRO
-              </span>
+      <header className="border-b border-slate-800/80 bg-[#0b0f1d]/95 backdrop-blur-md sticky top-0 z-50 px-3 sm:px-4 py-2.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shadow-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-gradient-to-tr from-cyan-500 to-emerald-400 p-1.5 sm:p-2 rounded-xl text-black font-black flex items-center justify-center shadow-lg shadow-cyan-500/20">
+              <Radio className="w-4 h-4 sm:w-5 sm:h-5 animate-pulse" />
             </div>
-            <p className="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
-              <span>Quotex Real-Time Binary Stream • Blacrox AI Signal Engine</span>
-            </p>
-          </div>
-        </div>
-
-        {/* NAVIGATION TABS */}
-        <nav className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl">
-          <button
-            onClick={() => setActiveTab('signals')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'signals'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5" />
-            <span>Live Signals</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'signals' ? 'bg-black/20 text-black' : 'bg-cyan-500/20 text-cyan-400'}`}>
-              {activeSignals.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'history'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Signal History</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'history' ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-300'}`}>
-              {signals.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('chart')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'chart'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <LineIcon className="w-3.5 h-3.5" />
-            <span>Quotex Chart</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('logs')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'logs'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Signal Logs</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('performance')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'performance'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Performance</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('engine')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'engine'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Blacrox Engine</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('system')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'system'
-                ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>System Health</span>
-          </button>
-        </nav>
-
-        {/* RIGHT METRICS & CLOCK */}
-        <div className="flex items-center gap-3 text-xs font-mono">
-          <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-slate-300">{currentTime.toLocaleTimeString()}</span>
+            <div>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-extrabold text-sm sm:text-lg tracking-wider text-white">QUOTEX <span className="text-cyan-400 font-normal">BLACROX AI</span></span>
+                <span className="bg-cyan-950/80 text-cyan-400 border border-cyan-800/50 text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  PRO
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                <span>Live Quotex Binary Stream</span>
+              </p>
+            </div>
           </div>
 
           <a
             href="https://qxbroker.com/en/trade"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 font-bold px-3 py-1.5 rounded-lg transition-all text-xs"
+            className="flex md:hidden items-center gap-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 font-bold px-2.5 py-1 rounded-lg text-[11px]"
           >
-            <span>Open Quotex</span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Quotex</span>
+            <ArrowUpRight className="w-3 h-3 text-emerald-400" />
           </a>
+        </div>
 
+        {/* NAVIGATION TABS WITH HORIZONTAL SCROLL ON MOBILE */}
+        <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
+          <nav className="flex items-center gap-1 bg-slate-900/90 border border-slate-800 p-1 rounded-xl shrink-0 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('signals')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'signals'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>Signals</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'signals' ? 'bg-black/20 text-black' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                {activeSignals.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'history'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>History</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'history' ? 'bg-black/20 text-black' : 'bg-slate-800 text-slate-300'}`}>
+                {signals.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('chart')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'chart'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <LineIcon className="w-3.5 h-3.5" />
+              <span>Quotex Chart</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'logs'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Logs</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('performance')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'performance'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Stats</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('engine')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'engine'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Engine</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('system')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeTab === 'system'
+                  ? 'bg-cyan-500 text-black shadow-md shadow-cyan-500/20'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Health</span>
+            </button>
+          </nav>
+
+          {/* GENERATE AI SIGNAL ACTION BUTTON FOR MOBILE & DESKTOP */}
           <button
             onClick={handleTriggerAISignal}
             disabled={isGeneratingSignal}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg transition-all shadow-md shadow-emerald-500/10 active:scale-95 text-xs"
+            className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl transition-all shadow-md shadow-emerald-500/10 active:scale-95 text-xs shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingSignal ? 'animate-spin' : ''}`} />
             <span>
               {isGeneratingSignal
-                ? analysisProgress || `Analyzing Quotex ${selectedPair?.name || ''}...`
-                : `Generate AI Signal (${selectedPair?.name || 'Selected Pair'})`}
+                ? 'Analyzing...'
+                : `AI Signal`}
             </span>
           </button>
         </div>
