@@ -122,29 +122,26 @@ export class SignalStore {
         const isPut = s.direction === 'DOWN' || (s.direction as string) === 'PUT';
 
         if (liveQuotexPrice !== undefined && liveQuotexPrice !== null && liveQuotexPrice > 0 && liveQuotexPrice !== s.entryPrice) {
-          finalExpiryPrice = liveQuotexPrice;
+          finalExpiryPrice = Number(liveQuotexPrice.toFixed(decimals));
         } else {
-          // Dynamic live tick simulation with balanced outcome evaluation
-          const tickDelta = (Math.random() - 0.48) * (isJpyOrBtcOrSpecial ? 0.35 : 0.00045);
+          // Live tick fluctuation simulation (random movement up or down)
+          const isUpTick = Math.random() >= 0.5;
+          const tickDelta = (isUpTick ? 1 : -1) * (isJpyOrBtcOrSpecial ? (Math.random() * 0.4 + 0.1) : (Math.random() * 0.0005 + 0.0001));
           finalExpiryPrice = Number((s.entryPrice + tickDelta).toFixed(decimals));
         }
 
         s.expiryPrice = finalExpiryPrice;
 
-        // Strict evaluation of trade result against entry price vs final expiry price
+        // Strict trade result calculation against entry price vs final expiry price
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
 
-        if (isCall && priceIncreased) {
-          s.status = 'WIN';
-        } else if (isPut && priceDecreased) {
-          s.status = 'WIN';
-        } else if (isCall && priceDecreased) {
-          s.status = 'LOSS';
-        } else if (isPut && priceIncreased) {
-          s.status = 'LOSS';
+        if (isCall) {
+          s.status = priceIncreased ? 'WIN' : 'LOSS';
+        } else if (isPut) {
+          s.status = priceDecreased ? 'WIN' : 'LOSS';
         } else {
-          s.status = 'WIN'; // Tie / Refund
+          s.status = 'WIN';
         }
       }
     });
