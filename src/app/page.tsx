@@ -611,8 +611,8 @@ export default function SignalsDashboard() {
                         </span>
                       </div>
 
-                      {/* STATUS BADGE */}
-                      <div>
+                      {/* STATUS BADGE & MANUAL WIN/LOSS OVERRIDE TOGGLE */}
+                      <div className="flex items-center gap-1.5">
                         {sig.status === 'WIN' && (
                           <span className="bg-emerald-950/90 border border-emerald-500/50 text-emerald-400 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -636,6 +636,24 @@ export default function SignalsDashboard() {
                             NO TRADE
                           </span>
                         )}
+
+                        {/* Interactive Result Override Buttons */}
+                        <div className="flex items-center gap-1 ml-2 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                          <button
+                            onClick={() => handleOverrideStatus(sig.id, 'WIN')}
+                            title="Set result as WIN"
+                            className={`px-1.5 py-0.5 text-[10px] font-bold rounded cursor-pointer transition-colors ${sig.status === 'WIN' ? 'bg-emerald-500 text-black' : 'text-slate-400 hover:text-emerald-400'}`}
+                          >
+                            WIN
+                          </button>
+                          <button
+                            onClick={() => handleOverrideStatus(sig.id, 'LOSS')}
+                            title="Set result as LOSS"
+                            className={`px-1.5 py-0.5 text-[10px] font-bold rounded cursor-pointer transition-colors ${sig.status === 'LOSS' ? 'bg-rose-500 text-white' : 'text-slate-400 hover:text-rose-400'}`}
+                          >
+                            LOSS
+                          </button>
+                        </div>
                       </div>
                     </div>
 
