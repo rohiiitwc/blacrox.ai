@@ -13,7 +13,7 @@ export async function GET() {
 
     const store = SignalStore.getInstance();
     store.evaluateExpiredSignals(pairPrices);
-    const signals = store.getSignals(50, pairPrices);
+    const signals = store.getSignals(500, pairPrices);
     const active = store.getActiveSignals(pairPrices);
 
     return NextResponse.json({
