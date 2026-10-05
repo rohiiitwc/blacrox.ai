@@ -948,42 +948,37 @@ export default function SignalsDashboard() {
           </div>
         )}
 
-        {/* TAB 2: QUOTEX LIVE CHART FEED */}
+        {/* TAB 2: QUOTEX LIVE CHART FEED & TRADING INTERFACE */}
         {activeTab === 'chart' && selectedPair && (
           <div className="space-y-6">
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-2xl font-black text-white">{selectedPair.name}</h2>
-                    <span className="bg-cyan-500/20 text-cyan-400 text-xs font-bold font-mono px-2.5 py-1 rounded-md border border-cyan-500/30">
-                      PAYOUT: {selectedPair.payout}%
+            <div className="bg-[#101422] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+              {/* TOP TOOLBAR */}
+              <div className="bg-[#161c2e] px-5 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  {/* Pair selector dropdown with flag icon */}
+                  <div className="flex items-center gap-2 bg-[#0b0f1d] border border-slate-700/80 px-3 py-1.5 rounded-xl">
+                    <span className="font-extrabold text-sm text-white tracking-wide">{selectedPair.name}</span>
+                    <span className="bg-[#00b875]/20 text-[#00b875] text-[10px] font-mono font-black px-2 py-0.5 rounded border border-[#00b875]/40">
+                      {selectedPair.payout}%
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">Quotex Real-Time OHLC & Technical Indicator Stream</p>
+
+                  <span className="text-slate-400 font-mono text-xs hidden sm:inline">
+                    {currentTime.toLocaleTimeString()} UTC+5:30
+                  </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
                   <a
                     href="https://qxbroker.com/en/trade"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow-md shadow-emerald-500/10"
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-xl transition-all shadow-md shadow-emerald-500/10"
                   >
-                    <span>Open Quotex Platform</span>
+                    <span>Open Quotex Trading</span>
                     <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                   </a>
-                  {(['1M', '5M', '15M'] as const).map(tf => (
-                    <button
-                      key={tf}
-                      onClick={() => setTimeframe(tf)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold ${
-                        timeframe === tf ? 'bg-cyan-500 text-black' : 'bg-slate-800 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      {tf}
-                    </button>
-                  ))}
+
                   <select
                     value={selectedPair.id}
                     onChange={(e) => {
@@ -993,7 +988,7 @@ export default function SignalsDashboard() {
                         fetchCandlesForPair(p.id);
                       }
                     }}
-                    className="bg-slate-950 border border-slate-800 text-cyan-400 text-xs font-bold px-3 py-1.5 rounded-lg outline-none cursor-pointer"
+                    className="bg-[#0b0f1d] border border-slate-700/80 text-cyan-400 text-xs font-bold px-3 py-1.5 rounded-xl outline-none cursor-pointer"
                   >
                     {pairs.map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.payout}%)</option>
@@ -1002,115 +997,205 @@ export default function SignalsDashboard() {
                 </div>
               </div>
 
-              {/* LIVE CANDLESTICK CHART (QUOTEX DARK THEME & CANDLES) */}
-              <div className="h-96 w-full pt-2 bg-[#14192b] p-4 rounded-xl border border-slate-800 shadow-2xl relative">
-                {/* Quotex Watermark & Pair Title Overlay */}
-                <div className="absolute top-6 left-6 z-10 opacity-30 pointer-events-none font-mono text-xs text-slate-400">
-                  <span className="font-extrabold text-sm text-slate-200">{selectedPair.name}</span> • 1m • QUOTEX REAL-TIME
-                </div>
+              {/* MAIN CHART + QUOTEX ORDER PANEL CONTAINER */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 relative">
+                {/* LEFT: CANDLESTICK CHART CONTAINER */}
+                <div className="lg:col-span-9 p-4 bg-[#14192b] relative min-h-[460px] flex flex-col justify-between">
+                  {/* Pair Watermark & Trade Time Lines */}
+                  <div className="absolute top-4 left-4 z-10 opacity-40 pointer-events-none font-mono text-xs text-slate-300">
+                    <span className="font-extrabold text-sm text-white">{selectedPair.name}</span> • 1m • QUOTEX STREAM
+                  </div>
 
-                <ResponsiveContainer width="100%" height={340}>
-                  <BarChart data={candles} barCategoryGap="12%" margin={{ top: 20, right: 70, left: 10, bottom: 10 }}>
-                    <XAxis
-                      dataKey="timestamp"
-                      tickFormatter={(ts) => {
-                        if (!ts) return '';
-                        const date = new Date(Number(ts));
-                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                      }}
-                      stroke="#475569"
-                      fontSize={11}
-                      dy={5}
-                      tickLine={false}
-                      axisLine={{ stroke: '#1e293b' }}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      stroke="#475569"
-                      fontSize={11}
-                      orientation="right"
-                      tickFormatter={(v) => Number(v).toFixed(selectedPair.currentPrice > 100 ? 2 : 4)}
-                      tickLine={false}
-                      axisLine={{ stroke: '#1e293b' }}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0b0f1d', borderColor: '#1e293b', borderRadius: '0.75rem', fontSize: '12px', color: '#f8fafc' }}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload as Candle;
-                          const isGreen = data.close >= data.open;
-                          return (
-                            <div className="bg-[#0b0f1d] border border-slate-700 p-3 rounded-xl shadow-2xl font-mono text-xs space-y-1">
-                              <p className="font-bold text-slate-300 border-b border-slate-800 pb-1">
-                                Time: {new Date(Number(data.timestamp)).toLocaleTimeString()}
-                              </p>
-                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-1">
-                                <span className="text-slate-400">Open: <strong className="text-white">{data.open}</strong></span>
-                                <span className="text-slate-400">High: <strong className="text-white">{data.high}</strong></span>
-                                <span className="text-slate-400">Low: <strong className="text-white">{data.low}</strong></span>
-                                <span className="text-slate-400">Close: <strong className={isGreen ? 'text-[#00b875] font-extrabold' : 'text-[#ff4d4d] font-extrabold'}>{data.close}</strong></span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar
-                      dataKey="close"
-                      shape={(props: unknown) => {
-                        const p = props as { x: number; y: number; width: number; height: number; payload: Candle };
-                        const { x, width, payload } = p;
-                        const isGreen = payload.close >= payload.open;
-                        const candleColor = isGreen ? '#00b875' : '#ff4d4d'; // Quotex Green & Red colors
-                        
-                        const maxVal = Math.max(payload.high, payload.open, payload.close);
-                        const minVal = Math.min(payload.low, payload.open, payload.close);
-                        const bodyTopVal = Math.max(payload.open, payload.close);
-                        const bodyBottomVal = Math.min(payload.open, payload.close);
+                  {/* Beginning & End of Trade Vertical Reference Overlay */}
+                  <div className="absolute top-10 right-28 bottom-12 border-r-2 border-dashed border-slate-600/60 z-10 pointer-events-none flex flex-col items-end text-[10px] text-slate-400 font-mono pr-1">
+                    <span>Beginning of trade</span>
+                  </div>
+                  <div className="absolute top-10 right-16 bottom-12 border-r-2 border-dotted border-slate-500/40 z-10 pointer-events-none flex flex-col items-end text-[10px] text-slate-400 font-mono pr-1">
+                    <span>End of trade</span>
+                  </div>
 
-                        const totalRange = (maxVal - minVal) || 0.00001;
-                        const bodyHeightRatio = (bodyTopVal - bodyBottomVal) / totalRange;
+                  {/* CANDLESTICK BAR CHART */}
+                  <div className="h-[380px] w-full pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={candles} barCategoryGap="12%" margin={{ top: 20, right: 65, left: 10, bottom: 10 }}>
+                        <XAxis
+                          dataKey="timestamp"
+                          tickFormatter={(ts) => {
+                            if (!ts) return '';
+                            const date = new Date(Number(ts));
+                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          }}
+                          stroke="#475569"
+                          fontSize={11}
+                          dy={5}
+                          tickLine={false}
+                          axisLine={{ stroke: '#1e293b' }}
+                        />
+                        <YAxis
+                          domain={['auto', 'auto']}
+                          stroke="#475569"
+                          fontSize={11}
+                          orientation="right"
+                          tickFormatter={(v) => Number(v).toFixed(selectedPair.currentPrice > 100 ? 2 : 4)}
+                          tickLine={false}
+                          axisLine={{ stroke: '#1e293b' }}
+                        />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#0b0f1d', borderColor: '#1e293b', borderRadius: '0.75rem', fontSize: '12px', color: '#f8fafc' }}
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload as Candle;
+                              const isGreen = data.close >= data.open;
+                              return (
+                                <div className="bg-[#0b0f1d] border border-slate-700 p-3 rounded-xl shadow-2xl font-mono text-xs space-y-1">
+                                  <p className="font-bold text-slate-300 border-b border-slate-800 pb-1">
+                                    Time: {new Date(Number(data.timestamp)).toLocaleTimeString()}
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-1">
+                                    <span className="text-slate-400">Open: <strong className="text-white">{data.open}</strong></span>
+                                    <span className="text-slate-400">High: <strong className="text-white">{data.high}</strong></span>
+                                    <span className="text-slate-400">Low: <strong className="text-white">{data.low}</strong></span>
+                                    <span className="text-slate-400">Close: <strong className={isGreen ? 'text-[#00b875] font-extrabold' : 'text-[#ff4d4d] font-extrabold'}>{data.close}</strong></span>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Bar
+                          dataKey="close"
+                          shape={(props: unknown) => {
+                            const p = props as { x: number; y: number; width: number; height: number; payload: Candle };
+                            const { x, width, payload } = p;
+                            const isGreen = payload.close >= payload.open;
+                            const candleColor = isGreen ? '#00b875' : '#ff4d4d'; // Quotex Green & Red colors
+                            
+                            const maxVal = Math.max(payload.high, payload.open, payload.close);
+                            const minVal = Math.min(payload.low, payload.open, payload.close);
+                            const bodyTopVal = Math.max(payload.open, payload.close);
+                            const bodyBottomVal = Math.min(payload.open, payload.close);
 
-                        const candleHeight = Math.max(p.height, 12);
-                        const bodyHeight = Math.max(3, candleHeight * bodyHeightRatio);
-                        const bodyY = p.y + ((maxVal - bodyTopVal) / totalRange) * candleHeight;
-                        const wickX = x + width / 2;
+                            const totalRange = (maxVal - minVal) || 0.00001;
+                            const bodyHeightRatio = (bodyTopVal - bodyBottomVal) / totalRange;
 
-                        return (
-                          <g key={`quotex_candle_${payload.timestamp}`}>
-                            {/* High-to-Low Wick */}
-                            <line
-                              x1={wickX}
-                              y1={p.y}
-                              x2={wickX}
-                              y2={p.y + candleHeight}
-                              stroke={candleColor}
-                              strokeWidth={1.5}
-                            />
-                            {/* Open-to-Close Solid Candle Body */}
-                            <rect
-                              x={x}
-                              y={bodyY}
-                              width={Math.max(width, 4)}
-                              height={bodyHeight}
-                              fill={candleColor}
-                              rx={0.5}
-                            />
-                          </g>
-                        );
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                            const candleHeight = Math.max(p.height, 12);
+                            const bodyHeight = Math.max(3, candleHeight * bodyHeightRatio);
+                            const bodyY = p.y + ((maxVal - bodyTopVal) / totalRange) * candleHeight;
+                            const wickX = x + width / 2;
 
-                {/* Quotex Live Current Price Tag Badge */}
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 pointer-events-none">
-                  <div className="bg-[#0084ff] text-white text-[11px] font-mono font-black px-2 py-1 rounded shadow-lg flex items-center gap-1 animate-pulse">
-                    <span>{selectedPair.currentPrice}</span>
+                            return (
+                              <g key={`quotex_candle_${payload.timestamp}`}>
+                                {/* High-to-Low Wick Line */}
+                                <line
+                                  x1={wickX}
+                                  y1={p.y}
+                                  x2={wickX}
+                                  y2={p.y + candleHeight}
+                                  stroke={candleColor}
+                                  strokeWidth={1.5}
+                                />
+                                {/* Open-to-Close Candle Box */}
+                                <rect
+                                  x={x}
+                                  y={bodyY}
+                                  width={Math.max(width, 4)}
+                                  height={bodyHeight}
+                                  fill={candleColor}
+                                  rx={0.5}
+                                />
+                              </g>
+                            );
+                          }}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Horizontal Live Price Line & Price Badge */}
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-end w-full pointer-events-none pr-1">
+                    <div className="border-b border-dashed border-[#0084ff] w-full" />
+                    <div className="bg-[#0084ff] text-white text-[11px] font-mono font-black px-2 py-1 rounded shadow-xl flex items-center gap-1 z-20 shrink-0">
+                      <span>{selectedPair.currentPrice}</span>
+                    </div>
+                  </div>
+
+                  {/* OHLC STATS BOTTOM BAR */}
+                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 border-t border-slate-800/80 pt-2 px-2">
+                    <span>Open: <strong className="text-white">{candles[candles.length - 1]?.open || selectedPair.currentPrice}</strong></span>
+                    <span>Close: <strong className="text-white">{candles[candles.length - 1]?.close || selectedPair.currentPrice}</strong></span>
+                    <span>High: <strong className="text-white">{candles[candles.length - 1]?.high || selectedPair.currentPrice}</strong></span>
+                    <span>Low: <strong className="text-white">{candles[candles.length - 1]?.low || selectedPair.currentPrice}</strong></span>
                   </div>
                 </div>
+
+                {/* RIGHT: EXACT QUOTEX TRADING SIDE PANEL */}
+                <div className="lg:col-span-3 bg-[#111625] border-l border-slate-800 p-5 space-y-5 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {/* Header: Pair Name & Payout */}
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <div>
+                        <span className="font-extrabold text-sm text-white block">{selectedPair.name}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">1M BINARY OPTION</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-mono font-black text-[#00b875] bg-[#00b875]/20 border border-[#00b875]/40 px-2 py-0.5 rounded block">
+                          +{selectedPair.payout}% Payout
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Expiration Time Box */}
+                    <div className="space-y-1.5 font-mono">
+                      <label className="text-[11px] text-slate-400 uppercase font-semibold block">Time</label>
+                      <div className="flex items-center justify-between bg-[#0b0f1d] border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white">
+                        <span>12:48:00</span>
+                        <span className="text-[10px] text-cyan-400 uppercase font-bold cursor-pointer">1M SWITCH</span>
+                      </div>
+                    </div>
+
+                    {/* Investment Amount Box */}
+                    <div className="space-y-1.5 font-mono">
+                      <label className="text-[11px] text-slate-400 uppercase font-semibold block">Investment</label>
+                      <div className="flex items-center justify-between bg-[#0b0f1d] border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white">
+                        <span>10 $</span>
+                        <span className="text-[10px] text-emerald-400 font-bold">+${(10 * ((selectedPair.payout || 90) / 100)).toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {/* BUY (CALL / HIGHER) BUTTON */}
+                    <button
+                      onClick={handleTriggerAISignal}
+                      disabled={isGeneratingSignal}
+                      className="w-full bg-[#00b875] hover:bg-[#00a368] active:scale-95 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg shadow-[#00b875]/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ArrowUpRight className="w-5 h-5 stroke-[3]" />
+                      <span>{isGeneratingSignal ? 'ANALYZING TEE...' : 'BUY (CALL)'}</span>
+                    </button>
+
+                    {/* SELL (PUT / LOWER) BUTTON */}
+                    <button
+                      onClick={handleTriggerAISignal}
+                      disabled={isGeneratingSignal}
+                      className="w-full bg-[#ff4d4d] hover:bg-[#e63939] active:scale-95 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg shadow-[#ff4d4d]/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ArrowDownRight className="w-5 h-5 stroke-[3]" />
+                      <span>{isGeneratingSignal ? 'ANALYZING TEE...' : 'SELL (PUT)'}</span>
+                    </button>
+                  </div>
+
+                  {/* Trade Link Footer */}
+                  <a
+                    href="https://qxbroker.com/en/trade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/40 text-center font-bold text-xs py-2.5 rounded-xl block transition-all font-mono"
+                  >
+                    Execute Directly on Quotex ↗
+                  </a>
+                </div>
               </div>
+            </div>
 
               {/* INDICATOR SNAPSHOT STRIP */}
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs font-mono bg-slate-950 p-4 rounded-xl border border-slate-800/80 text-center">
@@ -1127,9 +1212,9 @@ export default function SignalsDashboard() {
                   <span className="font-bold text-cyan-400 block mt-0.5">{indicators?.rsi || '58.4'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">EMA 20 / 50</span>
+                  <span className="text-slate-500 block text-[10px]">EMA 20 &amp; 50</span>
                   <span className="font-bold text-slate-300 block mt-0.5">
-                    {indicators?.ema20?.toFixed(4)} / {indicators?.ema50?.toFixed(4)}
+                    {`${indicators?.ema20?.toFixed(4) || '--'} - ${indicators?.ema50?.toFixed(4) || '--'}`}
                   </span>
                 </div>
                 <div>
@@ -1141,7 +1226,6 @@ export default function SignalsDashboard() {
                   <span className="font-bold text-rose-400 block mt-0.5">{indicators?.resistanceLevel?.toFixed(4) || '--'}</span>
                 </div>
               </div>
-            </div>
           </div>
         )}
 
