@@ -193,17 +193,15 @@ export default function SignalsDashboard() {
     }
   };
 
-  const handleResetFeed = async () => {
+  const handleRefreshFeed = async () => {
     try {
-      await fetch('/api/signals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' })
-      });
-      setSignals([]);
-      await fetchSignals();
+      await Promise.all([
+        fetchMarketData(false),
+        fetchSignals(),
+        fetchSystemStatus(),
+      ]);
     } catch (e) {
-      console.error('Failed to reset feed', e);
+      console.error('Failed to refresh feed', e);
     }
   };
 
@@ -466,11 +464,11 @@ export default function SignalsDashboard() {
                 </div>
 
                 <button
-                  onClick={handleResetFeed}
+                  onClick={handleRefreshFeed}
                   className="flex items-center gap-1.5 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-black font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-md shadow-cyan-500/20 active:scale-95 cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Refresh & Clean Signals</span>
+                  <span>Refresh Live Feed</span>
                 </button>
 
                 <div className="bg-cyan-950/60 border border-cyan-800/60 px-3 py-1.5 rounded-xl text-xs font-mono text-cyan-300">
@@ -859,11 +857,11 @@ export default function SignalsDashboard() {
               </div>
 
               <button
-                onClick={handleResetFeed}
-                className="flex items-center gap-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-700/60 font-bold text-xs px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+                onClick={handleRefreshFeed}
+                className="flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/60 font-bold text-xs px-3 py-1.5 rounded-xl transition-all cursor-pointer"
               >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Clear All History</span>
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Refresh History Archive</span>
               </button>
             </div>
 
