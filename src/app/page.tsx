@@ -20,6 +20,8 @@ import {
   LineChart as LineIcon
 } from 'lucide-react';
 import {
+  BarChart,
+  Bar,
   AreaChart,
   Area,
   XAxis,
@@ -1000,30 +1002,99 @@ export default function SignalsDashboard() {
                 </div>
               </div>
 
-              {/* LIVE CANDLE CHART */}
-              <div className="h-80 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={candles}>
-                    <defs>
-                      <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+              {/* LIVE CANDLESTICK CHART (QUOTEX BULLISH/BEARISH CANDLES) */}
+              <div className="h-88 w-full pt-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={candles} barCategoryGap="15%">
                     <XAxis
                       dataKey="timestamp"
-                      tickFormatter={(ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      tickFormatter={(ts) => {
+                        if (!ts) return '';
+                        const date = new Date(Number(ts));
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                      }}
                       stroke="#475569"
                       fontSize={11}
+                      dy={5}
                     />
-                    <YAxis domain={['auto', 'auto']} stroke="#475569" fontSize={11} />
+                    <YAxis
+                      domain={['auto', 'auto']}
+                      stroke="#475569"
+                      fontSize={11}
+                      orientation="right"
+                      tickFormatter={(v) => Number(v).toFixed(selectedPair.currentPrice > 100 ? 2 : 4)}
+                    />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', fontSize: '12px' }}
-                      formatter={(val: unknown) => [String(val), 'Close Price']}
-                      labelFormatter={(labelValue: unknown) => (labelValue ? new Date(Number(labelValue) || String(labelValue)).toLocaleTimeString() : '')}
+                      contentStyle={{ backgroundColor: '#0b0f1d', borderColor: '#1e293b', borderRadius: '0.75rem', fontSize: '12px', color: '#f8fafc' }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload as Candle;
+                          const isGreen = data.close >= data.open;
+                          return (
+                            <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-xl font-mono text-xs space-y-1">
+                              <p className="font-bold text-slate-300 border-b border-slate-800 pb-1">
+                                Time: {new Date(Number(data.timestamp)).toLocaleTimeString()}
+                              </p>
+                              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-1">
+                                <span className="text-slate-400">Open: <strong className="text-white">{data.open}</strong></span>
+                                <span className="text-slate-400">High: <strong className="text-white">{data.high}</strong></span>
+                                <span className="text-slate-400">Low: <strong className="text-white">{data.low}</strong></span>
+                                <span className="text-slate-400">Close: <strong className={isGreen ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold'}>{data.close}</strong></span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
-                    <Area type="monotone" dataKey="close" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#colorPrice)" />
-                  </AreaChart>
+                    <Bar
+                      dataKey="close"
+                      shape={(props: unknown) => {
+                        const p = props as { x: number; y: number; width: number; height: number; payload: Candle; background?: { y: number; height: number } };
+                        const { x, width, payload } = p;
+                        const isGreen = payload.close >= payload.open;
+                        const candleColor = isGreen ? '#10b981' : '#f43f5e';
+                        
+                        // Compute wick and body rendering coordinates
+                        const maxVal = payload.high;
+                        const minVal = payload.low;
+                        const range = (maxVal - minVal) || 0.0001;
+
+                        const chartHeight = 280;
+                        const bodyTopVal = Math.max(payload.open, payload.close);
+                        const bodyBottomVal = Math.min(payload.open, payload.close);
+
+                        const highY = p.y;
+                        const candleH = Math.max(p.height, 2);
+                        const bodyY = highY + ((maxVal - bodyTopVal) / range) * candleH;
+                        const bodyH = Math.max(4, ((bodyTopVal - bodyBottomVal) / range) * candleH);
+                        const wickX = x + width / 2;
+
+                        return (
+                          <g key={`candle_${payload.timestamp}`}>
+                            {/* Candle High/Low Wick Line */}
+                            <line
+                              x1={wickX}
+                              y1={highY}
+                              x2={wickX}
+                              y2={highY + candleH}
+                              stroke={candleColor}
+                              strokeWidth={1.5}
+                            />
+                            {/* Candle Real Open/Close Body Box */}
+                            <rect
+                              x={x}
+                              y={bodyY}
+                              width={width}
+                              height={bodyH}
+                              fill={candleColor}
+                              rx={1}
+                            />
+                          </g>
+                        );
+                      }}
+                    />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
 

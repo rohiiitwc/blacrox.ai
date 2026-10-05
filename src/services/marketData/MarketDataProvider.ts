@@ -1259,18 +1259,18 @@ export class DemoMarketDataProvider extends MarketDataProvider {
 
   async getCandles(pairId: string, limit: number = 60): Promise<Candle[]> {
     const pair = this.pairs.find((p) => p.id === pairId) || this.pairs[0];
-    const now = Math.floor(Date.now() / 1000);
+    const nowMs = Date.now();
     
     // Generate realistic organic candles if not present
     let candles = this.candleCache.get(pairId);
     if (!candles || candles.length < limit) {
       candles = [];
       let currentPrice = pair.basePrice;
-      const step = 60; // 1-minute candles
-      const start = now - limit * step;
+      const stepMs = 60 * 1000; // 1-minute candles in milliseconds
+      const startMs = nowMs - limit * stepMs;
 
       for (let i = 0; i < limit; i++) {
-        const time = start + i * step;
+        const timeMs = startMs + i * stepMs;
         const volatilityFactor = pair.volatility === 'HIGH' ? 0.0012 : 0.0005;
         const open = currentPrice;
         const change = (Math.random() - 0.49) * (open * volatilityFactor);
@@ -1280,7 +1280,7 @@ export class DemoMarketDataProvider extends MarketDataProvider {
         const decimals = open > 100 ? 2 : 5;
 
         candles.push({
-          timestamp: time,
+          timestamp: timeMs,
           open: Number(open.toFixed(decimals)),
           high: Number(high.toFixed(decimals)),
           low: Number(low.toFixed(decimals)),
