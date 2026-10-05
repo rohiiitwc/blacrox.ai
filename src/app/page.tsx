@@ -1093,15 +1093,17 @@ export default function SignalsDashboard() {
                                   x2={wickX}
                                   y2={p.y + candleHeight}
                                   stroke={candleColor}
-                                  strokeWidth={1.5}
+                                  strokeWidth={1.8}
                                 />
                                 {/* Open-to-Close Candle Box */}
                                 <rect
                                   x={x}
                                   y={bodyY}
-                                  width={Math.max(width, 4)}
+                                  width={Math.max(width, 5)}
                                   height={bodyHeight}
                                   fill={candleColor}
+                                  stroke={candleColor}
+                                  strokeWidth={0.5}
                                   rx={0.5}
                                 />
                               </g>
