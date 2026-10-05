@@ -484,8 +484,8 @@ export default function SignalsDashboard() {
 
             {/* LIVE QUOTEX 1M CANDLESTICK CHART BANNER */}
             {selectedPair && (
-              <div className="bg-[#101422] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl space-y-0">
-                <div className="bg-[#161c2e] px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+              <div className="bg-[#0b0e19] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl space-y-0">
+                <div className="bg-[#121727] px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="font-extrabold text-sm text-white tracking-wide">{selectedPair.name}</span>
                     <span className="bg-[#00b875]/20 text-[#00b875] text-[10px] font-mono font-black px-2 py-0.5 rounded border border-[#00b875]/40">
@@ -496,19 +496,22 @@ export default function SignalsDashboard() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveTab('chart')}
-                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold px-3 py-1 rounded-lg transition-colors"
+                    <a
+                      href="https://qxbroker.com/en/trade"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-[#00b875] hover:bg-[#00a368] text-white text-xs font-bold px-3 py-1 rounded-lg transition-colors flex items-center gap-1"
                     >
-                      Full Trading View →
-                    </button>
+                      <span>Quotex Live</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#14192b] relative h-[320px] w-full">
+                <div className="p-3 bg-[#0d111e] relative h-[320px] w-full">
                   {/* Candlestick Chart */}
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={candles} barCategoryGap="10%" margin={{ top: 15, right: 60, left: 10, bottom: 5 }}>
+                    <BarChart data={candles} barCategoryGap="10%" margin={{ top: 15, right: 65, left: 5, bottom: 5 }}>
                       <XAxis
                         dataKey="timestamp"
                         tickFormatter={(ts) => {
