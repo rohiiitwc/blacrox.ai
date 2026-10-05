@@ -1002,10 +1002,15 @@ export default function SignalsDashboard() {
                 </div>
               </div>
 
-              {/* LIVE CANDLESTICK CHART (QUOTEX BULLISH/BEARISH CANDLES) */}
-              <div className="h-88 w-full pt-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={candles} barCategoryGap="15%">
+              {/* LIVE CANDLESTICK CHART (QUOTEX DARK THEME & CANDLES) */}
+              <div className="h-96 w-full pt-2 bg-[#14192b] p-4 rounded-xl border border-slate-800 shadow-2xl relative">
+                {/* Quotex Watermark & Pair Title Overlay */}
+                <div className="absolute top-6 left-6 z-10 opacity-30 pointer-events-none font-mono text-xs text-slate-400">
+                  <span className="font-extrabold text-sm text-slate-200">{selectedPair.name}</span> • 1m • QUOTEX REAL-TIME
+                </div>
+
+                <ResponsiveContainer width="100%" height={340}>
+                  <BarChart data={candles} barCategoryGap="12%" margin={{ top: 20, right: 70, left: 10, bottom: 10 }}>
                     <XAxis
                       dataKey="timestamp"
                       tickFormatter={(ts) => {
@@ -1016,6 +1021,8 @@ export default function SignalsDashboard() {
                       stroke="#475569"
                       fontSize={11}
                       dy={5}
+                      tickLine={false}
+                      axisLine={{ stroke: '#1e293b' }}
                     />
                     <YAxis
                       domain={['auto', 'auto']}
@@ -1023,6 +1030,8 @@ export default function SignalsDashboard() {
                       fontSize={11}
                       orientation="right"
                       tickFormatter={(v) => Number(v).toFixed(selectedPair.currentPrice > 100 ? 2 : 4)}
+                      tickLine={false}
+                      axisLine={{ stroke: '#1e293b' }}
                     />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#0b0f1d', borderColor: '#1e293b', borderRadius: '0.75rem', fontSize: '12px', color: '#f8fafc' }}
@@ -1031,7 +1040,7 @@ export default function SignalsDashboard() {
                           const data = payload[0].payload as Candle;
                           const isGreen = data.close >= data.open;
                           return (
-                            <div className="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-xl font-mono text-xs space-y-1">
+                            <div className="bg-[#0b0f1d] border border-slate-700 p-3 rounded-xl shadow-2xl font-mono text-xs space-y-1">
                               <p className="font-bold text-slate-300 border-b border-slate-800 pb-1">
                                 Time: {new Date(Number(data.timestamp)).toLocaleTimeString()}
                               </p>
@@ -1039,7 +1048,7 @@ export default function SignalsDashboard() {
                                 <span className="text-slate-400">Open: <strong className="text-white">{data.open}</strong></span>
                                 <span className="text-slate-400">High: <strong className="text-white">{data.high}</strong></span>
                                 <span className="text-slate-400">Low: <strong className="text-white">{data.low}</strong></span>
-                                <span className="text-slate-400">Close: <strong className={isGreen ? 'text-emerald-400 font-extrabold' : 'text-rose-400 font-extrabold'}>{data.close}</strong></span>
+                                <span className="text-slate-400">Close: <strong className={isGreen ? 'text-[#00b875] font-extrabold' : 'text-[#ff4d4d] font-extrabold'}>{data.close}</strong></span>
                               </div>
                             </div>
                           );
@@ -1050,45 +1059,43 @@ export default function SignalsDashboard() {
                     <Bar
                       dataKey="close"
                       shape={(props: unknown) => {
-                        const p = props as { x: number; y: number; width: number; height: number; payload: Candle; background?: { y: number; height: number } };
+                        const p = props as { x: number; y: number; width: number; height: number; payload: Candle };
                         const { x, width, payload } = p;
                         const isGreen = payload.close >= payload.open;
-                        const candleColor = isGreen ? '#10b981' : '#f43f5e';
+                        const candleColor = isGreen ? '#00b875' : '#ff4d4d'; // Quotex Green & Red colors
                         
-                        // Compute wick and body rendering coordinates
-                        const maxVal = payload.high;
-                        const minVal = payload.low;
-                        const range = (maxVal - minVal) || 0.0001;
-
-                        const chartHeight = 280;
+                        const maxVal = Math.max(payload.high, payload.open, payload.close);
+                        const minVal = Math.min(payload.low, payload.open, payload.close);
                         const bodyTopVal = Math.max(payload.open, payload.close);
                         const bodyBottomVal = Math.min(payload.open, payload.close);
 
-                        const highY = p.y;
-                        const candleH = Math.max(p.height, 2);
-                        const bodyY = highY + ((maxVal - bodyTopVal) / range) * candleH;
-                        const bodyH = Math.max(4, ((bodyTopVal - bodyBottomVal) / range) * candleH);
+                        const totalRange = (maxVal - minVal) || 0.00001;
+                        const bodyHeightRatio = (bodyTopVal - bodyBottomVal) / totalRange;
+
+                        const candleHeight = Math.max(p.height, 12);
+                        const bodyHeight = Math.max(3, candleHeight * bodyHeightRatio);
+                        const bodyY = p.y + ((maxVal - bodyTopVal) / totalRange) * candleHeight;
                         const wickX = x + width / 2;
 
                         return (
-                          <g key={`candle_${payload.timestamp}`}>
-                            {/* Candle High/Low Wick Line */}
+                          <g key={`quotex_candle_${payload.timestamp}`}>
+                            {/* High-to-Low Wick */}
                             <line
                               x1={wickX}
-                              y1={highY}
+                              y1={p.y}
                               x2={wickX}
-                              y2={highY + candleH}
+                              y2={p.y + candleHeight}
                               stroke={candleColor}
                               strokeWidth={1.5}
                             />
-                            {/* Candle Real Open/Close Body Box */}
+                            {/* Open-to-Close Solid Candle Body */}
                             <rect
                               x={x}
                               y={bodyY}
-                              width={width}
-                              height={bodyH}
+                              width={Math.max(width, 4)}
+                              height={bodyHeight}
                               fill={candleColor}
-                              rx={1}
+                              rx={0.5}
                             />
                           </g>
                         );
@@ -1096,6 +1103,13 @@ export default function SignalsDashboard() {
                     />
                   </BarChart>
                 </ResponsiveContainer>
+
+                {/* Quotex Live Current Price Tag Badge */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 z-20 pointer-events-none">
+                  <div className="bg-[#0084ff] text-white text-[11px] font-mono font-black px-2 py-1 rounded shadow-lg flex items-center gap-1 animate-pulse">
+                    <span>{selectedPair.currentPrice}</span>
+                  </div>
+                </div>
               </div>
 
               {/* INDICATOR SNAPSHOT STRIP */}
