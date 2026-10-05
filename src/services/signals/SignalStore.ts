@@ -132,7 +132,7 @@ export class SignalStore {
 
         s.expiryPrice = finalExpiryPrice;
 
-        // Evaluate result against entry vs expiry price
+        // Evaluate exact trade result against entry price vs expiry price
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
 
@@ -141,9 +141,9 @@ export class SignalStore {
         } else if (isPut && priceDecreased) {
           s.status = 'WIN';
         } else if (finalExpiryPrice === s.entryPrice) {
-          s.status = 'WIN'; // Push/refund
+          s.status = 'WIN'; // Push / refund on exact price tie
         } else {
-          s.status = 'WIN'; // High precision fallback
+          s.status = 'LOSS'; // Accurate OTM Loss when price move is opposite to trade direction
         }
       }
     });
