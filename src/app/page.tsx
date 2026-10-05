@@ -961,7 +961,16 @@ export default function SignalsDashboard() {
                   <p className="text-xs text-slate-400 mt-1">Quotex Real-Time OHLC & Technical Indicator Stream</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <a
+                    href="https://qxbroker.com/en/trade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg transition-all shadow-md shadow-emerald-500/10"
+                  >
+                    <span>Open Quotex Platform</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </a>
                   {(['1M', '5M', '15M'] as const).map(tf => (
                     <button
                       key={tf}
