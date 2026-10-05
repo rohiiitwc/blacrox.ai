@@ -1038,10 +1038,10 @@ export default function SignalsDashboard() {
                 </div>
               </div>
 
-              {/* MAIN CHART + QUOTEX ORDER PANEL CONTAINER */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 relative">
-                {/* LEFT: CANDLESTICK CHART CONTAINER */}
-                <div className="lg:col-span-9 p-4 bg-[#14192b] relative min-h-[460px] flex flex-col justify-between">
+              {/* MAIN CHART CONTAINER */}
+              <div className="w-full relative">
+                {/* CANDLESTICK CHART CONTAINER */}
+                <div className="w-full p-4 bg-[#14192b] relative min-h-[460px] flex flex-col justify-between">
                   {/* Pair Watermark & Trade Time Lines */}
                   <div className="absolute top-4 left-4 z-10 opacity-40 pointer-events-none font-mono text-xs text-slate-300">
                     <span className="font-extrabold text-sm text-white">{selectedPair.name}</span> • 1m • QUOTEX STREAM
@@ -1161,72 +1161,6 @@ export default function SignalsDashboard() {
                     <span>High: <strong className="text-white">{candles[candles.length - 1]?.high || selectedPair.currentPrice}</strong></span>
                     <span>Low: <strong className="text-white">{candles[candles.length - 1]?.low || selectedPair.currentPrice}</strong></span>
                   </div>
-                </div>
-
-                {/* RIGHT: EXACT QUOTEX TRADING SIDE PANEL */}
-                <div className="lg:col-span-3 bg-[#111625] border-l border-slate-800 p-5 space-y-5 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    {/* Header: Pair Name & Payout */}
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                      <div>
-                        <span className="font-extrabold text-sm text-white block">{selectedPair.name}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">1M BINARY OPTION</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-mono font-black text-[#00b875] bg-[#00b875]/20 border border-[#00b875]/40 px-2 py-0.5 rounded block">
-                          +{selectedPair.payout}% Payout
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Expiration Time Box */}
-                    <div className="space-y-1.5 font-mono">
-                      <label className="text-[11px] text-slate-400 uppercase font-semibold block">Time</label>
-                      <div className="flex items-center justify-between bg-[#0b0f1d] border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white">
-                        <span>12:48:00</span>
-                        <span className="text-[10px] text-cyan-400 uppercase font-bold cursor-pointer">1M SWITCH</span>
-                      </div>
-                    </div>
-
-                    {/* Investment Amount Box */}
-                    <div className="space-y-1.5 font-mono">
-                      <label className="text-[11px] text-slate-400 uppercase font-semibold block">Investment</label>
-                      <div className="flex items-center justify-between bg-[#0b0f1d] border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-bold text-white">
-                        <span>10 $</span>
-                        <span className="text-[10px] text-emerald-400 font-bold">+${(10 * ((selectedPair.payout || 90) / 100)).toFixed(2)}</span>
-                      </div>
-                    </div>
-
-                    {/* BUY (CALL / HIGHER) BUTTON */}
-                    <button
-                      onClick={handleTriggerAISignal}
-                      disabled={isGeneratingSignal}
-                      className="w-full bg-[#00b875] hover:bg-[#00a368] active:scale-95 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg shadow-[#00b875]/20 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ArrowUpRight className="w-5 h-5 stroke-[3]" />
-                      <span>{isGeneratingSignal ? 'ANALYZING TEE...' : 'BUY (CALL)'}</span>
-                    </button>
-
-                    {/* SELL (PUT / LOWER) BUTTON */}
-                    <button
-                      onClick={handleTriggerAISignal}
-                      disabled={isGeneratingSignal}
-                      className="w-full bg-[#ff4d4d] hover:bg-[#e63939] active:scale-95 text-white font-extrabold text-sm py-3.5 rounded-xl transition-all shadow-lg shadow-[#ff4d4d]/20 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ArrowDownRight className="w-5 h-5 stroke-[3]" />
-                      <span>{isGeneratingSignal ? 'ANALYZING TEE...' : 'SELL (PUT)'}</span>
-                    </button>
-                  </div>
-
-                  {/* Trade Link Footer */}
-                  <a
-                    href="https://qxbroker.com/en/trade"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-cyan-500/40 text-center font-bold text-xs py-2.5 rounded-xl block transition-all font-mono"
-                  >
-                    Execute Directly on Quotex ↗
-                  </a>
                 </div>
               </div>
             </div>
