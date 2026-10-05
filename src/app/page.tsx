@@ -485,6 +485,128 @@ export default function SignalsDashboard() {
               </div>
             </div>
 
+            {/* LIVE QUOTEX 1M CANDLESTICK CHART BANNER */}
+            {selectedPair && (
+              <div className="bg-[#101422] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl space-y-0">
+                <div className="bg-[#161c2e] px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-extrabold text-sm text-white tracking-wide">{selectedPair.name}</span>
+                    <span className="bg-[#00b875]/20 text-[#00b875] text-[10px] font-mono font-black px-2 py-0.5 rounded border border-[#00b875]/40">
+                      +{selectedPair.payout}% Payout
+                    </span>
+                    <span className="text-slate-400 font-mono text-xs hidden sm:inline">
+                      1M CANDLESTICKS • LIVE QUOTEX STREAM
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTab('chart')}
+                      className="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold px-3 py-1 rounded-lg transition-colors"
+                    >
+                      Full Trading View →
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[#14192b] relative h-[320px] w-full">
+                  {/* Candlestick Chart */}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={candles} barCategoryGap="10%" margin={{ top: 15, right: 60, left: 10, bottom: 5 }}>
+                      <XAxis
+                        dataKey="timestamp"
+                        tickFormatter={(ts) => {
+                          if (!ts) return '';
+                          const date = new Date(Number(ts));
+                          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }}
+                        stroke="#475569"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={{ stroke: '#1e293b' }}
+                      />
+                      <YAxis
+                        domain={['auto', 'auto']}
+                        stroke="#475569"
+                        fontSize={10}
+                        orientation="right"
+                        tickFormatter={(v) => Number(v).toFixed(selectedPair.currentPrice > 100 ? 2 : 4)}
+                        tickLine={false}
+                        axisLine={{ stroke: '#1e293b' }}
+                      />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#0b0f1d', borderColor: '#1e293b', borderRadius: '0.75rem', fontSize: '11px', color: '#f8fafc' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload as Candle;
+                            const isGreen = data.close >= data.open;
+                            return (
+                              <div className="bg-[#0b0f1d] border border-slate-700 p-2.5 rounded-xl font-mono text-xs space-y-1">
+                                <p className="font-bold text-slate-300 border-b border-slate-800 pb-1">
+                                  Time: {new Date(Number(data.timestamp)).toLocaleTimeString()}
+                                </p>
+                                <div className="grid grid-cols-2 gap-x-2 text-[11px]">
+                                  <span className="text-slate-400">Open: <strong className="text-white">{data.open}</strong></span>
+                                  <span className="text-slate-400">High: <strong className="text-white">{data.high}</strong></span>
+                                  <span className="text-slate-400">Low: <strong className="text-white">{data.low}</strong></span>
+                                  <span className="text-slate-400">Close: <strong className={isGreen ? 'text-[#00b875]' : 'text-[#ff4d4d]'}>{data.close}</strong></span>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar
+                        dataKey="close"
+                        shape={(props: unknown) => {
+                          const p = props as { x: number; y: number; width: number; height: number; payload: Candle };
+                          const { x, width, payload } = p;
+                          const isGreen = payload.close >= payload.open;
+                          const candleColor = isGreen ? '#00b875' : '#ff4d4d';
+                          
+                          const maxVal = Math.max(payload.high, payload.open, payload.close);
+                          const minVal = Math.min(payload.low, payload.open, payload.close);
+                          const bodyTopVal = Math.max(payload.open, payload.close);
+                          const bodyBottomVal = Math.min(payload.open, payload.close);
+
+                          const totalRange = (maxVal - minVal) || 0.00001;
+                          const bodyHeightRatio = (bodyTopVal - bodyBottomVal) / totalRange;
+
+                          const candleHeight = Math.max(p.height, 12);
+                          const bodyHeight = Math.max(3, candleHeight * bodyHeightRatio);
+                          const bodyY = p.y + ((maxVal - bodyTopVal) / totalRange) * candleHeight;
+                          const wickX = x + width / 2;
+
+                          return (
+                            <g key={`signals_candle_${payload.timestamp}`}>
+                              <line
+                                x1={wickX}
+                                y1={p.y}
+                                x2={wickX}
+                                y2={p.y + candleHeight}
+                                stroke={candleColor}
+                                strokeWidth={1.8}
+                              />
+                              <rect
+                                x={x}
+                                y={bodyY}
+                                width={Math.max(width, 5)}
+                                height={bodyHeight}
+                                fill={candleColor}
+                                stroke={candleColor}
+                                strokeWidth={0.5}
+                                rx={0.5}
+                              />
+                            </g>
+                          );
+                        }}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
             {/* QUOTEX MARKET PAIRS DIRECTORY & PAYOUT (%) PANEL */}
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl">
               <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-3">
