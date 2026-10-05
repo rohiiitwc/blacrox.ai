@@ -1260,14 +1260,14 @@ export class DemoMarketDataProvider extends MarketDataProvider {
   async getCandles(pairId: string, limit: number = 60): Promise<Candle[]> {
     const pair = this.pairs.find((p) => p.id === pairId) || this.pairs[0];
     const nowMs = Date.now();
-    
-    // Generate realistic organic candles if not present
+    const currentMinuteMs = Math.floor(nowMs / (60 * 1000)) * (60 * 1000);
+    const stepMs = 60 * 1000; // Exact 1-minute interval scale
+
     let candles = this.candleCache.get(pairId);
     if (!candles || candles.length < limit) {
       candles = [];
       let currentPrice = pair.basePrice;
-      const stepMs = 60 * 1000; // 1-minute candles in milliseconds
-      const startMs = nowMs - limit * stepMs;
+      const startMs = currentMinuteMs - (limit - 1) * stepMs;
 
       for (let i = 0; i < limit; i++) {
         const timeMs = startMs + i * stepMs;
@@ -1291,13 +1291,28 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       }
       this.candleCache.set(pairId, candles);
     } else {
-      // Append newest tick candle update
+      // Check if current minute candle exists
       const lastCandle = candles[candles.length - 1];
-      const delta = (Math.random() - 0.49) * (lastCandle.close * 0.0003);
-      const newClose = Number((lastCandle.close + delta).toFixed(lastCandle.close > 100 ? 2 : 5));
-      lastCandle.close = newClose;
-      lastCandle.high = Math.max(lastCandle.high, newClose);
-      lastCandle.low = Math.min(lastCandle.low, newClose);
+      if (lastCandle.timestamp < currentMinuteMs) {
+        // Rollover to next 1-minute candle
+        const open = pair.currentPrice;
+        const decimals = open > 100 ? 2 : 5;
+        candles.push({
+          timestamp: currentMinuteMs,
+          open: Number(open.toFixed(decimals)),
+          high: Number(open.toFixed(decimals)),
+          low: Number(open.toFixed(decimals)),
+          close: Number(open.toFixed(decimals)),
+          volume: Math.floor(Math.random() * 200) + 50,
+        });
+      } else {
+        // Update live forming 1M candle with current tick
+        const decimals = pair.currentPrice > 100 ? 2 : 5;
+        const newClose = Number(pair.currentPrice.toFixed(decimals));
+        lastCandle.close = newClose;
+        lastCandle.high = Math.max(lastCandle.high, newClose);
+        lastCandle.low = Math.min(lastCandle.low, newClose);
+      }
     }
 
     return candles.slice(-limit);
