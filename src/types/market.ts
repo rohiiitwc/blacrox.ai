@@ -11,7 +11,7 @@ export interface MarketPair {
   timestamp: string;
   status: 'OPEN' | 'CLOSED' | 'HIGH_VOLATILITY' | 'UNAVAILABLE';
   volatility: 'LOW' | 'MEDIUM' | 'HIGH';
-  session: 'TOKYO' | 'LONDON' | 'NEW_YORK' | 'SYDNEY' | '24/7';
+  session: 'TOKYO' | 'LONDON' | 'NEW_YORK' | 'SYDNEY' | '24/7' | '24/7 OTC' | 'LIVE MARKET' | 'CRYPTO LIVE';
   payout: number | null; // null if unavailable
   freshnessMs: number;
 }

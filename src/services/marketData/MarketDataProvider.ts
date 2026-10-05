@@ -1148,11 +1148,39 @@ export class DemoMarketDataProvider extends MarketDataProvider {
     return 'DemoMarketDataProvider (Real-Time Quotex Live & OTC Feed Adapter)';
   }
 
+  private isUSMarketHoliday(date: Date): boolean {
+    // US Federal Market Holidays check (e.g. New Year, MLK, Presidents' Day, Memorial Day, Juneteenth, Independence Day, Labor Day, Thanksgiving, Christmas)
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1; // 1-12
+    const day = date.getUTCDate();
+
+    // Fixed-date US Market Holidays
+    if (month === 1 && day === 1) return true;   // New Year's Day
+    if (month === 6 && day === 19) return true;  // Juneteenth
+    if (month === 7 && day === 4) return true;   // Independence Day
+    if (month === 12 && day === 25) return true; // Christmas Day
+
+    // Variable US Market Holidays (Mondays / Thursdays)
+    // Martin Luther King Jr. Day (3rd Monday of Jan)
+    if (month === 1 && date.getUTCDay() === 1 && day >= 15 && day <= 21) return true;
+    // Washington's Birthday / Presidents' Day (3rd Monday of Feb)
+    if (month === 2 && date.getUTCDay() === 1 && day >= 15 && day <= 21) return true;
+    // Memorial Day (Last Monday of May)
+    if (month === 5 && date.getUTCDay() === 1 && day >= 25 && day <= 31) return true;
+    // Labor Day (1st Monday of Sep)
+    if (month === 9 && date.getUTCDay() === 1 && day >= 1 && day <= 7) return true;
+    // Thanksgiving Day (4th Thursday of Nov)
+    if (month === 11 && date.getUTCDay() === 4 && day >= 22 && day <= 28) return true;
+
+    return false;
+  }
+
   async getPairs(): Promise<MarketPair[]> {
     const now = new Date();
     const currentMinute = now.getMinutes();
     const dayOfWeek = now.getUTCDay(); // 0 = Sunday, 6 = Saturday
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isUSHoliday = this.isUSMarketHoliday(now);
     const shouldUpdatePayout = this.lastPayoutUpdateMinute !== currentMinute;
 
     if (shouldUpdatePayout) {
@@ -1167,30 +1195,48 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       const percent = Number(((change / p.basePrice) * 100).toFixed(3));
       const spread = p.currentPrice > 100 ? 0.02 : 0.0002;
 
-      // Dynamically evaluate Weekend Sunday OTC vs Weekday Monday-Friday Live Session
+      // Evaluate Weekend & US Holiday rules for Quotex Live vs OTC status
       let displayName = p.name;
       let sessionType = p.session;
+      let isOTCActive = false;
 
-      if (p.category === 'forex') {
-        if (isWeekend) {
-          // Weekend OTC mode for Forex
+      if (isWeekend || isUSHoliday) {
+        // Weekend or US Holiday -> All Forex/Commodities switch to OTC 24/7 mode
+        isOTCActive = true;
+        if (!displayName.includes('(OTC)')) {
+          displayName = `${p.name.replace(' (OTC)', '')} (OTC)`;
+        }
+        sessionType = '24/7 OTC';
+      } else {
+        // Monday to Friday Live Trading Hours
+        if (p.category === 'forex') {
+          // Regular Forex market live from Mon-Fri
+          isOTCActive = false;
+          displayName = p.name.replace(/\s*\(OTC\)/i, '');
+          sessionType = 'LIVE MARKET';
+        } else if (p.category === 'otc') {
+          // Permanent Quotex Special OTC Asset Pairs (e.g. USD/IDR (OTC), USD/BRL (OTC), USD/COP (OTC)) remain OTC
+          isOTCActive = true;
           if (!displayName.includes('(OTC)')) {
             displayName = `${p.name} (OTC)`;
           }
-          sessionType = '24/7';
-        } else {
-          // Weekday Live mode for Forex (Monday to Friday)
-          displayName = p.name.replace(' (OTC)', '');
-          sessionType = 'LONDON';
+          sessionType = '24/7 OTC';
+        } else if (p.category === 'crypto') {
+          // Crypto OTC weekend vs Live weekday
+          isOTCActive = false;
+          displayName = p.name.replace(/\s*\(OTC\)/i, '');
+          sessionType = 'CRYPTO LIVE';
         }
       }
 
-      // Every 1 minute on clean minute boundaries, update live Quotex broker payout fluctuations (+/- 1-2%)
-      const basePayout = p.payout ?? 85;
-      let currentPayout = basePayout;
+      // Live Quotex profit percentage payouts (Live: 82%-93%, OTC: 90%-96%)
+      const basePayout = isOTCActive ? 92 : 86;
+      let currentPayout = p.payout ?? basePayout;
       if (shouldUpdatePayout) {
-        const payoutFluctuation = Math.random() > 0.80 ? (Math.random() > 0.5 ? 1 : -1) : 0;
-        currentPayout = Math.min(96, Math.max(70, basePayout + payoutFluctuation));
+        const payoutFluctuation = Math.random() > 0.75 ? (Math.random() > 0.5 ? 1 : -1) : 0;
+        const maxLimit = isOTCActive ? 96 : 92;
+        const minLimit = isOTCActive ? 88 : 80;
+        currentPayout = Math.min(maxLimit, Math.max(minLimit, basePayout + payoutFluctuation));
       }
 
       return {
