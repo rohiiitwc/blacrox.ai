@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SignalStore } from '@/services/signals/SignalStore';
 import { DemoMarketDataProvider } from '@/services/marketData/MarketDataProvider';
+import { SignalDirection } from '@/types/market';
 
 export async function GET() {
   try {
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     // 1. Direct Signal Ingestion from Daemon Dispatcher
     if ((action === 'CALL' || action === 'PUT') && pair) {
       const confNum = typeof confidence === 'string' ? parseInt(confidence.replace('%', ''), 10) || 88 : (confidence || 88);
-      const direction = action === 'CALL' ? 'UP' : 'DOWN';
+      const direction: SignalDirection = action === 'CALL' ? 'UP' : 'DOWN';
       const sigTimeMs = signalTime ? new Date(signalTime.includes('T') ? signalTime : `${new Date().toISOString().split('T')[0]}T${signalTime}Z`).getTime() : Date.now();
       const expTimeMs = expiryTime ? new Date(expiryTime.includes('T') ? expiryTime : `${new Date().toISOString().split('T')[0]}T${expiryTime}Z`).getTime() : sigTimeMs + 75000;
       const numEntry = Number(entryPrice) || 1.0850;
