@@ -1232,13 +1232,13 @@ export class DemoMarketDataProvider extends MarketDataProvider {
       }
 
       // Live Quotex profit percentage payouts (Live: 82%-93%, OTC: 90%-96%)
-      const basePayout = isOTCActive ? 92 : 86;
-      let currentPayout = p.payout ?? basePayout;
-      if (shouldUpdatePayout) {
-        const payoutFluctuation = Math.random() > 0.75 ? (Math.random() > 0.5 ? 1 : -1) : 0;
-        const maxLimit = isOTCActive ? 96 : 92;
+      const targetBasePayout = p.payout ?? (isOTCActive ? 93 : 88);
+      let currentPayout = p.payout ?? targetBasePayout;
+      if (shouldUpdatePayout || Math.random() > 0.85) {
+        const payoutFluctuation = Math.random() > 0.7 ? (Math.random() > 0.5 ? 1 : -1) : 0;
+        const maxLimit = isOTCActive ? 96 : 93;
         const minLimit = isOTCActive ? 88 : 80;
-        currentPayout = Math.min(maxLimit, Math.max(minLimit, basePayout + payoutFluctuation));
+        currentPayout = Math.min(maxLimit, Math.max(minLimit, currentPayout + payoutFluctuation));
       }
 
       return {
