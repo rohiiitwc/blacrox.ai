@@ -107,39 +107,46 @@ export class SignalStore {
 
   public evaluateExpiredSignals(pairPrices?: Record<string, number>) {
     const nowMs = Date.now();
-    const evaluationWindowMs = 8000; // 8-second confirmation delay after trade duration ends
+    const evaluationWindowMs = 20000; // 20-second confirmation delay after trade duration ends (15 to 30 seconds)
 
     this.signals.forEach((s) => {
       const expiryMs = new Date(s.expiryTime).getTime();
 
       if (s.status === 'ACTIVE' && nowMs >= expiryMs) {
-        // Transition into EVALUATING state (5-10s final confirmation window)
+        // Transition into EVALUATING state (15-30s final confirmation window)
         s.status = 'EVALUATING';
       }
 
       if ((s.status === 'ACTIVE' || s.status === 'EVALUATING') && nowMs >= expiryMs + evaluationWindowMs) {
         // Fetch live real-time Quotex stream price for exact asset pair
-        const liveQuotexPrice = pairPrices?.[s.pair];
+        let liveQuotexPrice = pairPrices?.[s.pair];
+
+        if (liveQuotexPrice === undefined && pairPrices) {
+          // Normalize lookup to match pairs like "USD/IDR (OTC)", "USD_IDR_OTC", "EUR/USD"
+          const cleanTarget = s.pair.replace(/[\/\s()_-]/g, '').toLowerCase();
+          const matchedKey = Object.keys(pairPrices).find(
+            (k) => k.replace(/[\/\s()_-]/g, '').toLowerCase() === cleanTarget
+          );
+          if (matchedKey) {
+            liveQuotexPrice = pairPrices[matchedKey];
+          }
+        }
+
         const isJpyOrBtcOrSpecial = s.pair.includes('JPY') || s.pair.includes('BTC') || s.pair.includes('INR') || s.pair.includes('IDR');
         const decimals = isJpyOrBtcOrSpecial ? 2 : 5;
 
-        let finalExpiryPrice = s.entryPrice;
+        let finalExpiryPrice = s.expiryPrice ?? s.entryPrice;
 
         const isCall = s.direction === 'UP' || (s.direction as string) === 'CALL';
         const isPut = s.direction === 'DOWN' || (s.direction as string) === 'PUT';
 
         if (liveQuotexPrice !== undefined && liveQuotexPrice !== null && liveQuotexPrice > 0) {
           finalExpiryPrice = Number(liveQuotexPrice.toFixed(decimals));
-        } else {
-          // Fallback tick fluctuation if live feed isn't ready
-          const isUpTick = Math.random() >= 0.5;
-          const tickDelta = (isUpTick ? 1 : -1) * (isJpyOrBtcOrSpecial ? (Math.random() * 0.4 + 0.1) : (Math.random() * 0.0005 + 0.0001));
-          finalExpiryPrice = Number((s.entryPrice + tickDelta).toFixed(decimals));
         }
 
         s.expiryPrice = finalExpiryPrice;
 
-        // Objective trade result calculation from ENTRY PRICE vs EXPIRY PRICE
+        // Objective trade result calculation from ENTRY PRICE vs EXPIRY PRICE (Quotex Live Chart)
         const priceIncreased = finalExpiryPrice > s.entryPrice;
         const priceDecreased = finalExpiryPrice < s.entryPrice;
         const priceEqual = finalExpiryPrice === s.entryPrice;

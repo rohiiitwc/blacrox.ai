@@ -10,6 +10,7 @@ export async function GET() {
     const pairPrices: Record<string, number> = {};
     pairs.forEach((p) => {
       pairPrices[p.name] = p.currentPrice;
+      pairPrices[p.id] = p.currentPrice;
     });
 
     const store = SignalStore.getInstance();

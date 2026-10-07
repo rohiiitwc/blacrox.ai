@@ -647,7 +647,7 @@ export default function SignalsDashboard() {
                         {sig.status === 'EVALUATING' && (
                           <span className="bg-amber-950/90 border border-amber-500/50 text-amber-300 font-bold text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 animate-pulse">
                             <RefreshCw className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-                            CONFIRMING QUOTEX FINAL PRICE (5-10s)...
+                            CONFIRMING QUOTEX LIVE PRICE (15-30s)...
                           </span>
                         )}
                         {sig.status === 'NO_SIGNAL' && (
@@ -787,6 +787,12 @@ export default function SignalsDashboard() {
                             <span className="bg-cyan-950 border border-cyan-500/50 text-cyan-300 font-black px-2.5 py-0.5 rounded text-xs flex items-center gap-1 animate-pulse">
                               <Activity className="w-3.5 h-3.5 text-cyan-400" />
                               TRADE IN PROGRESS
+                            </span>
+                          )}
+                          {sig.status === 'EVALUATING' && (
+                            <span className="bg-amber-950 border border-amber-500/50 text-amber-300 font-black px-2.5 py-0.5 rounded text-xs flex items-center gap-1 animate-pulse">
+                              <RefreshCw className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                              CONFIRMING SETTLEMENT (15-30s)...
                             </span>
                           )}
                           {sig.status === 'NO_SIGNAL' && (

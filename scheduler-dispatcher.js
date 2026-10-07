@@ -119,8 +119,10 @@ class SchedulerDispatcher {
   async verifyPendingSettlements(now) {
     const nowMs = now.getTime();
 
+    const settlementDelayMs = 20000; // 20-second confirmation delay after trade expiry (15-30 seconds)
+
     for (const [key, sig] of this.activeSignals.entries()) {
-      if (sig.status === 'ACTIVE' && nowMs >= sig.expiryTimestampMs) {
+      if (sig.status === 'ACTIVE' && nowMs >= sig.expiryTimestampMs + settlementDelayMs) {
         // Fetch exact exit strike settlement price from Quotex broker socket
         const exitPrice = this.scraper.getLatestPrice(this.targetPair) || sig.entryPrice;
         

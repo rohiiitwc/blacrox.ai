@@ -1189,8 +1189,10 @@ export class DemoMarketDataProvider extends MarketDataProvider {
 
     // Micro-tick prices every second and synchronize 1-minute real-time Quotex payout & live/OTC status
     this.pairs = this.pairs.map((p) => {
-      const delta = (Math.random() - 0.49) * (p.currentPrice * 0.0003);
-      const newPrice = Number((p.currentPrice + delta).toFixed(p.currentPrice > 100 ? 2 : 5));
+      // Mean-reversion around exact Quotex base rate with realistic micro-tick fluctuations
+      const pull = (p.basePrice - p.currentPrice) * 0.08;
+      const noise = (Math.random() - 0.5) * (p.basePrice * 0.0001);
+      const newPrice = Number((p.currentPrice + pull + noise).toFixed(p.currentPrice > 100 ? 2 : 5));
       const change = Number((newPrice - p.basePrice).toFixed(p.currentPrice > 100 ? 2 : 5));
       const percent = Number(((change / p.basePrice) * 100).toFixed(3));
       const spread = p.currentPrice > 100 ? 0.02 : 0.0002;
@@ -1271,12 +1273,16 @@ export class DemoMarketDataProvider extends MarketDataProvider {
 
       for (let i = 0; i < limit; i++) {
         const timeMs = startMs + i * stepMs;
-        const volatilityFactor = pair.volatility === 'HIGH' ? 0.0012 : 0.0005;
+        const volatilityFactor = pair.volatility === 'HIGH' ? 0.0008 : 0.0004;
         const open = currentPrice;
-        const change = (Math.random() - 0.49) * (open * volatilityFactor);
-        const close = open + change;
-        const high = Math.max(open, close) + Math.random() * (open * volatilityFactor * 0.5);
-        const low = Math.min(open, close) - Math.random() * (open * volatilityFactor * 0.5);
+        // Target progression towards pair.currentPrice
+        const progress = (i + 1) / limit;
+        const target = pair.basePrice + (pair.currentPrice - pair.basePrice) * progress;
+        const pull = (target - open) * 0.3;
+        const noise = (Math.random() - 0.5) * (open * volatilityFactor);
+        const close = open + pull + noise;
+        const high = Math.max(open, close) + Math.abs((Math.random() * (open * volatilityFactor * 0.4)));
+        const low = Math.min(open, close) - Math.abs((Math.random() * (open * volatilityFactor * 0.4)));
         const decimals = open > 100 ? 2 : 5;
 
         candles.push({
