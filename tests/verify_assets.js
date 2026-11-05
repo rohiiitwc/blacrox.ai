@@ -24,3 +24,4 @@ for (const c of cssLinks) {
 }
 
 console.log('All linked assets exist!');
+

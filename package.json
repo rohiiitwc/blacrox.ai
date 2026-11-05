@@ -7,7 +7,16 @@
     "start": "node server.js",
     "test": "node tests/test_suite.js"
   },
-  "keywords": [],
+  "keywords": [
+    "trading",
+    "quotex",
+    "chart-analysis",
+    "educational-simulator",
+    "ai",
+    "chatgpt",
+    "gemini",
+    "grok"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
