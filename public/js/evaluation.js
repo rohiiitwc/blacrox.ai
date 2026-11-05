@@ -46,6 +46,12 @@ const EvaluationUI = (() => {
     btnSubmitEval.disabled = true;
     btnSubmitEval.textContent = 'Evaluated';
 
+    // Auto-clear preview screenshot and stop countdown on trade evaluation completion
+    if (window.DashboardUI) {
+      DashboardUI.stopTradeExpiryCountdown();
+      DashboardUI.resetUpload();
+    }
+
     // Broadcast stats refresh
     window.dispatchEvent(new CustomEvent('evaluation-recorded'));
   }

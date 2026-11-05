@@ -58,6 +58,11 @@
             <span class="badge-timeframe">PNG, JPG, JPEG (Max 10MB)</span>
           </div>
 
+          <div id="tradeCompletionNotice" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; color: #10b981; font-size: 0.85rem; font-weight: 600; align-items: center; justify-content: space-between;">
+            <span id="tradeCompletionNoticeText">✅ Trade completed! Screenshot automatically cleared. Ready for next chart.</span>
+            <button type="button" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="document.getElementById('tradeCompletionNotice').style.display='none'">✕</button>
+          </div>
+
           <div class="dropzone" id="dropzone">
             <div class="dropzone-icon">📥</div>
             <div class="dropzone-text">Drag & drop your Quotex chart screenshot here, or click to browse</div>
@@ -97,7 +102,10 @@
             </div>
             <div class="preview-actions">
               <span id="previewFilename" style="font-family: monospace;">chart.png</span>
-              <div style="display: flex; gap: 8px;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <span id="previewAutoDeleteNotice" style="display: none; font-size: 0.78rem; color: #34d399; font-weight: 600; padding: 4px 10px; background: rgba(52, 211, 153, 0.12); border-radius: 4px; border: 1px solid rgba(52, 211, 153, 0.3);">
+                  ⏱️ Auto-deleting after trade completion...
+                </span>
                 <button id="btnRemoveImage" class="btn btn-danger" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">🗑️ Remove</button>
                 <button id="btnStartAnalysis" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem;" disabled>⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)</button>
               </div>
@@ -160,6 +168,7 @@
                 <span class="winrate-master-badge" id="allInOneWinRateBadge">🎯 All-in-One Win Rate: 89.2%</span>
                 <span class="dont-trade-pill" id="dontTradePill" style="display: none;">🚫 DON'T TRADE</span>
                 <span class="badge-timeframe" id="headerEntryTimeBadge" style="background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); color: #34d399; font-weight: 700; font-size: 0.85rem;">🕒 Entry: --:--:-- IST</span>
+                <span class="badge-timeframe" id="headerTradeStatusBadge" style="display: none; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; font-size: 0.85rem;">⏳ Trade: In Progress</span>
                 <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
               </div>
             </div>
@@ -218,6 +227,11 @@
                     <span>⏳ Expiry (1-Minute Candle):</span>
                     <strong id="resultExpiryTimeIst">--:--:-- IST</strong>
                   </div>
+                </div>
+
+                <!-- Live Trade Expiry & Auto-Delete Status Box -->
+                <div class="trade-countdown-box" id="tradeCountdownBox" style="display: none; margin-top: 8px; padding: 8px 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 6px; font-size: 0.82rem; color: #60a5fa; font-weight: 700; text-align: center;">
+                  <span id="tradeCountdownText">⏱️ Trade Running: 58s until expiry — Screenshot will auto-delete upon completion</span>
                 </div>
 
                 <div class="trade-recommendation-badge" id="tradeRecommendationBadge" style="display: none;">

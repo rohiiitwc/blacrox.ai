@@ -53,12 +53,20 @@ function computeIstTradeTiming(visibleTimeStr, serverTimestamp = Date.now()) {
   const expiryTimeIst = `${pad(expiryHour)}:${pad(expiryMinute)}:00 IST`;
   const currentIstTime = `${pad(hour)}:${pad(minute)}:${pad(second)} IST`;
 
+  // Calculate trade countdown until expiry
+  const secondsUntilEntry = (60 - second) % 60 || 60;
+  const totalSecondsUntilExpiry = secondsUntilEntry + 60; // 1-minute candle trade
+  const expiryTimestamp = serverTimestamp + (totalSecondsUntilExpiry * 1000);
+
   return {
     entryTimeIst,
     expiryTimeIst,
     currentIstTime,
     entryMinute,
-    entryHour
+    entryHour,
+    secondsUntilEntry,
+    totalSecondsUntilExpiry,
+    expiryTimestamp
   };
 }
 
@@ -432,6 +440,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     current_price: detectedPrice,
     entry_time_ist: entryTimeIst,
     expiry_time_ist: expiryTimeIst,
+    expiry_timestamp: timing.expiryTimestamp,
+    seconds_until_expiry: timing.totalSecondsUntilExpiry,
     consensus_decision: consensusDecision,
     consensus_confidence: consensusConfidence,
     all_in_one_win_rate: allInOneWinRate,

@@ -179,6 +179,99 @@ const DashboardUI = (() => {
     dropzone.style.display = 'block';
     btnStartAnalysis.disabled = true;
     btnStartAnalysis.textContent = '⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)';
+    const previewAutoDeleteNotice = document.getElementById('previewAutoDeleteNotice');
+    if (previewAutoDeleteNotice) previewAutoDeleteNotice.style.display = 'none';
+  }
+
+  let activeTradeCountdown = null;
+
+  function stopTradeExpiryCountdown() {
+    if (activeTradeCountdown) {
+      clearInterval(activeTradeCountdown);
+      activeTradeCountdown = null;
+    }
+  }
+
+  function showTradeCompleteToast(expiryTimeIst) {
+    const toast = document.getElementById('tradeCompletionNotice');
+    const toastText = document.getElementById('tradeCompletionNoticeText');
+    if (toast && toastText) {
+      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Screenshot automatically deleted. Drop your next chart screenshot below!`;
+      toast.style.display = 'flex';
+    }
+  }
+
+  function startTradeExpiryCountdown(expiryTimestamp, expiryTimeIst) {
+    stopTradeExpiryCountdown();
+
+    const tradeCountdownBox = document.getElementById('tradeCountdownBox');
+    const tradeCountdownText = document.getElementById('tradeCountdownText');
+    const previewAutoDeleteNotice = document.getElementById('previewAutoDeleteNotice');
+    const headerTradeStatusBadge = document.getElementById('headerTradeStatusBadge');
+
+    const targetTime = expiryTimestamp || (Date.now() + 60 * 1000);
+
+    if (tradeCountdownBox) {
+      tradeCountdownBox.style.display = 'block';
+      tradeCountdownBox.style.background = 'rgba(59, 130, 246, 0.12)';
+      tradeCountdownBox.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+      tradeCountdownBox.style.color = '#60a5fa';
+    }
+    if (previewAutoDeleteNotice) {
+      previewAutoDeleteNotice.style.display = 'inline-flex';
+    }
+    if (headerTradeStatusBadge) {
+      headerTradeStatusBadge.style.display = 'inline-flex';
+      headerTradeStatusBadge.style.background = 'rgba(59, 130, 246, 0.15)';
+      headerTradeStatusBadge.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+      headerTradeStatusBadge.style.color = '#60a5fa';
+    }
+
+    function tick() {
+      const remainingMs = targetTime - Date.now();
+      const secondsLeft = Math.max(0, Math.ceil(remainingMs / 1000));
+
+      if (secondsLeft > 0) {
+        if (tradeCountdownText) {
+          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until expiry (at ${expiryTimeIst}) — Screenshot will auto-delete upon completion`;
+        }
+        if (previewAutoDeleteNotice) {
+          previewAutoDeleteNotice.textContent = `⏱️ Auto-deleting in ${secondsLeft}s (trade completion)`;
+        }
+        if (headerTradeStatusBadge) {
+          headerTradeStatusBadge.textContent = `⏳ Trade: ${secondsLeft}s left (Expiry ${expiryTimeIst})`;
+        }
+      } else {
+        // Trade is complete!
+        stopTradeExpiryCountdown();
+
+        // Auto delete / clear the screenshot preview
+        resetUpload();
+
+        if (tradeCountdownBox) {
+          tradeCountdownBox.style.background = 'rgba(16, 185, 129, 0.15)';
+          tradeCountdownBox.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          tradeCountdownBox.style.color = '#34d399';
+        }
+        if (tradeCountdownText) {
+          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Screenshot automatically deleted. Ready for next chart.`;
+        }
+        if (previewAutoDeleteNotice) {
+          previewAutoDeleteNotice.style.display = 'none';
+        }
+        if (headerTradeStatusBadge) {
+          headerTradeStatusBadge.textContent = `✅ Trade Completed (${expiryTimeIst})`;
+          headerTradeStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+          headerTradeStatusBadge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+          headerTradeStatusBadge.style.color = '#34d399';
+        }
+
+        showTradeCompleteToast(expiryTimeIst);
+      }
+    }
+
+    tick();
+    activeTradeCountdown = setInterval(tick, 1000);
   }
 
   let activeScanTimer = null;
@@ -442,6 +535,9 @@ const DashboardUI = (() => {
     // Broadcast analysis loaded event for Evaluation UI
     window.dispatchEvent(new CustomEvent('analysis-loaded', { detail: { analysis, aiResults } }));
 
+    // Start Live Trade Expiry Countdown & Auto-Delete Timer
+    startTradeExpiryCountdown(analysis.expiry_timestamp, expiryTimeIst);
+
     // Scroll smoothly to results
     resultView.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -492,6 +588,8 @@ const DashboardUI = (() => {
     init,
     renderAnalysis,
     resetUpload,
+    startTradeExpiryCountdown,
+    stopTradeExpiryCountdown,
     getCurrentAnalysis: () => currentAnalysis
   };
 })();
