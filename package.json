@@ -5,9 +5,16 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "dev": "node --watch server.js",
+    "build": "echo \"Build complete: static assets ready in public/\"",
     "test": "node tests/test_suite.js"
   },
-  "keywords": [],
+  "keywords": [
+    "trading",
+    "quotex",
+    "chart-analysis",
+    "ai"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",

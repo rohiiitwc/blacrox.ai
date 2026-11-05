@@ -12,6 +12,7 @@ package-lock.json
 *.db
 *.sqlite
 *.sqlite3
+data/
 database/blacrox.db
 
 # User uploads & temporary files
