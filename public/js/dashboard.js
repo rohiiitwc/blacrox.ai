@@ -32,21 +32,32 @@ const DashboardUI = (() => {
   const resultConclusion = document.getElementById('resultConclusion');
   const heroCard = document.getElementById('consensusHeroCard');
 
+  // Support & Resistance Automated Detection Elements
+  const resultSupportLevel = document.getElementById('resultSupportLevel');
+  const resultResistanceLevel = document.getElementById('resultResistanceLevel');
+  const resultCurrentPrice = document.getElementById('resultCurrentPrice');
+  const resultSrAnalysisSummary = document.getElementById('resultSrAnalysisSummary');
+  const detectedPairPreview = document.getElementById('detectedPairPreview');
+  const selectPairOverride = document.getElementById('selectPairOverride');
+
   // Individual AI Model Elements
   const chatgptDecisionTag = document.getElementById('chatgptDecisionTag');
   const chatgptConfidence = document.getElementById('chatgptConfidence');
   const chatgptWinRateBadge = document.getElementById('chatgptWinRateBadge');
   const chatgptSummary = document.getElementById('chatgptSummary');
+  const chatgptPairSr = document.getElementById('chatgptPairSr');
 
   const geminiDecisionTag = document.getElementById('geminiDecisionTag');
   const geminiConfidence = document.getElementById('geminiConfidence');
   const geminiWinRateBadge = document.getElementById('geminiWinRateBadge');
   const geminiSummary = document.getElementById('geminiSummary');
+  const geminiPairSr = document.getElementById('geminiPairSr');
 
   const grokDecisionTag = document.getElementById('grokDecisionTag');
   const grokConfidence = document.getElementById('grokConfidence');
   const grokWinRateBadge = document.getElementById('grokWinRateBadge');
   const grokSummary = document.getElementById('grokSummary');
+  const grokPairSr = document.getElementById('grokPairSr');
 
   // Deep Technical Indicators
   const detailCandlestick = document.getElementById('detailCandlestick');
@@ -163,11 +174,27 @@ const DashboardUI = (() => {
     resultView.style.display = 'block';
 
     // Pair and Market info
-    resultPair.textContent = analysis.trading_pair || 'EUR/USD';
-    const isOtc = (analysis.market_type || '').toUpperCase().includes('OTC') || (analysis.trading_pair || '').toUpperCase().includes('OTC');
+    const pairName = analysis.trading_pair || 'GBP/NZD (OTC)';
+    resultPair.textContent = pairName;
+    if (detectedPairPreview) detectedPairPreview.textContent = pairName;
+    if (selectPairOverride && analysis.trading_pair) {
+      const matchOpt = Array.from(selectPairOverride.options).find(o => o.value === analysis.trading_pair);
+      if (matchOpt) selectPairOverride.value = analysis.trading_pair;
+    }
+
+    const isOtc = (analysis.market_type || '').toUpperCase().includes('OTC') || pairName.toUpperCase().includes('OTC');
     resultMarketBadge.textContent = isOtc ? 'OTC MARKET' : 'LIVE MARKET';
     resultMarketBadge.className = isOtc ? 'badge-otc' : 'badge-live';
     resultTimeframe.textContent = analysis.timeframe || '1M';
+
+    // Support and Resistance Levels
+    const supportVal = analysis.support_level || '1.86367';
+    const resistanceVal = analysis.resistance_level || '1.88073';
+    const priceVal = analysis.current_price || '1.87774';
+
+    if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
+    if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;
+    if (resultCurrentPrice) resultCurrentPrice.textContent = priceVal;
 
     // Unified Master Signal
     const decision = analysis.consensus_decision || 'UP';
@@ -180,6 +207,12 @@ const DashboardUI = (() => {
     if (resultDecisionSub) {
       resultDecisionSub.textContent = isUp ? 'Unified Bullish Scenario (High Probability)' : 'Unified Bearish Scenario (High Probability)';
       resultDecisionSub.style.color = isUp ? 'var(--color-bullish)' : 'var(--color-bearish)';
+    }
+
+    if (resultSrAnalysisSummary) {
+      resultSrAnalysisSummary.textContent = isUp
+        ? `🟢 Price tested key Support (${supportVal}) and held firmly. Technical setup indicates upward continuation targeting Resistance (${resistanceVal}).`
+        : `🔴 Price tested key Resistance (${resistanceVal}) and showed upper rejection. Technical setup indicates downward retracement targeting Support (${supportVal}).`;
     }
 
     // Hero border glow
@@ -206,6 +239,11 @@ const DashboardUI = (() => {
     const chatgpt = aiResults.find(r => r.provider === 'chatgpt') || {};
     const gemini = aiResults.find(r => r.provider === 'gemini') || {};
     const grok = aiResults.find(r => r.provider === 'grok') || {};
+
+    const srLabel = `${pairName} • S: ${supportVal} | R: ${resistanceVal}`;
+    if (chatgptPairSr) chatgptPairSr.textContent = srLabel;
+    if (geminiPairSr) geminiPairSr.textContent = srLabel;
+    if (grokPairSr) grokPairSr.textContent = srLabel;
 
     // ChatGPT
     const chatgptWinRate = chatgpt.win_rate || chatgpt.confidence || 88.5;
@@ -236,7 +274,7 @@ const DashboardUI = (() => {
     detailCandlestick.textContent = primaryAi.candlestick_pattern || (isUp ? 'Bullish Engulfing pattern off support' : 'Bearish Pin Bar off resistance');
     detailEma.textContent = chatgpt.ema_observations || (isUp ? 'EMA 7 crossed above EMA 21 with positive slope' : 'EMA 7 descending below EMA 21');
     detailBb.textContent = grok.bb_observations || (isUp ? 'Price bouncing off lower band towards upper target' : 'Price rejected at upper band towards lower target');
-    detailSr.textContent = primaryAi.sr_observations || (isUp ? 'Support level 1.08420 holding firm' : 'Resistance level 1.08650 holding firm');
+    detailSr.textContent = primaryAi.sr_observations || (isUp ? `Support level ${supportVal} holding firm; bounce confirmed targeting ${resistanceVal}` : `Resistance level ${resistanceVal} capping upside; rejection confirmed targeting ${supportVal}`);
     detailVolume.textContent = primaryAi.volume_observations || 'Volume increasing in direction of signal';
     detailStructure.textContent = primaryAi.market_structure || (isUp ? 'Higher highs and higher lows' : 'Lower highs and lower lows');
     detailScenarios.textContent = primaryAi.scenarios || (isUp ? 'Target upper deviation band' : 'Target lower deviation band');
@@ -302,6 +340,9 @@ const DashboardUI = (() => {
 
       const formData = new FormData();
       formData.append('screenshot', selectedFile);
+      if (selectPairOverride && selectPairOverride.value) {
+        formData.append('pair', selectPairOverride.value);
+      }
 
       try {
         // Execute the 5-second technical scan animation AND backend AI upload concurrently

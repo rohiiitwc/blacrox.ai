@@ -5,7 +5,8 @@ const { extractAndParseJson } = require('./parseHelper');
 async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
   const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+  const candidateModels = [primaryModel, 'gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.8-flash'];
 
   if (!apiKey || apiKey.trim() === '' || apiKey.startsWith('AIzaSy-placeholder')) {
     return {
@@ -21,45 +22,57 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
     const imageBuffer = fs.readFileSync(imagePath);
     const base64Image = imageBuffer.toString('base64');
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    let response = null;
+    let selectedModel = primaryModel;
+    let lastErrText = '';
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
+    for (const m of candidateModels) {
+      selectedModel = m;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [
               {
-                text: `${SYSTEM_CHART_PROMPT}\n\nPlease analyze this Quotex trading chart screenshot in detail for our educational trading simulator.`
-              },
-              {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64Image
-                }
+                parts: [
+                  {
+                    text: `${SYSTEM_CHART_PROMPT}\n\nPlease inspect this Quotex trading chart screenshot carefully. Identify the exact trading pair shown in the top-left tab or right panel (e.g. GBP/NZD (OTC)), extract the exact Support price level number, Resistance price level number, Current price, and evaluate the upcoming 1-minute candle direction based on Support and Resistance reaction and momentum.`
+                  },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Image
+                    }
+                  }
+                ]
               }
-            ]
-          }
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.2
-        }
-      })
-    });
+            ],
+            generationConfig: {
+              response_mime_type: 'application/json',
+              temperature: 0.2
+            }
+          })
+        });
+
+        if (response.ok) break;
+        lastErrText = await response.text();
+      } catch (e) {
+        lastErrText = e.message;
+      }
+    }
 
     const elapsed = Date.now() - startTime;
 
-    if (!response.ok) {
-      const errText = await response.text();
+    if (!response || !response.ok) {
       return {
         provider: 'gemini',
         provider_label: 'Gemini (Google)',
         status: 'ERROR',
-        error_message: `Gemini API Error (${response.status}): ${errText}`,
+        error_message: `Gemini API Error (${selectedModel}): ${lastErrText}`,
         time_ms: elapsed
       };
     }
@@ -77,6 +90,9 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
       pair: parsed.pair || 'Unknown',
       market_type: parsed.market_type || 'Unknown',
       timeframe: parsed.timeframe || '1M',
+      support_level: parsed.support_level || '',
+      resistance_level: parsed.resistance_level || '',
+      current_price: parsed.current_price || '',
       trend: parsed.trend || 'Trend not clear',
       candlestick_pattern: parsed.candlestick_pattern || 'Not specified',
       ema_observations: parsed.ema_observations || 'Not visible on chart',

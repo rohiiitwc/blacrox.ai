@@ -65,6 +65,31 @@
             <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" style="display: none;">
           </div>
 
+          <!-- Asset Pair Detection & Selector Bar -->
+          <div class="asset-selector-bar" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Detected Pair:</span>
+              <span class="badge-otc" id="detectedPairPreview" style="font-size: 0.8rem; padding: 3px 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa;">Auto-Detect from Chart</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Quotex Asset:</span>
+              <select id="selectPairOverride" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: 6px; cursor: pointer;">
+                <option value="">⚡ Auto-Detect (Reads screenshot)</option>
+                <option value="GBP/NZD (OTC)">GBP/NZD (OTC)</option>
+                <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
+                <option value="USD/INR (OTC)">USD/INR (OTC)</option>
+                <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
+                <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
+                <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
+                <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
+                <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+                <option value="EUR/USD">EUR/USD (Live)</option>
+                <option value="GBP/USD">GBP/USD (Live)</option>
+                <option value="BTC/USD">BTC/USD (Crypto)</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Image Preview -->
           <div class="image-preview-container" id="previewContainer">
             <div class="image-preview-wrapper">
@@ -127,13 +152,51 @@
           <div class="consensus-hero-card" id="consensusHeroCard">
             <div class="chart-meta-row">
               <div class="pair-info">
-                <span class="pair-title" id="resultPair">EUR/USD</span>
+                <span class="pair-title" id="resultPair">GBP/NZD (OTC)</span>
                 <span class="badge-otc" id="resultMarketBadge">OTC MARKET</span>
                 <span class="badge-timeframe" id="resultTimeframe">1M</span>
               </div>
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span class="winrate-master-badge" id="allInOneWinRateBadge">🎯 All-in-One Win Rate: 89.2%</span>
                 <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
+              </div>
+            </div>
+
+            <!-- Support & Resistance Automated Detection Bar -->
+            <div class="sr-metric-panel" id="srMetricPanel">
+              <div class="sr-metric-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="sr-pulse-dot"></span>
+                  <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                    AUTOMATIC SUPPORT & RESISTANCE EXTRACTION
+                  </span>
+                </div>
+                <span style="font-size: 0.75rem; color: #10b981; font-weight: 600; background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                  ✓ AI Chart Levels Synchronized
+                </span>
+              </div>
+              <div class="sr-levels-grid">
+                <!-- Resistance Level -->
+                <div class="sr-level-box resistance-box">
+                  <div class="sr-level-label">🔴 Resistance Level</div>
+                  <div class="sr-level-val text-down" id="resultResistanceLevel">1.88073</div>
+                  <div class="sr-level-sub">Key Supply Ceiling</div>
+                </div>
+                <!-- Current Price -->
+                <div class="sr-level-box price-box">
+                  <div class="sr-level-label">🔵 Current Price</div>
+                  <div class="sr-level-val" id="resultCurrentPrice" style="color: #60a5fa;">1.87774</div>
+                  <div class="sr-level-sub">Live Chart Price Tag</div>
+                </div>
+                <!-- Support Level -->
+                <div class="sr-level-box support-box">
+                  <div class="sr-level-label">🟢 Support Level</div>
+                  <div class="sr-level-val text-up" id="resultSupportLevel">1.86367</div>
+                  <div class="sr-level-sub">Key Demand Floor</div>
+                </div>
+              </div>
+              <div class="sr-analysis-summary" id="resultSrAnalysisSummary">
+                Price testing Resistance level (1.88073) and Support (1.86367) on 1M chart.
               </div>
             </div>
 
@@ -173,6 +236,7 @@
                     <span class="model-name">ChatGPT (OpenAI)</span>
                     <span class="model-decision-tag tag-up" id="chatgptDecisionTag">▲ CALL (UP)</span>
                   </div>
+                  <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="chatgptPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="model-winrate-badge" id="chatgptWinRateBadge">Win Rate: 88.5%</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="chatgptConfidence">88%</strong></span>
@@ -186,6 +250,7 @@
                     <span class="model-name">Gemini (Google)</span>
                     <span class="model-decision-tag tag-up" id="geminiDecisionTag">▲ CALL (UP)</span>
                   </div>
+                  <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="geminiPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="model-winrate-badge" id="geminiWinRateBadge">Win Rate: 90.1%</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="geminiConfidence">90%</strong></span>
@@ -199,6 +264,7 @@
                     <span class="model-name">Grok (xAI)</span>
                     <span class="model-decision-tag tag-up" id="grokDecisionTag">▲ CALL (UP)</span>
                   </div>
+                  <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="grokPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="model-winrate-badge" id="grokWinRateBadge">Win Rate: 87.8%</span>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="grokConfidence">87%</strong></span>

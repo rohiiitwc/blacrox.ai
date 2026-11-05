@@ -34,6 +34,9 @@ function initSchema() {
       trading_pair TEXT DEFAULT 'Unknown',
       market_type TEXT DEFAULT 'Unknown',
       timeframe TEXT DEFAULT '1M',
+      support_level TEXT DEFAULT '',
+      resistance_level TEXT DEFAULT '',
+      current_price TEXT DEFAULT '',
       upload_timestamp TEXT NOT NULL,
       server_time INTEGER NOT NULL,
       status TEXT DEFAULT 'COMPLETED',
@@ -56,6 +59,9 @@ function initSchema() {
       pair TEXT,
       market_type TEXT,
       timeframe TEXT,
+      support_level TEXT DEFAULT '',
+      resistance_level TEXT DEFAULT '',
+      current_price TEXT DEFAULT '',
       trend TEXT,
       candlestick_pattern TEXT,
       ema_observations TEXT,
@@ -91,6 +97,15 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_evaluations_user_id ON evaluations(user_id);
     CREATE INDEX IF NOT EXISTS idx_evaluations_analysis_id ON evaluations(analysis_id);
   `);
+
+  // Safe incremental schema migrations
+  try { db.exec("ALTER TABLE analyses ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN current_price TEXT DEFAULT '';"); } catch (e) {}
+
+  try { db.exec("ALTER TABLE ai_results ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE ai_results ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE ai_results ADD COLUMN current_price TEXT DEFAULT '';"); } catch (e) {}
 }
 
 initSchema();

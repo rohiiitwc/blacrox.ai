@@ -89,7 +89,8 @@ router.post('/upload', requireAuth, (req, res, next) => {
       const analysisResult = await runMultiAiAnalysis(
         analysisId,
         req.file.path,
-        req.file.mimetype
+        req.file.mimetype,
+        req.body.pair || req.body.pair_hint || ''
       );
 
       // 3. Return full analysis package
@@ -130,7 +131,7 @@ router.get('/history', requireAuth, (req, res) => {
   try {
     const rows = db.prepare(`
       SELECT 
-        a.id, a.trading_pair, a.market_type, a.timeframe, a.upload_timestamp,
+        a.id, a.trading_pair, a.market_type, a.timeframe, a.support_level, a.resistance_level, a.current_price, a.upload_timestamp,
         a.status, a.consensus_decision, a.consensus_confidence, a.agreement_score,
         a.agreement_type, a.combined_conclusion, a.initial_screenshot,
         e.id as evaluation_id, e.candle_color, e.evaluation_result, e.evaluated_at
