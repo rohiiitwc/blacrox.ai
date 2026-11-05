@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { SYSTEM_CHART_PROMPT } = require('./prompts');
+const { extractAndParseJson } = require('./parseHelper');
 
 async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
@@ -70,11 +71,8 @@ async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
     }
 
     const data = await response.json();
-    let content = data.choices[0]?.message?.content || '{}';
-
-    // Remove markdown ```json codeblocks if present
-    content = content.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '').trim();
-    const parsed = JSON.parse(content);
+    const content = data.choices[0]?.message?.content || '{}';
+    const parsed = extractAndParseJson(content);
 
     return {
       provider: 'grok',

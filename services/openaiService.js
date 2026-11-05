@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { SYSTEM_CHART_PROMPT } = require('./prompts');
+const { extractAndParseJson } = require('./parseHelper');
 
 async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
@@ -72,7 +73,7 @@ async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
 
     const data = await response.json();
     const content = data.choices[0]?.message?.content || '{}';
-    const parsed = JSON.parse(content);
+    const parsed = extractAndParseJson(content);
 
     return {
       provider: 'chatgpt',

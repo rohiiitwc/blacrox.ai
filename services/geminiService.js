@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { SYSTEM_CHART_PROMPT } = require('./prompts');
+const { extractAndParseJson } = require('./parseHelper');
 
 async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
@@ -65,7 +66,7 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
 
     const data = await response.json();
     const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    const parsed = JSON.parse(candidate);
+    const parsed = extractAndParseJson(candidate);
 
     return {
       provider: 'gemini',

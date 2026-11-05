@@ -170,9 +170,15 @@ router.get('/:id', requireAuth, (req, res) => {
       });
     }
 
+    analysis.all_in_one_win_rate = analysis.consensus_confidence;
+    analysis.all_in_one_signal = analysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)';
+
     const aiResults = db.prepare(`
       SELECT * FROM ai_results WHERE analysis_id = ?
-    `).all(analysisId);
+    `).all(analysisId).map(r => ({
+      ...r,
+      win_rate: r.confidence
+    }));
 
     const evaluation = db.prepare(`
       SELECT * FROM evaluations WHERE analysis_id = ?
