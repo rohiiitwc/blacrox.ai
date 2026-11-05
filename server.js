@@ -48,7 +48,7 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`=======================================================`);
     console.log(`🚀 BLACROX.AI Trading Chart Analysis Server Running`);
     console.log(`📡 URL: http://localhost:${PORT}`);
@@ -56,6 +56,14 @@ if (require.main === module) {
     console.log(`🤖 AI Providers: ChatGPT (OpenAI), Gemini (Google), Grok (xAI)`);
     console.log(`📊 Mode: ${process.env.NODE_ENV || 'development'}`);
     console.log(`=======================================================`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use. Set PORT in your .env or close the running instance.`);
+    } else {
+      console.error('❌ Server startup error:', err);
+    }
   });
 }
 

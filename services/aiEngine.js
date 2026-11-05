@@ -280,3 +280,4 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 module.exports = {
   runMultiAiAnalysis
 };
+

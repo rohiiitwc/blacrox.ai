@@ -174,3 +174,6 @@ const API = (() => {
     }
   };
 })();
+
+window.API = API;
+

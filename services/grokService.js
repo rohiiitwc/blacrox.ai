@@ -112,3 +112,4 @@ async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
 module.exports = {
   analyzeWithGrok
 };
+

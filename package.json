@@ -1,8 +1,8 @@
 {
   "name": "blacrox.ai",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Educational AI-powered trading chart analysis simulator for Quotex",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node tests/test_suite.js"

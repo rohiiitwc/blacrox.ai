@@ -114,3 +114,6 @@ const HistoryUI = (() => {
     viewDetail
   };
 })();
+
+window.HistoryUI = HistoryUI;
+

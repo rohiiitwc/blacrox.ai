@@ -110,3 +110,4 @@ async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
 module.exports = {
   analyzeWithChatGPT
 };
+

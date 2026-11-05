@@ -109,3 +109,6 @@ const EvaluationUI = (() => {
     renderEvaluationResult
   };
 })();
+
+window.EvaluationUI = EvaluationUI;
+

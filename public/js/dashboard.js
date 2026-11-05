@@ -249,3 +249,6 @@ const DashboardUI = (() => {
     getCurrentAnalysis: () => currentAnalysis
   };
 })();
+
+window.DashboardUI = DashboardUI;
+

@@ -129,3 +129,4 @@ Visit `http://localhost:3000` in your web browser.
 npm test
 ```
 Runs the 15-point automated verification suite testing registration, login, password reset, 2-hour session expiry, screenshot upload, multi-AI parallel calls, consensus, candle evaluation rules, user isolation, and security.
+

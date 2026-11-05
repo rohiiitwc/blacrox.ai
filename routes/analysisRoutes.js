@@ -21,13 +21,15 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `chart-${req.user.id}-${uniqueSuffix}${ext}`);
+    const userId = (req.user && req.user.id) ? req.user.id : 'anon';
+    cb(null, `chart-${userId}-${uniqueSuffix}${ext}`);
   }
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-  if (allowedTypes.includes(file.mimetype)) {
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/x-png'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedTypes.includes(file.mimetype) || ['.png', '.jpg', '.jpeg'].includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Unsupported file format. Please upload a PNG, JPG, or JPEG image.'));

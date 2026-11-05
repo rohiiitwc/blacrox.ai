@@ -254,10 +254,10 @@ const AuthUI = (() => {
 
     // Check URL params for reset token
     if (window.location.hash.includes('reset-password')) {
-      const match = window.location.hash.match(/token=([a-f0-9]+)/);
+      const match = window.location.hash.match(/token=([^&]+)/);
       if (match && match[1]) {
         openModal();
-        showResetTab(match[1]);
+        showResetTab(decodeURIComponent(match[1]));
       }
     }
   }
@@ -268,3 +268,6 @@ const AuthUI = (() => {
     closeModal
   };
 })();
+
+window.AuthUI = AuthUI;
+
