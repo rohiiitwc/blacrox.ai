@@ -1,0 +1,25 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Environment variables & secrets - MANDATORY NEVER COMMIT
+.env
+.env.local
+.env.production
+*.env
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+database/blacrox.db
+
+# User uploads & temporary files
+uploads/*
+!uploads/.gitkeep
+temp/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
