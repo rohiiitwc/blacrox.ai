@@ -76,7 +76,7 @@ function calculateHistoricalStats(userId = null) {
 
   const rows = db.prepare(query).all(...params);
 
-  function computeMetrics(dataset, defaultRate = 89.2) {
+  function computeMetrics(dataset) {
     const total = dataset.length;
     const correct = dataset.filter(r => r.evaluation_result === 'CORRECT').length;
     const incorrect = dataset.filter(r => r.evaluation_result === 'INCORRECT').length;
@@ -84,7 +84,7 @@ function calculateHistoricalStats(userId = null) {
     const unresolved = dataset.filter(r => r.evaluation_result === 'UNRESOLVED').length;
 
     const decisiveTotal = correct + incorrect;
-    const winRate = decisiveTotal > 0 ? Number(((correct / decisiveTotal) * 100).toFixed(1)) : defaultRate;
+    const winRate = decisiveTotal > 0 ? Number(((correct / decisiveTotal) * 100).toFixed(1)) : 0;
     const isVerified = decisiveTotal >= 20;
 
     return {
@@ -98,11 +98,13 @@ function calculateHistoricalStats(userId = null) {
       isVerified,
       verificationNote: isVerified
         ? 'Verified with statistically meaningful sample size.'
-        : 'Accuracy is unverified — insufficient sample data (< 20 resolved evaluations).'
+        : (decisiveTotal === 0
+            ? 'Accuracy is unverified — no evaluated trades on record yet.'
+            : `Accuracy is unverified — insufficient sample data (${decisiveTotal}/20 resolved evaluations).`)
     };
   }
 
-  const overall = computeMetrics(rows, 89.2);
+  const overall = computeMetrics(rows);
 
   // Model-by-model individual win percentages
   let aiQuery = `
@@ -120,7 +122,7 @@ function calculateHistoricalStats(userId = null) {
   }
   const aiRows = db.prepare(aiQuery).all(...aiParams);
 
-  function computeModelMetrics(providerName, defaultRate) {
+  function computeModelMetrics(providerName) {
     const pRows = aiRows.filter(r => r.provider === providerName);
     let correct = 0;
     let incorrect = 0;
@@ -135,29 +137,30 @@ function calculateHistoricalStats(userId = null) {
     }
 
     const decisive = correct + incorrect;
-    const winRate = decisive > 0 ? Number(((correct / decisive) * 100).toFixed(1)) : defaultRate;
+    const winRate = decisive > 0 ? Number(((correct / decisive) * 100).toFixed(1)) : 0;
     return {
       provider: providerName,
       total: pRows.length,
       correct,
       incorrect,
       refund,
+      decisive,
       winRate
     };
   }
 
-  const chatgptStats = computeModelMetrics('chatgpt', 88.5);
-  const geminiStats = computeModelMetrics('gemini', 90.1);
-  const grokStats = computeModelMetrics('grok', 87.8);
+  const chatgptStats = computeModelMetrics('chatgpt');
+  const geminiStats = computeModelMetrics('gemini');
+  const grokStats = computeModelMetrics('grok');
 
   const otcRows = rows.filter(r => (r.market_type || '').toUpperCase().includes('OTC') || (r.trading_pair || '').toUpperCase().includes('OTC'));
   const liveRows = rows.filter(r => !otcRows.includes(r));
 
-  const otc = computeMetrics(otcRows, 88.9);
-  const live = computeMetrics(liveRows, 89.6);
+  const otc = computeMetrics(otcRows);
+  const live = computeMetrics(liveRows);
 
   const unanimousRows = rows.filter(r => r.agreement_type === 'UNANIMOUS' || r.agreement_score === '3/3');
-  const unanimous = computeMetrics(unanimousRows, 91.4);
+  const unanimous = computeMetrics(unanimousRows);
 
   return {
     overall,

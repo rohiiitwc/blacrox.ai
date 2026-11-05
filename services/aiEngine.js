@@ -282,12 +282,27 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     grok.current_price = detectedPrice;
   }
 
-  // Fetch or calculate individual historical win percentages
+  // Fetch individual historical win percentages or derive from real-time chart analysis confidence
   const stats = calculateHistoricalStats(analysisRecord.user_id);
-  const allInOneWinRate = stats.overall?.winRate || 89.4;
-  chatgpt.win_rate = stats.chatgpt?.winRate || 88.5;
-  gemini.win_rate = stats.gemini?.winRate || 90.1;
-  grok.win_rate = stats.grok?.winRate || 87.8;
+  const chartWinRate = Math.round(
+    ((chatgpt.confidence || 88) + (gemini.confidence || 90) + (grok.confidence || 87)) / 3
+  );
+
+  const allInOneWinRate = (stats.overall && stats.overall.isVerified && stats.overall.winRate > 0)
+    ? stats.overall.winRate
+    : chartWinRate;
+
+  chatgpt.win_rate = (stats.chatgpt && stats.chatgpt.decisive > 0 && stats.overall.isVerified)
+    ? stats.chatgpt.winRate
+    : (chatgpt.confidence || 88);
+
+  gemini.win_rate = (stats.gemini && stats.gemini.decisive > 0 && stats.overall.isVerified)
+    ? stats.gemini.winRate
+    : (gemini.confidence || 90);
+
+  grok.win_rate = (stats.grok && stats.grok.decisive > 0 && stats.overall.isVerified)
+    ? stats.grok.winRate
+    : (grok.confidence || 87);
 
   const results = [chatgpt, gemini, grok];
 

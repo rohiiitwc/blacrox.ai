@@ -69,14 +69,17 @@ const HistoryUI = (() => {
 
       const { overall, otc, live } = res.stats;
 
-      statWinRate.textContent = `${overall.winRate}%`;
+      statWinRate.textContent = overall.decisiveTotal > 0 ? `${overall.winRate}%` : '0.0%';
       statDecisiveCount.textContent = `${overall.correct}W / ${overall.incorrect}L (Total ${overall.total})`;
-      statOtcWinRate.textContent = `${otc.winRate}% (${otc.correct}W/${otc.incorrect}L)`;
-      statLiveWinRate.textContent = `${live.winRate}% (${live.correct}W/${live.incorrect}L)`;
+      statOtcWinRate.textContent = otc.decisiveTotal > 0 ? `${otc.winRate}% (${otc.correct}W/${otc.incorrect}L)` : '0.0% (0W/0L)';
+      statLiveWinRate.textContent = live.decisiveTotal > 0 ? `${live.winRate}% (${live.correct}W/${live.incorrect}L)` : '0.0% (0W/0L)';
       statRefunds.textContent = `${overall.refund} Neutral`;
 
       if (statVerificationBanner) {
-        if (!overall.isVerified) {
+        if (overall.decisiveTotal === 0) {
+          statVerificationBanner.className = 'alert-banner alert-warning';
+          statVerificationBanner.innerHTML = `⚠️ <strong>Sample Size Notice:</strong> No evaluated trades on record yet. Accuracy is currently <strong>UNVERIFIED</strong> (0/20 minimum resolved samples required for statistical significance).`;
+        } else if (!overall.isVerified) {
           statVerificationBanner.className = 'alert-banner alert-warning';
           statVerificationBanner.innerHTML = `⚠️ <strong>Sample Size Notice:</strong> Accuracy is currently <strong>UNVERIFIED</strong> (${overall.decisiveTotal}/20 minimum resolved samples required for statistical significance).`;
         } else {
