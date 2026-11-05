@@ -28,6 +28,9 @@ const DashboardUI = (() => {
   const resultAgreementPill = document.getElementById('resultAgreementPill');
   const allInOneWinRateBadge = document.getElementById('allInOneWinRateBadge');
   const dontTradePill = document.getElementById('dontTradePill');
+  const headerEntryTimeBadge = document.getElementById('headerEntryTimeBadge');
+  const resultEntryTimeIst = document.getElementById('resultEntryTimeIst');
+  const resultExpiryTimeIst = document.getElementById('resultExpiryTimeIst');
   const tradeRecommendationBadge = document.getElementById('tradeRecommendationBadge');
   const resultConfidenceText = document.getElementById('resultConfidenceText');
   const resultConfidenceBar = document.getElementById('resultConfidenceBar');
@@ -49,6 +52,7 @@ const DashboardUI = (() => {
   const chatgptDontTradeTag = document.getElementById('chatgptDontTradeTag');
   const chatgptSummary = document.getElementById('chatgptSummary');
   const chatgptPairSr = document.getElementById('chatgptPairSr');
+  const chatgptEntryTime = document.getElementById('chatgptEntryTime');
 
   const geminiDecisionTag = document.getElementById('geminiDecisionTag');
   const geminiConfidence = document.getElementById('geminiConfidence');
@@ -56,6 +60,7 @@ const DashboardUI = (() => {
   const geminiDontTradeTag = document.getElementById('geminiDontTradeTag');
   const geminiSummary = document.getElementById('geminiSummary');
   const geminiPairSr = document.getElementById('geminiPairSr');
+  const geminiEntryTime = document.getElementById('geminiEntryTime');
 
   const grokDecisionTag = document.getElementById('grokDecisionTag');
   const grokConfidence = document.getElementById('grokConfidence');
@@ -63,12 +68,15 @@ const DashboardUI = (() => {
   const grokDontTradeTag = document.getElementById('grokDontTradeTag');
   const grokSummary = document.getElementById('grokSummary');
   const grokPairSr = document.getElementById('grokPairSr');
+  const grokEntryTime = document.getElementById('grokEntryTime');
 
   // Deep Technical Indicators
   const detailCandlestick = document.getElementById('detailCandlestick');
   const detailEma = document.getElementById('detailEma');
   const detailBb = document.getElementById('detailBb');
   const detailSr = document.getElementById('detailSr');
+  const detailEntryTimeIst = document.getElementById('detailEntryTimeIst');
+  const detailExpiryTimeIst = document.getElementById('detailExpiryTimeIst');
   const detailVolume = document.getElementById('detailVolume');
   const detailStructure = document.getElementById('detailStructure');
   const detailScenarios = document.getElementById('detailScenarios');
@@ -201,6 +209,28 @@ const DashboardUI = (() => {
     if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;
     if (resultCurrentPrice) resultCurrentPrice.textContent = priceVal;
 
+    // Trade Entry & Expiry in Indian Standard Time (IST)
+    let entryTimeIst = analysis.entry_time_ist;
+    let expiryTimeIst = analysis.expiry_time_ist;
+
+    if (!entryTimeIst) {
+      const baseDate = new Date();
+      const istDate = new Date(baseDate.getTime() + (5.5 * 60 * 60 * 1000));
+      let hour = istDate.getUTCHours();
+      let minute = istDate.getUTCMinutes();
+      let nextMin = (minute + 1) % 60;
+      let nextHour = nextMin === 0 ? (hour + 1) % 24 : hour;
+      let expMin = (nextMin + 1) % 60;
+      let expHour = expMin === 0 ? (nextHour + 1) % 24 : nextHour;
+      const pad = n => String(n).padStart(2, '0');
+      entryTimeIst = `${pad(nextHour)}:${pad(nextMin)}:00 IST`;
+      expiryTimeIst = `${pad(expHour)}:${pad(expMin)}:00 IST`;
+    }
+
+    if (resultEntryTimeIst) resultEntryTimeIst.textContent = entryTimeIst;
+    if (resultExpiryTimeIst) resultExpiryTimeIst.textContent = expiryTimeIst;
+    if (headerEntryTimeBadge) headerEntryTimeBadge.textContent = `🕒 Entry: ${entryTimeIst}`;
+
     // Unified Master Signal
     const decision = analysis.consensus_decision || 'UP';
     const isUp = decision === 'UP' || decision.includes('CALL');
@@ -303,7 +333,8 @@ const DashboardUI = (() => {
     if (chatgptDontTradeTag) {
       chatgptDontTradeTag.style.display = Number(chatgptWinRate) < 80 ? 'inline-block' : 'none';
     }
-    chatgptSummary.textContent = chatgpt.candlestick_pattern || chatgpt.reasoning_summary || (isUp ? 'EMA 7 slope and volume indicate bullish continuation.' : 'EMA 7 resistance and volume indicate bearish continuation.');
+    if (chatgptSummary) chatgptSummary.textContent = chatgpt.candlestick_pattern || chatgpt.reasoning_summary || (isUp ? 'EMA 7 slope and volume indicate bullish continuation.' : 'EMA 7 resistance and volume indicate bearish continuation.');
+    if (chatgptEntryTime) chatgptEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
     // Gemini
     const geminiWinRate = gemini.win_rate || gemini.confidence || 90.1;
@@ -318,7 +349,8 @@ const DashboardUI = (() => {
     if (geminiDontTradeTag) {
       geminiDontTradeTag.style.display = Number(geminiWinRate) < 80 ? 'inline-block' : 'none';
     }
-    geminiSummary.textContent = gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
+    if (geminiSummary) geminiSummary.textContent = gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
+    if (geminiEntryTime) geminiEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
     // Grok
     const grokWinRate = grok.win_rate || grok.confidence || 87.8;
@@ -333,7 +365,8 @@ const DashboardUI = (() => {
     if (grokDontTradeTag) {
       grokDontTradeTag.style.display = Number(grokWinRate) < 80 ? 'inline-block' : 'none';
     }
-    grokSummary.textContent = grok.bb_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
+    if (grokSummary) grokSummary.textContent = grok.bb_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
+    if (grokEntryTime) grokEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
     // Deep Technical Details
     const primaryAi = gemini.candlestick_pattern ? gemini : (chatgpt.candlestick_pattern ? chatgpt : grok);
@@ -341,6 +374,8 @@ const DashboardUI = (() => {
     detailEma.textContent = chatgpt.ema_observations || (isUp ? 'EMA 7 crossed above EMA 21 with positive slope' : 'EMA 7 descending below EMA 21');
     detailBb.textContent = grok.bb_observations || (isUp ? 'Price bouncing off lower band towards upper target' : 'Price rejected at upper band towards lower target');
     detailSr.textContent = primaryAi.sr_observations || (isUp ? `Support level ${supportVal} holding firm; bounce confirmed targeting ${resistanceVal}` : `Resistance level ${resistanceVal} capping upside; rejection confirmed targeting ${supportVal}`);
+    if (detailEntryTimeIst) detailEntryTimeIst.textContent = `${entryTimeIst} (at candle open)`;
+    if (detailExpiryTimeIst) detailExpiryTimeIst.textContent = `${expiryTimeIst} (1-minute candle)`;
     detailVolume.textContent = primaryAi.volume_observations || 'Volume increasing in direction of signal';
     detailStructure.textContent = primaryAi.market_structure || (isUp ? 'Higher highs and higher lows' : 'Lower highs and lower lows');
     detailScenarios.textContent = primaryAi.scenarios || (isUp ? 'Target upper deviation band' : 'Target lower deviation band');

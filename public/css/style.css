@@ -573,6 +573,47 @@ main.app-main {
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.15);
 }
 
+/* IST Trade Entry Timing Indicators */
+.ist-entry-callout {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.ist-entry-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.ist-entry-pill strong {
+  font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+  font-size: 1.05rem;
+  color: #34d399;
+  letter-spacing: 0.03em;
+}
+
+.ist-expiry-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ist-expiry-pill strong {
+  font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+  color: #93c5fd;
+}
+
 .model-winrate-badge {
   display: inline-flex;
   align-items: center;

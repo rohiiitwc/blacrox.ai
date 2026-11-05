@@ -84,6 +84,7 @@ async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
       pair: parsed.pair || 'Unknown',
       market_type: parsed.market_type || 'Unknown',
       timeframe: parsed.timeframe || '1M',
+      visible_time: parsed.visible_time || '',
       support_level: parsed.support_level || '',
       resistance_level: parsed.resistance_level || '',
       current_price: parsed.current_price || '',

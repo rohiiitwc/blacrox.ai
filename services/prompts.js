@@ -27,6 +27,7 @@ JSON SCHEMA:
   "pair": "Exact trading pair shown on Quotex (e.g. 'GBP/NZD (OTC)', 'EUR/USD (OTC)', etc.)",
   "market_type": "'OTC' if OTC marker is present, otherwise 'Live'",
   "timeframe": "Visible timeframe (e.g. '1M', '5M', '1m', etc.)",
+  "visible_time": "Clock time shown on chart or header (e.g. '21:51:53' or '21:51:30') if visible, otherwise ''",
   "support_level": "Key support price level number read from chart (e.g. '1.86367')",
   "resistance_level": "Key resistance price level number read from chart (e.g. '1.88073')",
   "current_price": "Current price number read from price line/tag (e.g. '1.87774')",

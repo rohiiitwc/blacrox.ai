@@ -34,11 +34,12 @@ const HistoryUI = (() => {
         }
 
         const decisionClass = row.consensus_decision === 'UP' ? 'tag-up' : row.consensus_decision === 'DOWN' ? 'tag-down' : 'tag-inconclusive';
+        const entryTag = row.entry_time_ist ? `<div style="font-size: 0.72rem; color: #34d399; font-family: monospace;">Entry: ${row.entry_time_ist}</div>` : '';
 
         return `
           <tr style="cursor: pointer;" onclick="HistoryUI.viewDetail(${row.id})">
             <td>${date}</td>
-            <td><strong>${row.trading_pair}</strong> <span class="${isOtc ? 'badge-otc' : 'badge-live'}">${isOtc ? 'OTC' : 'LIVE'}</span></td>
+            <td><strong>${row.trading_pair}</strong> <span class="${isOtc ? 'badge-otc' : 'badge-live'}">${isOtc ? 'OTC' : 'LIVE'}</span>${entryTag}</td>
             <td>${row.timeframe || '1M'}</td>
             <td><span class="model-decision-tag ${decisionClass}">${row.consensus_decision}</span></td>
             <td>${row.agreement_score} (${row.agreement_type})</td>

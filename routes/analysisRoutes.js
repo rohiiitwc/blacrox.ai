@@ -103,6 +103,8 @@ router.post('/upload', requireAuth, (req, res, next) => {
       fullAnalysis.trade_recommendation = analysisResult.trade_recommendation || fullAnalysis.trade_recommendation || 'TRADE';
       fullAnalysis.trade_warning = analysisResult.trade_warning || '';
       fullAnalysis.is_low_win_rate = analysisResult.is_low_win_rate !== undefined ? analysisResult.is_low_win_rate : (Number(fullAnalysis.all_in_one_win_rate) < 80);
+      fullAnalysis.entry_time_ist = analysisResult.entry_time_ist || fullAnalysis.entry_time_ist || '';
+      fullAnalysis.expiry_time_ist = analysisResult.expiry_time_ist || fullAnalysis.expiry_time_ist || '';
 
       const aiResults = db.prepare(`
         SELECT * FROM ai_results WHERE analysis_id = ?
@@ -134,7 +136,8 @@ router.get('/history', requireAuth, (req, res) => {
   try {
     const rows = db.prepare(`
       SELECT 
-        a.id, a.trading_pair, a.market_type, a.timeframe, a.support_level, a.resistance_level, a.current_price, a.upload_timestamp,
+        a.id, a.trading_pair, a.market_type, a.timeframe, a.support_level, a.resistance_level, a.current_price,
+        a.entry_time_ist, a.expiry_time_ist, a.trade_recommendation, a.upload_timestamp,
         a.status, a.consensus_decision, a.consensus_confidence, a.agreement_score,
         a.agreement_type, a.combined_conclusion, a.initial_screenshot,
         e.id as evaluation_id, e.candle_color, e.evaluation_result, e.evaluated_at

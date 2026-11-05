@@ -37,6 +37,8 @@ function initSchema() {
       support_level TEXT DEFAULT '',
       resistance_level TEXT DEFAULT '',
       current_price TEXT DEFAULT '',
+      entry_time_ist TEXT DEFAULT '',
+      expiry_time_ist TEXT DEFAULT '',
       trade_recommendation TEXT DEFAULT 'TRADE',
       upload_timestamp TEXT NOT NULL,
       server_time INTEGER NOT NULL,
@@ -103,6 +105,8 @@ function initSchema() {
   try { db.exec("ALTER TABLE analyses ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE analyses ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE analyses ADD COLUMN current_price TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN entry_time_ist TEXT DEFAULT '';"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN expiry_time_ist TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE analyses ADD COLUMN trade_recommendation TEXT DEFAULT 'TRADE';"); } catch (e) {}
 
   try { db.exec("ALTER TABLE ai_results ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}

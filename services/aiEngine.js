@@ -4,6 +4,64 @@ const { analyzeWithGrok } = require('./grokService');
 const { calculateHistoricalStats } = require('./evaluationService');
 const db = require('../database/db');
 
+// Calculate Entry & Expiry Time in Indian Standard Time (IST - UTC+05:30)
+function computeIstTradeTiming(visibleTimeStr, serverTimestamp = Date.now()) {
+  const baseDate = new Date(serverTimestamp);
+
+  const istFormatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
+  const parts = istFormatter.formatToParts(baseDate);
+  const partMap = {};
+  parts.forEach(p => { partMap[p.type] = p.value; });
+
+  let hour = parseInt(partMap.hour, 10);
+  let minute = parseInt(partMap.minute, 10);
+  let second = parseInt(partMap.second, 10);
+
+  // If screenshot contains an explicit visible clock time (e.g. "21:51:30" or "21:51:53")
+  if (visibleTimeStr && /^\d{1,2}:\d{2}(:\d{2})?$/.test(visibleTimeStr.trim())) {
+    const timeSegments = visibleTimeStr.trim().split(':');
+    hour = parseInt(timeSegments[0], 10);
+    minute = parseInt(timeSegments[1], 10);
+    second = timeSegments[2] ? parseInt(timeSegments[2], 10) : 0;
+  }
+
+  // Next 1-minute candle entry begins at :00 seconds of the following minute
+  let entryMinute = minute + 1;
+  let entryHour = hour;
+  if (entryMinute >= 60) {
+    entryMinute = 0;
+    entryHour = (entryHour + 1) % 24;
+  }
+
+  // 1-minute candle trade expiry
+  let expiryMinute = entryMinute + 1;
+  let expiryHour = entryHour;
+  if (expiryMinute >= 60) {
+    expiryMinute = 0;
+    expiryHour = (expiryHour + 1) % 24;
+  }
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const entryTimeIst = `${pad(entryHour)}:${pad(entryMinute)}:00 IST`;
+  const expiryTimeIst = `${pad(expiryHour)}:${pad(expiryMinute)}:00 IST`;
+  const currentIstTime = `${pad(hour)}:${pad(minute)}:${pad(second)} IST`;
+
+  return {
+    entryTimeIst,
+    expiryTimeIst,
+    currentIstTime,
+    entryMinute,
+    entryHour
+  };
+}
+
 // Harmonized educational technical simulation ensuring strict signal alignment
 function generateEducationalSimulation(provider, providerLabel, targetDecision = 'UP', seedNum = 1, context = {}) {
   const pair = context.pair || 'GBP/NZD (OTC)';
@@ -238,19 +296,25 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const agreementType = 'UNANIMOUS';
   const consensusConfidence = Math.round(allInOneWinRate);
 
+  // Compute Entry Time & Expiry Time in Indian Standard Time (IST)
+  const modelWithTime = successfulModels.find(m => m.visible_time && m.visible_time.trim() !== '');
+  const timing = computeIstTradeTiming(modelWithTime ? modelWithTime.visible_time : '', analysisRecord.server_time || Date.now());
+  const entryTimeIst = timing.entryTimeIst;
+  const expiryTimeIst = timing.expiryTimeIst;
+
   // Check if win rate is less than 80%: Still give the signal, but explicitly mention "DON'T TRADE"
   const isLowWinRate = Number(allInOneWinRate) < 80;
   const tradeRecommendation = isLowWinRate ? "DON'T TRADE" : "TRADE";
   const tradeWarning = isLowWinRate
     ? `⚠️ CAUTION: Win rate is ${allInOneWinRate}% (below 80% threshold). DO NOT TRADE this signal — elevated market risk.`
-    : `✓ Win rate is ${allInOneWinRate}% (meets the 80% minimum confidence threshold).`;
+    : `✓ Win rate is ${allInOneWinRate}% (meets the 80% minimum confidence threshold). Entry at ${entryTimeIst}.`;
 
   let combinedConclusion = consensusDecision === 'UP'
-    ? `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms bounce off support at ${detectedSupport} towards resistance ${detectedResistance} with aligned bullish momentum.`
-    : `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms rejection at resistance ${detectedResistance} towards support ${detectedSupport} with aligned bearish momentum.`;
+    ? `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms bounce off support at ${detectedSupport} towards resistance ${detectedResistance} with aligned bullish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`
+    : `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms rejection at resistance ${detectedResistance} towards support ${detectedSupport} with aligned bearish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
 
   if (isLowWinRate) {
-    combinedConclusion += ` [ADVISORY: Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE - High Risk / Low Probability.]`;
+    combinedConclusion += ` [ADVISORY: Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE at ${entryTimeIst} - High Risk / Low Probability.]`;
   }
 
   // Save AI results to database
@@ -310,6 +374,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
           support_level = ?,
           resistance_level = ?,
           current_price = ?,
+          entry_time_ist = ?,
+          expiry_time_ist = ?,
           trade_recommendation = ?,
           status = 'COMPLETED',
           consensus_decision = ?,
@@ -326,6 +392,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       detectedSupport,
       detectedResistance,
       detectedPrice,
+      entryTimeIst,
+      expiryTimeIst,
       tradeRecommendation,
       consensusDecision,
       consensusConfidence,
@@ -347,6 +415,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     support_level: detectedSupport,
     resistance_level: detectedResistance,
     current_price: detectedPrice,
+    entry_time_ist: entryTimeIst,
+    expiry_time_ist: expiryTimeIst,
     consensus_decision: consensusDecision,
     consensus_confidence: consensusConfidence,
     all_in_one_win_rate: allInOneWinRate,
