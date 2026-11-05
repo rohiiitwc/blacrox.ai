@@ -100,6 +100,9 @@ router.post('/upload', requireAuth, (req, res, next) => {
 
       fullAnalysis.all_in_one_win_rate = analysisResult.all_in_one_win_rate || fullAnalysis.consensus_confidence;
       fullAnalysis.all_in_one_signal = analysisResult.all_in_one_signal || (fullAnalysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)');
+      fullAnalysis.trade_recommendation = analysisResult.trade_recommendation || fullAnalysis.trade_recommendation || 'TRADE';
+      fullAnalysis.trade_warning = analysisResult.trade_warning || '';
+      fullAnalysis.is_low_win_rate = analysisResult.is_low_win_rate !== undefined ? analysisResult.is_low_win_rate : (Number(fullAnalysis.all_in_one_win_rate) < 80);
 
       const aiResults = db.prepare(`
         SELECT * FROM ai_results WHERE analysis_id = ?

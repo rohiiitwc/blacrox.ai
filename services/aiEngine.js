@@ -237,9 +237,21 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const agreementScore = '3/3';
   const agreementType = 'UNANIMOUS';
   const consensusConfidence = Math.round(allInOneWinRate);
-  const combinedConclusion = consensusDecision === 'UP'
+
+  // Check if win rate is less than 80%: Still give the signal, but explicitly mention "DON'T TRADE"
+  const isLowWinRate = Number(allInOneWinRate) < 80;
+  const tradeRecommendation = isLowWinRate ? "DON'T TRADE" : "TRADE";
+  const tradeWarning = isLowWinRate
+    ? `⚠️ CAUTION: Win rate is ${allInOneWinRate}% (below 80% threshold). DO NOT TRADE this signal — elevated market risk.`
+    : `✓ Win rate is ${allInOneWinRate}% (meets the 80% minimum confidence threshold).`;
+
+  let combinedConclusion = consensusDecision === 'UP'
     ? `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms bounce off support at ${detectedSupport} towards resistance ${detectedResistance} with aligned bullish momentum.`
     : `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms rejection at resistance ${detectedResistance} towards support ${detectedSupport} with aligned bearish momentum.`;
+
+  if (isLowWinRate) {
+    combinedConclusion += ` [ADVISORY: Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE - High Risk / Low Probability.]`;
+  }
 
   // Save AI results to database
   const insertAiResult = db.prepare(`
@@ -298,6 +310,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
           support_level = ?,
           resistance_level = ?,
           current_price = ?,
+          trade_recommendation = ?,
           status = 'COMPLETED',
           consensus_decision = ?,
           consensus_confidence = ?,
@@ -313,12 +326,13 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       detectedSupport,
       detectedResistance,
       detectedPrice,
+      tradeRecommendation,
       consensusDecision,
       consensusConfidence,
       agreementScore,
       agreementType,
       combinedConclusion,
-      'Educational paper-trading simulation. Real-money trading is not executed or advised.',
+      isLowWinRate ? 'Win rate is below 80%. Strictly DO NOT TRADE.' : 'Educational paper-trading simulation. Real-money trading is not executed or advised.',
       analysisId
     );
   });
@@ -337,6 +351,9 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     consensus_confidence: consensusConfidence,
     all_in_one_win_rate: allInOneWinRate,
     all_in_one_signal: consensusDecision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)',
+    trade_recommendation: tradeRecommendation,
+    trade_warning: tradeWarning,
+    is_low_win_rate: isLowWinRate,
     agreement_score: agreementScore,
     agreement_type: agreementType,
     combined_conclusion: combinedConclusion,

@@ -158,6 +158,7 @@
               </div>
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span class="winrate-master-badge" id="allInOneWinRateBadge">🎯 All-in-One Win Rate: 89.2%</span>
+                <span class="dont-trade-pill" id="dontTradePill" style="display: none;">🚫 DON'T TRADE</span>
                 <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
               </div>
             </div>
@@ -205,6 +206,9 @@
                 <div class="decision-label-title">ALL-IN-ONE MASTER SIGNAL (NEXT 1-MINUTE CANDLE)</div>
                 <div class="decision-action-big" id="resultDecisionBig">▲ CALL (UP)</div>
                 <div style="font-size: 0.85rem; color: var(--color-bullish); font-weight: 700;" id="resultDecisionSub">High-Probability Direction</div>
+                <div class="trade-recommendation-badge" id="tradeRecommendationBadge" style="display: none;">
+                  🚫 DON'T TRADE — Win Rate is below 80% threshold
+                </div>
               </div>
 
               <div class="decision-details-box">
@@ -238,7 +242,10 @@
                   </div>
                   <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="chatgptPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="model-winrate-badge" id="chatgptWinRateBadge">Win Rate: 88.5%</span>
+                    <div>
+                      <span class="model-winrate-badge" id="chatgptWinRateBadge">Win Rate: 88.5%</span>
+                      <span class="model-card-dont-trade" id="chatgptDontTradeTag" style="display: none;">🚫 DON'T TRADE</span>
+                    </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="chatgptConfidence">88%</strong></span>
                   </div>
                   <p style="font-size: 0.85rem; color: var(--text-secondary);" id="chatgptSummary">Bullish rejection at support with positive EMA slope.</p>
@@ -252,7 +259,10 @@
                   </div>
                   <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="geminiPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="model-winrate-badge" id="geminiWinRateBadge">Win Rate: 90.1%</span>
+                    <div>
+                      <span class="model-winrate-badge" id="geminiWinRateBadge">Win Rate: 90.1%</span>
+                      <span class="model-card-dont-trade" id="geminiDontTradeTag" style="display: none;">🚫 DON'T TRADE</span>
+                    </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="geminiConfidence">90%</strong></span>
                   </div>
                   <p style="font-size: 0.85rem; color: var(--text-secondary);" id="geminiSummary">EMA 7 crossing above EMA 21 with strong volume momentum.</p>
@@ -266,7 +276,10 @@
                   </div>
                   <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="grokPairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="model-winrate-badge" id="grokWinRateBadge">Win Rate: 87.8%</span>
+                    <div>
+                      <span class="model-winrate-badge" id="grokWinRateBadge">Win Rate: 87.8%</span>
+                      <span class="model-card-dont-trade" id="grokDontTradeTag" style="display: none;">🚫 DON'T TRADE</span>
+                    </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="grokConfidence">87%</strong></span>
                   </div>
                   <p style="font-size: 0.85rem; color: var(--text-secondary);" id="grokSummary">Lower Bollinger band bounce into upward volatility expansion.</p>

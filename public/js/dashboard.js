@@ -27,6 +27,8 @@ const DashboardUI = (() => {
   const resultDecisionSub = document.getElementById('resultDecisionSub');
   const resultAgreementPill = document.getElementById('resultAgreementPill');
   const allInOneWinRateBadge = document.getElementById('allInOneWinRateBadge');
+  const dontTradePill = document.getElementById('dontTradePill');
+  const tradeRecommendationBadge = document.getElementById('tradeRecommendationBadge');
   const resultConfidenceText = document.getElementById('resultConfidenceText');
   const resultConfidenceBar = document.getElementById('resultConfidenceBar');
   const resultConclusion = document.getElementById('resultConclusion');
@@ -44,18 +46,21 @@ const DashboardUI = (() => {
   const chatgptDecisionTag = document.getElementById('chatgptDecisionTag');
   const chatgptConfidence = document.getElementById('chatgptConfidence');
   const chatgptWinRateBadge = document.getElementById('chatgptWinRateBadge');
+  const chatgptDontTradeTag = document.getElementById('chatgptDontTradeTag');
   const chatgptSummary = document.getElementById('chatgptSummary');
   const chatgptPairSr = document.getElementById('chatgptPairSr');
 
   const geminiDecisionTag = document.getElementById('geminiDecisionTag');
   const geminiConfidence = document.getElementById('geminiConfidence');
   const geminiWinRateBadge = document.getElementById('geminiWinRateBadge');
+  const geminiDontTradeTag = document.getElementById('geminiDontTradeTag');
   const geminiSummary = document.getElementById('geminiSummary');
   const geminiPairSr = document.getElementById('geminiPairSr');
 
   const grokDecisionTag = document.getElementById('grokDecisionTag');
   const grokConfidence = document.getElementById('grokConfidence');
   const grokWinRateBadge = document.getElementById('grokWinRateBadge');
+  const grokDontTradeTag = document.getElementById('grokDontTradeTag');
   const grokSummary = document.getElementById('grokSummary');
   const grokPairSr = document.getElementById('grokPairSr');
 
@@ -204,9 +209,62 @@ const DashboardUI = (() => {
     resultDecisionBig.textContent = signalLabel;
     resultDecisionBig.className = `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
 
-    if (resultDecisionSub) {
-      resultDecisionSub.textContent = isUp ? 'Unified Bullish Scenario (High Probability)' : 'Unified Bearish Scenario (High Probability)';
-      resultDecisionSub.style.color = isUp ? 'var(--color-bullish)' : 'var(--color-bearish)';
+    // All-In-One Win Percentage & Less Than 80% Check
+    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
+    const isLowWinRate = Number(allInOneWinRate) < 80;
+
+    if (isLowWinRate) {
+      // WIN RATE < 80%: Still give the signal, but explicitly mention "DON'T TRADE"
+      if (resultDecisionSub) {
+        resultDecisionSub.innerHTML = `🚫 <strong style="color: #ef4444; font-size: 1.05rem; letter-spacing: 0.03em;">DON'T TRADE</strong> — Low Win Rate (${allInOneWinRate}% &lt; 80% threshold)`;
+        resultDecisionSub.style.color = '#ef4444';
+      }
+
+      if (allInOneWinRateBadge) {
+        allInOneWinRateBadge.textContent = `⚠️ All-in-One Win Rate: ${allInOneWinRate}%`;
+        allInOneWinRateBadge.className = 'winrate-master-badge low-winrate';
+      }
+
+      if (dontTradePill) {
+        dontTradePill.style.display = 'inline-flex';
+        dontTradePill.textContent = "🚫 DON'T TRADE (Win Rate < 80%)";
+      }
+
+      if (tradeRecommendationBadge) {
+        tradeRecommendationBadge.style.display = 'block';
+        tradeRecommendationBadge.innerHTML = `🚫 <strong>DON'T TRADE</strong> — AI Win Rate is <strong>${allInOneWinRate}%</strong> (below 80% threshold). High market uncertainty; avoid placing simulated trades.`;
+      }
+
+      resultConfidenceText.innerHTML = `<span style="color: #ef4444; font-weight: 800;">${allInOneWinRate}% Win Rate (⚠️ DON'T TRADE)</span>`;
+      resultConfidenceBar.style.width = `${allInOneWinRate}%`;
+      resultConfidenceBar.style.backgroundColor = '#ef4444';
+
+      heroCard.className = `consensus-hero-card ${isUp ? 'signal-up' : 'signal-down'} warning-border`;
+    } else {
+      // Normal >= 80% win rate
+      if (resultDecisionSub) {
+        resultDecisionSub.textContent = isUp ? 'Unified Bullish Scenario (High Probability)' : 'Unified Bearish Scenario (High Probability)';
+        resultDecisionSub.style.color = isUp ? 'var(--color-bullish)' : 'var(--color-bearish)';
+      }
+
+      if (allInOneWinRateBadge) {
+        allInOneWinRateBadge.textContent = `🎯 All-in-One Win Rate: ${allInOneWinRate}%`;
+        allInOneWinRateBadge.className = 'winrate-master-badge';
+      }
+
+      if (dontTradePill) {
+        dontTradePill.style.display = 'none';
+      }
+
+      if (tradeRecommendationBadge) {
+        tradeRecommendationBadge.style.display = 'none';
+      }
+
+      resultConfidenceText.textContent = `${allInOneWinRate}% Win Rate`;
+      resultConfidenceBar.style.width = `${allInOneWinRate}%`;
+      resultConfidenceBar.style.backgroundColor = 'var(--color-bullish)';
+
+      heroCard.className = `consensus-hero-card ${isUp ? 'signal-up' : 'signal-down'}`;
     }
 
     if (resultSrAnalysisSummary) {
@@ -214,19 +272,6 @@ const DashboardUI = (() => {
         ? `🟢 Price tested key Support (${supportVal}) and held firmly. Technical setup indicates upward continuation targeting Resistance (${resistanceVal}).`
         : `🔴 Price tested key Resistance (${resistanceVal}) and showed upper rejection. Technical setup indicates downward retracement targeting Support (${supportVal}).`;
     }
-
-    // Hero border glow
-    heroCard.className = `consensus-hero-card ${isUp ? 'signal-up' : 'signal-down'}`;
-
-    // All-In-One Win Percentage
-    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
-    if (allInOneWinRateBadge) {
-      allInOneWinRateBadge.textContent = `🎯 All-in-One Win Rate: ${allInOneWinRate}%`;
-      allInOneWinRateBadge.style.color = isUp ? 'var(--color-bullish)' : '#60a5fa';
-    }
-
-    resultConfidenceText.textContent = `${allInOneWinRate}% Win Rate`;
-    resultConfidenceBar.style.width = `${allInOneWinRate}%`;
 
     // Agreement Pill (100% Unified Consensus)
     resultAgreementPill.textContent = '3/3 Models Aligned (100% Consensus)';
@@ -250,7 +295,14 @@ const DashboardUI = (() => {
     chatgptDecisionTag.textContent = signalLabel;
     chatgptDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
     chatgptConfidence.textContent = `${chatgptWinRate}%`;
-    if (chatgptWinRateBadge) chatgptWinRateBadge.textContent = `Win Rate: ${chatgptWinRate}%`;
+    if (chatgptWinRateBadge) {
+      chatgptWinRateBadge.textContent = `Win Rate: ${chatgptWinRate}%`;
+      chatgptWinRateBadge.style.borderColor = Number(chatgptWinRate) < 80 ? 'rgba(239, 68, 68, 0.4)' : '';
+      chatgptWinRateBadge.style.color = Number(chatgptWinRate) < 80 ? '#f87171' : '';
+    }
+    if (chatgptDontTradeTag) {
+      chatgptDontTradeTag.style.display = Number(chatgptWinRate) < 80 ? 'inline-block' : 'none';
+    }
     chatgptSummary.textContent = chatgpt.candlestick_pattern || chatgpt.reasoning_summary || (isUp ? 'EMA 7 slope and volume indicate bullish continuation.' : 'EMA 7 resistance and volume indicate bearish continuation.');
 
     // Gemini
@@ -258,7 +310,14 @@ const DashboardUI = (() => {
     geminiDecisionTag.textContent = signalLabel;
     geminiDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
     geminiConfidence.textContent = `${geminiWinRate}%`;
-    if (geminiWinRateBadge) geminiWinRateBadge.textContent = `Win Rate: ${geminiWinRate}%`;
+    if (geminiWinRateBadge) {
+      geminiWinRateBadge.textContent = `Win Rate: ${geminiWinRate}%`;
+      geminiWinRateBadge.style.borderColor = Number(geminiWinRate) < 80 ? 'rgba(239, 68, 68, 0.4)' : '';
+      geminiWinRateBadge.style.color = Number(geminiWinRate) < 80 ? '#f87171' : '';
+    }
+    if (geminiDontTradeTag) {
+      geminiDontTradeTag.style.display = Number(geminiWinRate) < 80 ? 'inline-block' : 'none';
+    }
     geminiSummary.textContent = gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
 
     // Grok
@@ -266,7 +325,14 @@ const DashboardUI = (() => {
     grokDecisionTag.textContent = signalLabel;
     grokDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
     grokConfidence.textContent = `${grokWinRate}%`;
-    if (grokWinRateBadge) grokWinRateBadge.textContent = `Win Rate: ${grokWinRate}%`;
+    if (grokWinRateBadge) {
+      grokWinRateBadge.textContent = `Win Rate: ${grokWinRate}%`;
+      grokWinRateBadge.style.borderColor = Number(grokWinRate) < 80 ? 'rgba(239, 68, 68, 0.4)' : '';
+      grokWinRateBadge.style.color = Number(grokWinRate) < 80 ? '#f87171' : '';
+    }
+    if (grokDontTradeTag) {
+      grokDontTradeTag.style.display = Number(grokWinRate) < 80 ? 'inline-block' : 'none';
+    }
     grokSummary.textContent = grok.bb_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
 
     // Deep Technical Details
