@@ -205,7 +205,13 @@ async function runTests() {
     assert.ok(providers.includes('chatgpt'), 'Must include ChatGPT');
     assert.ok(providers.includes('gemini'), 'Must include Gemini');
     assert.ok(providers.includes('grok'), 'Must include Grok');
-    console.log(`  ✓ Multi-AI analysis completed (Consensus: ${uploadData.analysis.consensus_decision}, Agreement: ${uploadData.analysis.agreement_score})`);
+
+    // Verify All-in-One signal, Individual win rates, and signal alignment
+    assert.ok(uploadData.analysis.all_in_one_win_rate >= 70, 'Must have All-in-One win rate');
+    assert.ok(uploadData.ai_results.every(r => r.win_rate >= 70), 'Every individual model must have individual win rate');
+    const masterDecision = uploadData.analysis.consensus_decision;
+    assert.ok(uploadData.ai_results.every(r => r.decision === masterDecision), 'AI models must align on the exact same signal without conflicting signals');
+    console.log(`  ✓ Multi-AI analysis completed (Master Signal: ${uploadData.analysis.all_in_one_signal || masterDecision}, All-in-One Win Rate: ${uploadData.analysis.all_in_one_win_rate}%, Unanimous 3/3 Alignment)`);
 
     // 9. UNSUPPORTED FILE FORMAT REJECTION TEST
     console.log('Test 9: Invalid File Format Validation...');

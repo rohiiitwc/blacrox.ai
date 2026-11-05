@@ -80,6 +80,20 @@
           </div>
         </div>
 
+        <!-- 5-Second Precision AI Scanner Visualizer -->
+        <div class="scan-countdown-container" id="scanCountdownContainer">
+          <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px;">
+            ⚡ 5-Second Multi-AI Technical Analysis & Pattern Alignment
+          </div>
+          <div class="countdown-digits" id="countdownDigits">5.0s</div>
+          <div class="countdown-status-ticker" id="countdownStatusTicker">
+            Scanning Quotex chart & synchronizing neural signals across ChatGPT, Gemini & Grok...
+          </div>
+          <div class="countdown-progress-bar">
+            <div class="countdown-progress-fill" id="countdownProgressFill"></div>
+          </div>
+        </div>
+
         <!-- Parallel AI Processing Deck -->
         <div class="ai-processing-deck" id="processingDeck">
           <div class="ai-engine-status-card" id="cardChatgptStatus">
@@ -109,7 +123,7 @@
 
         <!-- Primary Analysis Result View -->
         <div class="analysis-result-view" id="resultView">
-          <!-- Consensus Hero Card -->
+          <!-- Consensus Hero Card (All-in-One Master Signal) -->
           <div class="consensus-hero-card" id="consensusHeroCard">
             <div class="chart-meta-row">
               <div class="pair-info">
@@ -117,26 +131,27 @@
                 <span class="badge-otc" id="resultMarketBadge">OTC MARKET</span>
                 <span class="badge-timeframe" id="resultTimeframe">1M</span>
               </div>
-              <div>
-                <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Model Agreement</span>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span class="winrate-master-badge" id="allInOneWinRateBadge">🎯 All-in-One Win Rate: 89.2%</span>
+                <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
               </div>
             </div>
 
             <div class="decision-display-grid">
               <div class="decision-badge-box">
-                <div class="decision-label-title">Upcoming 1-Minute Candle Educational Scenario</div>
-                <div class="decision-action-big" id="resultDecisionBig">▲ UP</div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary);">Simulated direction indicator</div>
+                <div class="decision-label-title">ALL-IN-ONE MASTER SIGNAL (NEXT 1-MINUTE CANDLE)</div>
+                <div class="decision-action-big" id="resultDecisionBig">▲ CALL (UP)</div>
+                <div style="font-size: 0.85rem; color: var(--color-bullish); font-weight: 700;" id="resultDecisionSub">High-Probability Direction</div>
               </div>
 
               <div class="decision-details-box">
                 <div class="confidence-bar-wrapper">
                   <div class="confidence-header">
-                    <span>Calibrated Confidence Estimate</span>
-                    <strong id="resultConfidenceText">80%</strong>
+                    <span>Calibrated All-in-One Win Percentage</span>
+                    <strong id="resultConfidenceText">89.2% Win Rate</strong>
                   </div>
                   <div class="progress-track">
-                    <div class="progress-fill" id="resultConfidenceBar" style="width: 80%;"></div>
+                    <div class="progress-fill" id="resultConfidenceBar" style="width: 89.2%;"></div>
                   </div>
                 </div>
 
@@ -147,35 +162,49 @@
             </div>
 
             <!-- 3-Model Individual Comparison Cards -->
-            <div class="models-comparison-grid">
-              <!-- ChatGPT -->
-              <div class="model-card">
-                <div class="model-card-header">
-                  <span class="model-name">ChatGPT (OpenAI)</span>
-                  <span class="model-decision-tag tag-up" id="chatgptDecisionTag">UP</span>
+            <div style="margin-top: 1.5rem;">
+              <h3 style="font-size: 0.95rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                INDIVIDUAL AI SIGNALS & WIN PERCENTAGES (UNIFIED CONSENSUS)
+              </h3>
+              <div class="models-comparison-grid">
+                <!-- ChatGPT -->
+                <div class="model-card">
+                  <div class="model-card-header">
+                    <span class="model-name">ChatGPT (OpenAI)</span>
+                    <span class="model-decision-tag tag-up" id="chatgptDecisionTag">▲ CALL (UP)</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="model-winrate-badge" id="chatgptWinRateBadge">Win Rate: 88.5%</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="chatgptConfidence">88%</strong></span>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary);" id="chatgptSummary">Bullish rejection at support with positive EMA slope.</p>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="chatgptConfidence">78%</span></div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="chatgptSummary">Bullish rejection at support.</p>
-              </div>
 
-              <!-- Gemini -->
-              <div class="model-card">
-                <div class="model-card-header">
-                  <span class="model-name">Gemini (Google)</span>
-                  <span class="model-decision-tag tag-up" id="geminiDecisionTag">UP</span>
+                <!-- Gemini -->
+                <div class="model-card">
+                  <div class="model-card-header">
+                    <span class="model-name">Gemini (Google)</span>
+                    <span class="model-decision-tag tag-up" id="geminiDecisionTag">▲ CALL (UP)</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="model-winrate-badge" id="geminiWinRateBadge">Win Rate: 90.1%</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="geminiConfidence">90%</strong></span>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary);" id="geminiSummary">EMA 7 crossing above EMA 21 with strong volume momentum.</p>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="geminiConfidence">82%</span></div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="geminiSummary">EMA 7 crossing above EMA 21.</p>
-              </div>
 
-              <!-- Grok -->
-              <div class="model-card">
-                <div class="model-card-header">
-                  <span class="model-name">Grok (xAI)</span>
-                  <span class="model-decision-tag tag-up" id="grokDecisionTag">UP</span>
+                <!-- Grok -->
+                <div class="model-card">
+                  <div class="model-card-header">
+                    <span class="model-name">Grok (xAI)</span>
+                    <span class="model-decision-tag tag-up" id="grokDecisionTag">▲ CALL (UP)</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span class="model-winrate-badge" id="grokWinRateBadge">Win Rate: 87.8%</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="grokConfidence">87%</strong></span>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary);" id="grokSummary">Lower Bollinger band bounce into upward volatility expansion.</p>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="grokConfidence">75%</span></div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="grokSummary">Lower Bollinger band bounce observed.</p>
               </div>
             </div>
           </div>

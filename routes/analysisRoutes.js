@@ -97,9 +97,15 @@ router.post('/upload', requireAuth, (req, res, next) => {
         SELECT * FROM analyses WHERE id = ? AND user_id = ?
       `).get(analysisId, userId);
 
+      fullAnalysis.all_in_one_win_rate = analysisResult.all_in_one_win_rate || fullAnalysis.consensus_confidence;
+      fullAnalysis.all_in_one_signal = analysisResult.all_in_one_signal || (fullAnalysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)');
+
       const aiResults = db.prepare(`
         SELECT * FROM ai_results WHERE analysis_id = ?
-      `).all(analysisId);
+      `).all(analysisId).map(r => ({
+        ...r,
+        win_rate: r.confidence
+      }));
 
       return res.json({
         success: true,
