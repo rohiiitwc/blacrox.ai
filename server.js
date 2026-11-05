@@ -1,0 +1,62 @@
+require('dotenv').config();
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
+const fs = require('fs');
+
+const authRoutes = require('./routes/authRoutes');
+const analysisRoutes = require('./routes/analysisRoutes');
+const evaluationRoutes = require('./routes/evaluationRoutes');
+const systemRoutes = require('./routes/systemRoutes');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Security & Parsing Middleware
+app.use(cors());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// Static file serving
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/analysis', analysisRoutes);
+app.use('/api/evaluation', evaluationRoutes);
+app.use('/api/system', systemRoutes);
+
+// SPA fallback for non-API GET routes (compatible with Express 5)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/uploads/')) {
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+  }
+  next();
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'An unexpected internal server error occurred.'
+  });
+});
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🚀 BLACROX.AI Trading Chart Analysis Server Running`);
+    console.log(`📡 URL: http://localhost:${PORT}`);
+    console.log(`⏱️ Session Expiration: 120 minutes (2 hours)`);
+    console.log(`🤖 AI Providers: ChatGPT (OpenAI), Gemini (Google), Grok (xAI)`);
+    console.log(`📊 Mode: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`=======================================================`);
+  });
+}
+
+module.exports = app;

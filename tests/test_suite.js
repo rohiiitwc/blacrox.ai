@@ -1,0 +1,328 @@
+const assert = require('assert');
+const path = require('path');
+const fs = require('fs');
+const http = require('http');
+const jwt = require('jsonwebtoken');
+const app = require('../server');
+const db = require('../database/db');
+const { JWT_SECRET } = require('../middleware/auth');
+const { evaluateCandleOutcome } = require('../services/evaluationService');
+
+const PORT = 3001; // Separate port for testing
+let server;
+const BASE_URL = `http://localhost:${PORT}`;
+
+function createSampleImage(filename) {
+  const dir = path.join(__dirname, 'fixtures');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, filename);
+  // Valid minimal 1x1 PNG bytes
+  const pngBytes = Buffer.from('89504E470D0A1A0A0000000D49484452000000010000000108060000001F15C4890000000A49444154789C63000100000500010D0A2DB40000000049454E44AE426082', 'hex');
+  fs.writeFileSync(filePath, pngBytes);
+  return filePath;
+}
+
+function createSampleTextFile(filename) {
+  const dir = path.join(__dirname, 'fixtures');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, filename);
+  fs.writeFileSync(filePath, 'This is an invalid text file not an image');
+  return filePath;
+}
+
+async function runTests() {
+  console.log('\n=======================================================');
+  console.log('🧪 RUNNING COMPREHENSIVE BLACROX.AI TEST SUITE');
+  console.log('=======================================================\n');
+
+  await new Promise((resolve) => {
+    server = app.listen(PORT, resolve);
+  });
+
+  const testUserA = {
+    full_name: 'Test Trader Alpha',
+    email: `trader.alpha.${Date.now()}@example.com`,
+    password: 'Password123!',
+    confirm_password: 'Password123!'
+  };
+
+  const testUserB = {
+    full_name: 'Test Trader Beta',
+    email: `trader.beta.${Date.now()}@example.com`,
+    password: 'Password123!',
+    confirm_password: 'Password123!'
+  };
+
+  let tokenA, tokenB, userIdA, userIdB, analysisIdA;
+
+  try {
+    // 1. REGISTRATION TEST
+    console.log('Test 1: User Registration...');
+    const regRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testUserA)
+    });
+    const regData = await regRes.json();
+    assert.strictEqual(regRes.status, 201, 'Registration should return 201');
+    assert.strictEqual(regData.success, true, 'Registration success flag should be true');
+    assert.ok(regData.token, 'Token should be returned on registration');
+    assert.strictEqual(regData.expiresInMinutes, 120, 'Token expiration should be 120 minutes');
+    tokenA = regData.token;
+    userIdA = regData.user.id;
+    console.log('  ✓ Registration passed (User A created with 120-min session)');
+
+    // 2. DUPLICATE EMAIL REGISTRATION TEST
+    console.log('Test 2: Duplicate Email Validation...');
+    const dupRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testUserA)
+    });
+    const dupData = await dupRes.json();
+    assert.strictEqual(dupRes.status, 400);
+    assert.strictEqual(dupData.message, 'An account with this email already exists.');
+    console.log('  ✓ Duplicate email rejected with exact message');
+
+    // 3. REGISTRATION MISSING FIELDS TEST
+    console.log('Test 3: Missing Fields Validation...');
+    const missRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'incomplete@test.com' })
+    });
+    const missData = await missRes.json();
+    assert.strictEqual(missRes.status, 400);
+    assert.strictEqual(missData.message, 'Please complete all required fields.');
+    console.log('  ✓ Missing fields rejected with exact message');
+
+    // 4. LOGIN TEST - VALID CREDENTIALS
+    console.log('Test 4: User Login...');
+    const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testUserA.email, password: testUserA.password })
+    });
+    const loginData = await loginRes.json();
+    assert.strictEqual(loginRes.status, 200);
+    assert.strictEqual(loginData.success, true);
+    assert.ok(loginData.token);
+    assert.strictEqual(loginData.expiresInMinutes, 120);
+    console.log('  ✓ Login passed');
+
+    // 5. LOGIN TEST - INCORRECT CREDENTIALS
+    console.log('Test 5: Incorrect Password Validation...');
+    const wrongRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testUserA.email, password: 'WrongPassword999' })
+    });
+    const wrongData = await wrongRes.json();
+    assert.strictEqual(wrongRes.status, 401);
+    assert.strictEqual(wrongData.message, 'Incorrect email or password.');
+    console.log('  ✓ Incorrect password rejected with exact message');
+
+    // 6. FORGOT & RESET PASSWORD TEST
+    console.log('Test 6: Forgot and Reset Password Flow...');
+    const forgotRes = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testUserA.email })
+    });
+    const forgotData = await forgotRes.json();
+    assert.strictEqual(forgotRes.status, 200);
+    assert.ok(forgotData.resetToken, 'Reset token generated');
+
+    const resetRes = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: forgotData.resetToken,
+        password: 'NewSuperPassword456!',
+        confirm_password: 'NewSuperPassword456!'
+      })
+    });
+    const resetData = await resetRes.json();
+    assert.strictEqual(resetRes.status, 200);
+    assert.strictEqual(resetData.success, true);
+
+    // Verify login with new password
+    const reLogin = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: testUserA.email, password: 'NewSuperPassword456!' })
+    });
+    const reLoginData = await reLogin.json();
+    assert.strictEqual(reLogin.status, 200);
+    tokenA = reLoginData.token;
+    console.log('  ✓ Forgot & reset password flow passed');
+
+    // 7. TWO-HOUR (120-MINUTES) SESSION EXPIRATION TEST
+    console.log('Test 7: Two-Hour (120-minute) Session Enforcement...');
+    const decoded = jwt.decode(tokenA);
+    const tokenLifetimeSeconds = decoded.exp - decoded.iat;
+    assert.strictEqual(tokenLifetimeSeconds, 7200, 'JWT token lifetime must be exactly 7200 seconds (2 hours)');
+
+    // Test rejection of an expired token
+    const expiredToken = jwt.sign(
+      { id: userIdA, email: testUserA.email },
+      JWT_SECRET,
+      { expiresIn: '-10s' } // Expired 10 seconds ago
+    );
+    const expReq = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: { 'Authorization': `Bearer ${expiredToken}` }
+    });
+    const expData = await expReq.json();
+    assert.strictEqual(expReq.status, 401);
+    assert.strictEqual(expData.expired, true);
+    assert.strictEqual(expData.message, 'Your session has expired. Please log in again.');
+    console.log('  ✓ Two-hour backend session expiry strictly enforced');
+
+    // 8. SCREENSHOT UPLOAD & CONCURRENT MULTI-AI ANALYSIS TEST
+    console.log('Test 8: Screenshot Upload & Multi-AI Concurrent Processing...');
+    const sampleImage = createSampleImage('test-chart.png');
+
+    const formData = new FormData();
+    const fileBytes = fs.readFileSync(sampleImage);
+    const blob = new Blob([fileBytes], { type: 'image/png' });
+    formData.append('screenshot', blob, 'test-chart.png');
+
+    const uploadRes = await fetch(`${BASE_URL}/api/analysis/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenA}` },
+      body: formData
+    });
+    const uploadData = await uploadRes.json();
+    assert.strictEqual(uploadRes.status, 200);
+    assert.strictEqual(uploadData.success, true);
+    assert.ok(uploadData.analysis.id);
+    analysisIdA = uploadData.analysis.id;
+
+    assert.ok(['UP', 'DOWN', 'INCONCLUSIVE'].includes(uploadData.analysis.consensus_decision));
+    assert.ok(uploadData.ai_results.length === 3, 'Must contain all 3 AI providers: ChatGPT, Gemini, Grok');
+
+    const providers = uploadData.ai_results.map(r => r.provider);
+    assert.ok(providers.includes('chatgpt'), 'Must include ChatGPT');
+    assert.ok(providers.includes('gemini'), 'Must include Gemini');
+    assert.ok(providers.includes('grok'), 'Must include Grok');
+    console.log(`  ✓ Multi-AI analysis completed (Consensus: ${uploadData.analysis.consensus_decision}, Agreement: ${uploadData.analysis.agreement_score})`);
+
+    // 9. UNSUPPORTED FILE FORMAT REJECTION TEST
+    console.log('Test 9: Invalid File Format Validation...');
+    const sampleTxt = createSampleTextFile('test.txt');
+    const badForm = new FormData();
+    const txtBlob = new Blob([fs.readFileSync(sampleTxt)], { type: 'text/plain' });
+    badForm.append('screenshot', txtBlob, 'test.txt');
+
+    const badUploadRes = await fetch(`${BASE_URL}/api/analysis/upload`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenA}` },
+      body: badForm
+    });
+    assert.ok(!badUploadRes.ok, 'Non-image file should be rejected');
+    console.log('  ✓ Unsupported format correctly rejected');
+
+    // 10. SECTION 6 CANDLE EVALUATION RULES UNIT TESTS
+    console.log('Test 10: Candle Evaluation Rules (Section 6 Table)...');
+    assert.strictEqual(evaluateCandleOutcome('UP', 'GREEN').evaluationResult, 'CORRECT');
+    assert.strictEqual(evaluateCandleOutcome('UP', 'RED').evaluationResult, 'INCORRECT');
+    assert.strictEqual(evaluateCandleOutcome('DOWN', 'RED').evaluationResult, 'CORRECT');
+    assert.strictEqual(evaluateCandleOutcome('DOWN', 'GREEN').evaluationResult, 'INCORRECT');
+    assert.strictEqual(evaluateCandleOutcome('UP', 'DOJI').evaluationResult, 'REFUND');
+    assert.strictEqual(evaluateCandleOutcome('DOWN', 'DOJI').evaluationResult, 'REFUND');
+    assert.strictEqual(evaluateCandleOutcome('UP', 'UNCLEAR').evaluationResult, 'UNRESOLVED');
+    console.log('  ✓ All 7 scenario outcome rules verified exactly as specified');
+
+    // 11. RECORD EVALUATION API TEST
+    console.log('Test 11: Recording Completed Candle Outcome via API...');
+    const evalForm = new FormData();
+    evalForm.append('analysis_id', analysisIdA);
+    evalForm.append('candle_color', 'GREEN');
+
+    const evalRes = await fetch(`${BASE_URL}/api/evaluation/submit`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenA}` },
+      body: evalForm
+    });
+    const evalData = await evalRes.json();
+    assert.strictEqual(evalRes.status, 200);
+    assert.strictEqual(evalData.success, true);
+    assert.ok(['CORRECT', 'INCORRECT', 'REFUND', 'UNRESOLVED'].includes(evalData.evaluation.evaluation_result));
+    console.log(`  ✓ Candle outcome recorded (Result: ${evalData.evaluation.evaluation_result})`);
+
+    // 12. USER DATA ISOLATION TEST
+    console.log('Test 12: User Data Isolation (User A vs User B)...');
+    // Register User B
+    const regB = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testUserB)
+    });
+    const regBData = await regB.json();
+    tokenB = regBData.token;
+    userIdB = regBData.user.id;
+
+    // User B fetches history -> should be empty
+    const histBRes = await fetch(`${BASE_URL}/api/analysis/history`, {
+      headers: { 'Authorization': `Bearer ${tokenB}` }
+    });
+    const histBData = await histBRes.json();
+    assert.strictEqual(histBData.history.length, 0, "User B should not see User A's analyses");
+
+    // User B attempts to access User A's analysis record -> should return 404
+    const accessDeny = await fetch(`${BASE_URL}/api/analysis/${analysisIdA}`, {
+      headers: { 'Authorization': `Bearer ${tokenB}` }
+    });
+    assert.strictEqual(accessDeny.status, 404, "User B cannot access User A's analysis by ID");
+
+    // User A fetches history -> sees their analysis
+    const histARes = await fetch(`${BASE_URL}/api/analysis/history`, {
+      headers: { 'Authorization': `Bearer ${tokenA}` }
+    });
+    const histAData = await histARes.json();
+    assert.strictEqual(histAData.history.length, 1, 'User A sees their own analysis');
+    console.log('  ✓ Strict User Data Isolation verified (zero cross-user leakage)');
+
+    // 13. API KEY SECURITY TEST
+    console.log('Test 13: API Key Security Verification...');
+    const gitignoreContent = fs.readFileSync(path.join(__dirname, '../.gitignore'), 'utf8');
+    assert.ok(gitignoreContent.includes('.env'), '.gitignore must include .env');
+    const sysRes = await fetch(`${BASE_URL}/api/system/status`);
+    const sysData = await sysRes.json();
+    const sysString = JSON.stringify(sysData);
+    assert.ok(!sysString.includes('sk-'), 'API keys must never appear in system status');
+    assert.ok(!sysString.includes('AIzaSy'), 'Google keys must never appear in system status');
+    console.log('  ✓ API keys secured, hidden from client, and protected in .gitignore');
+
+    // 14. STATS & UNVERIFIED NOTICE TEST
+    console.log('Test 14: Historical Performance & Sample Size Notice...');
+    const statsRes = await fetch(`${BASE_URL}/api/evaluation/stats`, {
+      headers: { 'Authorization': `Bearer ${tokenA}` }
+    });
+    const statsData = await statsRes.json();
+    assert.strictEqual(statsData.stats.overall.isVerified, false, 'Sample size < 20 must be marked unverified');
+    assert.ok(statsData.stats.overall.verificationNote.includes('unverified'));
+    console.log('  ✓ Transparent performance statistics & sample size notice verified');
+
+    // 15. CONCURRENCY & SIMULTANEOUS USERS PERFORMANCE TEST
+    console.log('Test 15: Concurrency under simultaneous requests...');
+    const concurrentRequests = Array.from({ length: 8 }).map(() =>
+      fetch(`${BASE_URL}/api/system/time`).then(r => r.json())
+    );
+    const concurrentResults = await Promise.all(concurrentRequests);
+    assert.strictEqual(concurrentResults.length, 8);
+    assert.ok(concurrentResults.every(r => r.timestamp > 0));
+    console.log('  ✓ Server responded to simultaneous requests with zero errors');
+
+    console.log('\n=======================================================');
+    console.log('✅ ALL TEST SUITE CHECKS PASSED SUCCESSFULLY (15/15)');
+    console.log('=======================================================\n');
+  } catch (err) {
+    console.error('\n❌ TEST SUITE FAILURE:', err);
+    process.exitCode = 1;
+  } finally {
+    if (server) server.close();
+  }
+}
+
+runTests();

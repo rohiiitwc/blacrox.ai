@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>BLACROX.AI — AI-Powered Educational Trading Chart Analysis</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-logo-icon">B</div>
+      <div class="brand-title">
+        BLACROX.AI
+        <span class="brand-badge">Quotex Simulator</span>
+      </div>
+    </div>
+
+    <div class="header-meta">
+      <div class="sync-clock" id="syncClock" title="Synchronized UTC Server Clock">00:00:00 UTC</div>
+      <div class="session-timer-pill" id="sessionTimer" title="Session automatically expires after 120 minutes">⏱️ 2h 00m 00s</div>
+      <div class="user-profile-badge" id="userProfileBox" style="display: none;">
+        <div class="user-avatar-circle" id="userAvatar">U</div>
+        <span id="userName" style="font-weight: 600;">Trader</span>
+        <button id="btnLogout" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.8rem; margin-left: 6px;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="app-nav">
+    <button class="nav-tab active" id="navDashboard">📊 Chart Analysis</button>
+    <button class="nav-tab" id="navHistory">📜 Analysis History</button>
+    <button class="nav-tab" id="navStats">📈 Accuracy & Performance</button>
+    <button class="nav-tab" id="navSystem">⚙️ System & AI Status</button>
+  </nav>
+
+  <!-- Main Content Views -->
+  <main class="app-main">
+
+    <!-- TAB 1: DASHBOARD / CHART ANALYSIS -->
+    <div id="viewDashboard">
+      <div class="alert-banner">
+        <span>⚠️</span>
+        <div>
+          <strong>Educational & Paper-Trading Simulator:</strong> Real-money trading is not executed. All analyses, scenarios, and predictions are educational simulations. Do not risk actual capital based on automated outputs.
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Screenshot Upload Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">📷 Upload Quotex Chart Screenshot</h2>
+            <span class="badge-timeframe">PNG, JPG, JPEG (Max 10MB)</span>
+          </div>
+
+          <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">📥</div>
+            <div class="dropzone-text">Drag & drop your Quotex chart screenshot here, or click to browse</div>
+            <div class="dropzone-subtext">Supports 1-minute (1M) candlestick chart screenshots on Desktop & Mobile</div>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" style="display: none;">
+          </div>
+
+          <!-- Image Preview -->
+          <div class="image-preview-container" id="previewContainer">
+            <div class="image-preview-wrapper">
+              <img id="previewImage" alt="Chart Preview">
+            </div>
+            <div class="preview-actions">
+              <span id="previewFilename" style="font-family: monospace;">chart.png</span>
+              <div style="display: flex; gap: 8px;">
+                <button id="btnRemoveImage" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;">Remove</button>
+                <button id="btnStartAnalysis" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem;" disabled>⚡ Run Multi-AI Analysis (ChatGPT + Gemini + Grok)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parallel AI Processing Deck -->
+        <div class="ai-processing-deck" id="processingDeck">
+          <div class="ai-engine-status-card" id="cardChatgptStatus">
+            <div class="ai-engine-header">
+              <span class="ai-engine-name">ChatGPT (OpenAI)</span>
+              <span class="ai-engine-pill" id="statusChatgpt">Standing by</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">GPT-4o Vision technical pattern evaluation</p>
+          </div>
+
+          <div class="ai-engine-status-card" id="cardGeminiStatus">
+            <div class="ai-engine-header">
+              <span class="ai-engine-name">Gemini (Google)</span>
+              <span class="ai-engine-pill" id="statusGemini">Standing by</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Gemini 2.5 Flash concurrent image interpretation</p>
+          </div>
+
+          <div class="ai-engine-status-card" id="cardGrokStatus">
+            <div class="ai-engine-header">
+              <span class="ai-engine-name">Grok (xAI)</span>
+              <span class="ai-engine-pill" id="statusGrok">Standing by</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Grok-2-Vision quantitative market structure</p>
+          </div>
+        </div>
+
+        <!-- Primary Analysis Result View -->
+        <div class="analysis-result-view" id="resultView">
+          <!-- Consensus Hero Card -->
+          <div class="consensus-hero-card" id="consensusHeroCard">
+            <div class="chart-meta-row">
+              <div class="pair-info">
+                <span class="pair-title" id="resultPair">EUR/USD</span>
+                <span class="badge-otc" id="resultMarketBadge">OTC MARKET</span>
+                <span class="badge-timeframe" id="resultTimeframe">1M</span>
+              </div>
+              <div>
+                <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Model Agreement</span>
+              </div>
+            </div>
+
+            <div class="decision-display-grid">
+              <div class="decision-badge-box">
+                <div class="decision-label-title">Upcoming 1-Minute Candle Educational Scenario</div>
+                <div class="decision-action-big" id="resultDecisionBig">▲ UP</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Simulated direction indicator</div>
+              </div>
+
+              <div class="decision-details-box">
+                <div class="confidence-bar-wrapper">
+                  <div class="confidence-header">
+                    <span>Calibrated Confidence Estimate</span>
+                    <strong id="resultConfidenceText">80%</strong>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" id="resultConfidenceBar" style="width: 80%;"></div>
+                  </div>
+                </div>
+
+                <div class="conclusion-paragraph" id="resultConclusion">
+                  Consensus generated from concurrent multi-AI technical assessment.
+                </div>
+              </div>
+            </div>
+
+            <!-- 3-Model Individual Comparison Cards -->
+            <div class="models-comparison-grid">
+              <!-- ChatGPT -->
+              <div class="model-card">
+                <div class="model-card-header">
+                  <span class="model-name">ChatGPT (OpenAI)</span>
+                  <span class="model-decision-tag tag-up" id="chatgptDecisionTag">UP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="chatgptConfidence">78%</span></div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="chatgptSummary">Bullish rejection at support.</p>
+              </div>
+
+              <!-- Gemini -->
+              <div class="model-card">
+                <div class="model-card-header">
+                  <span class="model-name">Gemini (Google)</span>
+                  <span class="model-decision-tag tag-up" id="geminiDecisionTag">UP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="geminiConfidence">82%</span></div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="geminiSummary">EMA 7 crossing above EMA 21.</p>
+              </div>
+
+              <!-- Grok -->
+              <div class="model-card">
+                <div class="model-card-header">
+                  <span class="model-name">Grok (xAI)</span>
+                  <span class="model-decision-tag tag-up" id="grokDecisionTag">UP</span>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Confidence: <span id="grokConfidence">75%</span></div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);" id="grokSummary">Lower Bollinger band bounce observed.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expandable Deep Technical Reasoning Section -->
+          <div class="expandable-details-card">
+            <button class="expandable-toggle" id="btnToggleTechnical">
+              <span>🔍 Expand Detailed Technical Indicators & Reasoning</span>
+              <span class="accordion-arrow">▼</span>
+            </button>
+            <div class="expandable-content" id="technicalContent">
+              <div class="indicators-grid">
+                <div class="indicator-item">
+                  <div class="indicator-title">Candlestick Pattern Observations</div>
+                  <div class="indicator-val" id="detailCandlestick">-</div>
+                </div>
+                <div class="indicator-item">
+                  <div class="indicator-title">EMA 7 & EMA 21 Observations</div>
+                  <div class="indicator-val" id="detailEma">-</div>
+                </div>
+                <div class="indicator-item">
+                  <div class="indicator-title">Bollinger Bands (Upper / Lower / Mid)</div>
+                  <div class="indicator-val" id="detailBb">-</div>
+                </div>
+                <div class="indicator-item">
+                  <div class="indicator-title">Key Support & Resistance Levels</div>
+                  <div class="indicator-val" id="detailSr">-</div>
+                </div>
+                <div class="indicator-item">
+                  <div class="indicator-title">Market Structure</div>
+                  <div class="indicator-val" id="detailStructure">-</div>
+                </div>
+                <div class="indicator-item">
+                  <div class="indicator-title">Volume Observations</div>
+                  <div class="indicator-val" id="detailVolume">-</div>
+                </div>
+                <div class="indicator-item" style="grid-column: 1 / -1;">
+                  <div class="indicator-title">Bullish vs. Bearish Scenarios</div>
+                  <div class="indicator-val" id="detailScenarios">-</div>
+                </div>
+                <div class="indicator-item" style="grid-column: 1 / -1;">
+                  <div class="indicator-title">Data Quality & Uncertainty Assessment</div>
+                  <div class="indicator-val" id="detailUncertainty">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 6: Screenshot-Based Result Evaluation -->
+          <div class="evaluation-section-card" id="evaluationSection">
+            <div class="card-header">
+              <h3 class="card-title">🎯 Completed Candle Educational Evaluation</h3>
+              <span class="badge-timeframe">Evaluate simulated outcome after 1 minute</span>
+            </div>
+
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">
+              After the 1-minute candle completes on your Quotex chart, select the resulting candle color (or upload a verification screenshot) to evaluate accuracy against the simulated scenario:
+            </p>
+
+            <div style="margin: 1rem 0;">
+              <label for="resultScreenshotInput" style="display: block; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                Optional: Upload Completed Candle Screenshot
+              </label>
+              <input type="file" id="resultScreenshotInput" accept="image/png, image/jpeg, image/jpg" style="font-size: 0.85rem;">
+              <span id="resultScreenshotLabel" style="font-size: 0.8rem; color: var(--text-muted); margin-left: 8px;"></span>
+            </div>
+
+            <div class="evaluation-buttons-group">
+              <button class="btn-outcome btn-green" data-color="GREEN">🟢 Green Candle (Bullish)</button>
+              <button class="btn-outcome btn-red" data-color="RED">🔴 Red Candle (Bearish)</button>
+              <button class="btn-outcome btn-doji" data-color="DOJI">⚪ Doji (Refund Simulation)</button>
+              <button class="btn-outcome" data-color="UNCLEAR" style="background: var(--bg-surface); color: var(--text-secondary); border-color: var(--border-subtle);">❓ Unclear / Unresolved</button>
+            </div>
+
+            <button id="btnSubmitEval" class="btn btn-success" style="width: 100%; margin-top: 0.5rem;" disabled>
+              Record Candle Outcome & Evaluate
+            </button>
+
+            <!-- Result Evaluation Banner -->
+            <div class="evaluation-result-banner" id="evalResultBanner">
+              <h4 id="evalResultTitle" style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px;"></h4>
+              <p id="evalResultNotes" style="font-size: 0.9rem;"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ANALYSIS HISTORY -->
+    <div id="viewHistory" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📜 Isolated User Analysis History</h2>
+          <button class="btn btn-secondary" onclick="HistoryUI.loadHistory()" style="padding: 4px 10px; font-size: 0.8rem;">Refresh</button>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time (UTC)</th>
+                <th>Pair & Market</th>
+                <th>Timeframe</th>
+                <th>AI Consensus</th>
+                <th>Agreement</th>
+                <th>Evaluation Outcome</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="historyEmptyMsg" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted); display: none;">
+          No analysis history found for this account. Upload a Quotex chart screenshot to begin.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: ACCURACY & PERFORMANCE TRACKER -->
+    <div id="viewStats" style="display: none;">
+      <div id="statVerificationBanner" class="alert-banner alert-warning">
+        ⚠️ <strong>Sample Size Notice:</strong> Accuracy is currently <strong>UNVERIFIED</strong> (&lt; 20 resolved samples required for statistical significance).
+      </div>
+
+      <div class="stats-overview-grid">
+        <div class="stat-metric-card">
+          <div class="stat-metric-title">Overall Win Rate</div>
+          <div class="stat-metric-value" id="statWinRate">0.0%</div>
+          <div class="stat-metric-subtext" id="statDecisiveCount">0W / 0L (0 Total)</div>
+        </div>
+
+        <div class="stat-metric-card">
+          <div class="stat-metric-title">OTC Markets Accuracy</div>
+          <div class="stat-metric-value" id="statOtcWinRate">0.0%</div>
+          <div class="stat-metric-subtext">Quotex OTC market sessions</div>
+        </div>
+
+        <div class="stat-metric-card">
+          <div class="stat-metric-title">Live Markets Accuracy</div>
+          <div class="stat-metric-value" id="statLiveWinRate">0.0%</div>
+          <div class="stat-metric-subtext">Standard live exchange sessions</div>
+        </div>
+
+        <div class="stat-metric-card">
+          <div class="stat-metric-title">Doji / Refund Simulation</div>
+          <div class="stat-metric-value" id="statRefunds">0 Neutral</div>
+          <div class="stat-metric-subtext">Excluded from Win Rate denominator</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📖 Section 6 & 13 Evaluation Rules & Standard</h3>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7;">
+          <p><strong>Evaluation Logic Matrix:</strong></p>
+          <ul style="margin: 0.75rem 0 1rem 1.5rem;">
+            <li>Scenario <strong style="color: var(--color-bullish);">UP</strong> + <strong style="color: var(--color-bullish);">Green Candle</strong> = <strong>CORRECT</strong></li>
+            <li>Scenario <strong style="color: var(--color-bullish);">UP</strong> + <strong style="color: var(--color-bearish);">Red Candle</strong> = <strong>INCORRECT</strong></li>
+            <li>Scenario <strong style="color: var(--color-bearish);">DOWN</strong> + <strong style="color: var(--color-bearish);">Red Candle</strong> = <strong>CORRECT</strong></li>
+            <li>Scenario <strong style="color: var(--color-bearish);">DOWN</strong> + <strong style="color: var(--color-bullish);">Green Candle</strong> = <strong>INCORRECT</strong></li>
+            <li>Either Scenario + <strong style="color: var(--color-neutral);">Doji Candle</strong> = <strong>Neutral / REFUND simulation</strong> (not counted as win or loss)</li>
+            <li>Conflicting / Unreadable = <strong>UNRESOLVED</strong></li>
+          </ul>
+          <p>
+            <strong>Statistical Integrity:</strong> We do not publish aspirational 85–90% or 99–100% claims without independently validated, out-of-sample data on record.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SYSTEM & AI STATUS -->
+    <div id="viewSystem" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🤖 AI Engine & Provider Connectivity</h3>
+          <span class="badge-live">Server Online</span>
+        </div>
+
+        <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+          <div class="indicator-item">
+            <div class="indicator-title">OpenAI ChatGPT (GPT-4o Vision)</div>
+            <div class="indicator-val" id="sysOpenAiStatus">Checking status...</div>
+          </div>
+          <div class="indicator-item">
+            <div class="indicator-title">Google Gemini (Gemini 2.5 Flash)</div>
+            <div class="indicator-val" id="sysGeminiStatus">Checking status...</div>
+          </div>
+          <div class="indicator-item">
+            <div class="indicator-title">xAI Grok (Grok-2-Vision)</div>
+            <div class="indicator-val" id="sysGrokStatus">Checking status...</div>
+          </div>
+          <div class="indicator-item">
+            <div class="indicator-title">Server Uptime</div>
+            <div class="indicator-val" id="sysUptime">0 seconds</div>
+          </div>
+          <div class="indicator-item">
+            <div class="indicator-title">Synchronized Server Timestamp</div>
+            <div class="indicator-val" id="sysServerTime">Synchronizing...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- AUTHENTICATION MODAL OVERLAY -->
+  <div class="auth-overlay" id="authModalOverlay" style="display: none;">
+    <div class="auth-modal">
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabLogin">LOGIN</button>
+        <button class="auth-tab-btn" id="tabRegister">CREATE NEW ACCOUNT</button>
+      </div>
+
+      <div class="form-error" id="authError"></div>
+      <div class="form-success" id="authSuccess"></div>
+
+      <!-- Login Form -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1.25rem;">
+          <a href="#" id="forgotPasswordLink" style="font-size: 0.85rem; color: var(--color-brand); text-decoration: none;">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">LOGIN</button>
+      </form>
+
+      <!-- Registration Form -->
+      <form id="registerForm" style="display: none;">
+        <div class="form-group">
+          <label for="regFullName">Full Name</label>
+          <input type="text" id="regFullName" class="form-control" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" class="form-control" placeholder="name@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Password</label>
+          <input type="password" id="regPassword" class="form-control" placeholder="At least 6 characters" required>
+        </div>
+        <div class="form-group">
+          <label for="regConfirmPassword">Confirm Password</label>
+          <input type="password" id="regConfirmPassword" class="form-control" placeholder="Repeat password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">CREATE NEW ACCOUNT</button>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="forgotPasswordForm" style="display: none;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Reset Your Password</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Enter your registered email address to receive a secure password reset link.
+        </p>
+        <div class="form-group">
+          <label for="forgotEmail">Registered Email Address</label>
+          <input type="email" id="forgotEmail" class="form-control" placeholder="name@example.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">GENERATE RESET LINK</button>
+        <div style="text-align: center;">
+          <a href="#" id="backToLoginLink" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: none;">Back to Login</a>
+        </div>
+      </form>
+
+      <!-- Reset Password Form -->
+      <form id="resetPasswordForm" style="display: none;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem;">Create New Password</h3>
+        <input type="hidden" id="resetTokenInput">
+        <div class="form-group">
+          <label for="newPasswordInput">New Password</label>
+          <input type="password" id="newPasswordInput" class="form-control" placeholder="At least 6 characters" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmNewPasswordInput">Confirm New Password</label>
+          <input type="password" id="confirmNewPasswordInput" class="form-control" placeholder="Repeat new password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">UPDATE PASSWORD</button>
+        <div style="text-align: center;">
+          <a href="#" id="backToLoginFromResetLink" style="font-size: 0.85rem; color: var(--text-secondary); text-decoration: none;">Back to Login</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Client-Side Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script src="/js/evaluation.js"></script>
+  <script src="/js/history.js"></script>
+  <script src="/js/app.js"></script>
+
+</body>
+</html>
