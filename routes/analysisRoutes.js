@@ -206,4 +206,73 @@ router.get('/:id', requireAuth, (req, res) => {
   }
 });
 
+// DELETE /api/analysis/history - Clear all analysis history for user
+router.delete('/history', requireAuth, (req, res) => {
+  const userId = req.user.id;
+  try {
+    const userAnalyses = db.prepare('SELECT id, initial_screenshot FROM analyses WHERE user_id = ?').all(userId);
+    
+    for (const a of userAnalyses) {
+      if (a.initial_screenshot) {
+        const filePath = path.join(uploadDir, a.initial_screenshot);
+        if (fs.existsSync(filePath)) {
+          try { fs.unlinkSync(filePath); } catch (e) {}
+        }
+      }
+    }
+
+    db.prepare('DELETE FROM evaluations WHERE user_id = ?').run(userId);
+    db.prepare('DELETE FROM analyses WHERE user_id = ?').run(userId);
+
+    return res.json({
+      success: true,
+      message: 'Analysis history deleted successfully.'
+    });
+  } catch (err) {
+    console.error('Clear history error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to clear analysis history.'
+    });
+  }
+});
+
+// DELETE /api/analysis/:id - Delete a single analysis record
+router.delete('/:id', requireAuth, (req, res) => {
+  const userId = req.user.id;
+  const analysisId = parseInt(req.params.id, 10);
+
+  try {
+    const analysis = db.prepare('SELECT * FROM analyses WHERE id = ? AND user_id = ?').get(analysisId, userId);
+    if (!analysis) {
+      return res.status(404).json({
+        success: false,
+        message: 'Analysis record not found.'
+      });
+    }
+
+    if (analysis.initial_screenshot) {
+      const filePath = path.join(uploadDir, analysis.initial_screenshot);
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (e) {}
+      }
+    }
+
+    db.prepare('DELETE FROM evaluations WHERE analysis_id = ?').run(analysisId);
+    db.prepare('DELETE FROM ai_results WHERE analysis_id = ?').run(analysisId);
+    db.prepare('DELETE FROM analyses WHERE id = ? AND user_id = ?').run(analysisId, userId);
+
+    return res.json({
+      success: true,
+      message: 'Analysis record deleted successfully.'
+    });
+  } catch (err) {
+    console.error('Delete analysis error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete analysis record.'
+    });
+  }
+});
+
 module.exports = router;

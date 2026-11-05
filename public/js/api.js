@@ -144,6 +144,18 @@ const API = (() => {
       return request('/api/analysis/history');
     },
 
+    async clearHistory() {
+      return request('/api/analysis/history', {
+        method: 'DELETE'
+      });
+    },
+
+    async deleteAnalysis(id) {
+      return request(`/api/analysis/${id}`, {
+        method: 'DELETE'
+      });
+    },
+
     async getAnalysis(id) {
       return request(`/api/analysis/${id}`);
     },

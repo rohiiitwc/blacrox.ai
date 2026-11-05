@@ -402,7 +402,10 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">📜 Isolated User Analysis History</h2>
-          <button class="btn btn-secondary" onclick="HistoryUI.loadHistory()" style="padding: 4px 10px; font-size: 0.8rem;">Refresh</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="HistoryUI.loadHistory()" style="padding: 4px 10px; font-size: 0.8rem;">Refresh</button>
+            <button class="btn btn-danger" id="btnClearAllHistory" onclick="HistoryUI.clearAllHistory()" style="padding: 4px 12px; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; cursor: pointer;">🗑️ Delete All History</button>
+          </div>
         </div>
 
         <div class="table-container">

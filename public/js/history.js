@@ -44,7 +44,10 @@ const HistoryUI = (() => {
             <td><span class="model-decision-tag ${decisionClass}">${row.consensus_decision}</span></td>
             <td>${row.agreement_score} (${row.agreement_type})</td>
             <td>${evalBadge}</td>
-            <td><button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;">View</button></td>
+            <td style="white-space: nowrap;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="HistoryUI.viewDetail(${row.id})">View</button>
+              <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem; margin-left: 4px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="HistoryUI.deleteSingle(${row.id}, event)" title="Delete this record">🗑️</button>
+            </td>
           </tr>
         `;
       }).join('');
@@ -96,6 +99,44 @@ const HistoryUI = (() => {
     }
   }
 
+  async function clearAllHistory() {
+    if (!confirm('Are you sure you want to delete all your chart analysis history? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await API.clearHistory();
+      if (res.success) {
+        await loadHistory();
+        await loadStats();
+        alert('All analysis history has been deleted.');
+      } else {
+        alert(res.message || 'Failed to delete history.');
+      }
+    } catch (err) {
+      alert(`Error deleting history: ${err.message}`);
+    }
+  }
+
+  async function deleteSingle(analysisId, event) {
+    if (event) event.stopPropagation();
+    if (!confirm('Delete this chart analysis record?')) {
+      return;
+    }
+
+    try {
+      const res = await API.deleteAnalysis(analysisId);
+      if (res.success) {
+        await loadHistory();
+        await loadStats();
+      } else {
+        alert(res.message || 'Failed to delete record.');
+      }
+    } catch (err) {
+      alert(`Error deleting record: ${err.message}`);
+    }
+  }
+
   function init() {
     window.addEventListener('evaluation-recorded', () => {
       loadHistory();
@@ -112,7 +153,9 @@ const HistoryUI = (() => {
     init,
     loadHistory,
     loadStats,
-    viewDetail
+    viewDetail,
+    clearAllHistory,
+    deleteSingle
   };
 })();
 
