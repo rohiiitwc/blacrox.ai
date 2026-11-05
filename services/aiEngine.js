@@ -104,8 +104,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     time_ms: Date.now() - startTime
   };
 
-  if (chatgpt.is_mock && allowMock) {
+  if ((chatgpt.is_mock || chatgpt.status === 'ERROR') && allowMock) {
+    const origError = chatgpt.error_message;
     chatgpt = generateEducationalSimulation('chatgpt', 'ChatGPT (OpenAI)', seed);
+    if (origError) chatgpt.uncertainty = `Live API note: ${origError}`;
   }
 
   // Process Gemini result
@@ -117,8 +119,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     time_ms: Date.now() - startTime
   };
 
-  if (gemini.is_mock && allowMock) {
+  if ((gemini.is_mock || gemini.status === 'ERROR') && allowMock) {
+    const origError = gemini.error_message;
     gemini = generateEducationalSimulation('gemini', 'Gemini (Google)', seed);
+    if (origError) gemini.uncertainty = `Live API note: ${origError}`;
   }
 
   // Process Grok result
@@ -130,8 +134,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     time_ms: Date.now() - startTime
   };
 
-  if (grok.is_mock && allowMock) {
+  if ((grok.is_mock || grok.status === 'ERROR') && allowMock) {
+    const origError = grok.error_message;
     grok = generateEducationalSimulation('grok', 'Grok (xAI)', seed);
+    if (origError) grok.uncertainty = `Live API note: ${origError}`;
   }
 
   const results = [chatgpt, gemini, grok];
