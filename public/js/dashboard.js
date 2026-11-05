@@ -86,6 +86,57 @@ const DashboardUI = (() => {
   const btnToggleTechnical = document.getElementById('btnToggleTechnical');
   const technicalContent = document.getElementById('technicalContent');
 
+  let isAnalyzing = false;
+
+  async function executeAnalysis() {
+    if (!selectedFile || isAnalyzing) return;
+
+    // Ensure user is authenticated before uploading
+    if (!API.getToken()) {
+      AuthUI.openModal('Please log in or create an account to run AI chart analysis.');
+      return;
+    }
+
+    isAnalyzing = true;
+    btnStartAnalysis.disabled = true;
+    btnStartAnalysis.textContent = '⏱️ Auto-Analyzing 1M Chart (5s)...';
+
+    const formData = new FormData();
+    formData.append('screenshot', selectedFile);
+    if (selectPairOverride && selectPairOverride.value) {
+      formData.append('pair', selectPairOverride.value);
+    }
+
+    try {
+      // Execute the 5-second technical scan animation AND backend AI upload concurrently
+      const [uploadRes] = await Promise.all([
+        API.uploadScreenshot(formData),
+        start5SecondScanAnimation()
+      ]);
+
+      stopScanAnimation();
+      isAnalyzing = false;
+      btnStartAnalysis.disabled = false;
+      btnStartAnalysis.textContent = '⚡ Re-Analyze Chart (ChatGPT + Gemini + Grok)';
+
+      if (uploadRes.success && uploadRes.analysis) {
+        renderAnalysis(uploadRes.analysis, uploadRes.ai_results || []);
+      }
+    } catch (err) {
+      stopScanAnimation();
+      isAnalyzing = false;
+      btnStartAnalysis.disabled = false;
+      btnStartAnalysis.textContent = '⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)';
+      scanCountdownContainer.style.display = 'none';
+      processingDeck.style.display = 'none';
+      if (err.message && err.message.includes('expired')) {
+        AuthUI.openModal('Your session has expired. Please log in again.');
+      } else {
+        alert(`Analysis Error: ${err.message}`);
+      }
+    }
+  }
+
   function handleFileSelected(file) {
     if (!file) return;
 
@@ -109,18 +160,25 @@ const DashboardUI = (() => {
       previewImage.src = e.target.result;
       previewContainer.style.display = 'block';
       dropzone.style.display = 'none';
-      btnStartAnalysis.disabled = false;
+      btnStartAnalysis.disabled = true;
+      btnStartAnalysis.textContent = '⚡ Auto-Analyzing Chart...';
+
+      // Automatically analyze as requested by user without clicking on run multi analysis
+      executeAnalysis();
     };
     reader.readAsDataURL(file);
   }
 
   function resetUpload() {
+    stopScanAnimation();
+    isAnalyzing = false;
     selectedFile = null;
     fileInput.value = '';
     previewImage.src = '';
     previewContainer.style.display = 'none';
     dropzone.style.display = 'block';
     btnStartAnalysis.disabled = true;
+    btnStartAnalysis.textContent = '⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)';
   }
 
   let activeScanTimer = null;
@@ -426,52 +484,8 @@ const DashboardUI = (() => {
       }
     });
 
-    // Start 5-Second Multi-AI Analysis
-    btnStartAnalysis.addEventListener('click', async () => {
-      if (!selectedFile) return;
-
-      // Ensure user is authenticated before uploading
-      if (!API.getToken()) {
-        AuthUI.openModal('Please log in or create an account to run AI chart analysis.');
-        return;
-      }
-
-      btnStartAnalysis.disabled = true;
-      btnStartAnalysis.textContent = '⏱️ Running 5-Second AI Analysis...';
-
-      const formData = new FormData();
-      formData.append('screenshot', selectedFile);
-      if (selectPairOverride && selectPairOverride.value) {
-        formData.append('pair', selectPairOverride.value);
-      }
-
-      try {
-        // Execute the 5-second technical scan animation AND backend AI upload concurrently
-        const [uploadRes] = await Promise.all([
-          API.uploadScreenshot(formData),
-          start5SecondScanAnimation()
-        ]);
-
-        stopScanAnimation();
-        btnStartAnalysis.disabled = false;
-        btnStartAnalysis.textContent = '⚡ Run Multi-AI Analysis (ChatGPT + Gemini + Grok)';
-
-        if (uploadRes.success && uploadRes.analysis) {
-          renderAnalysis(uploadRes.analysis, uploadRes.ai_results || []);
-        }
-      } catch (err) {
-        stopScanAnimation();
-        btnStartAnalysis.disabled = false;
-        btnStartAnalysis.textContent = '⚡ Run Multi-AI Analysis (ChatGPT + Gemini + Grok)';
-        scanCountdownContainer.style.display = 'none';
-        processingDeck.style.display = 'none';
-        if (err.message && err.message.includes('expired')) {
-          AuthUI.openModal('Your session has expired. Please log in again.');
-        } else {
-          alert(`Analysis Error: ${err.message}`);
-        }
-      }
-    });
+    // Trigger / Re-trigger Multi-AI Analysis
+    btnStartAnalysis.addEventListener('click', executeAnalysis);
   }
 
   return {

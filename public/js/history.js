@@ -35,10 +35,16 @@ const HistoryUI = (() => {
 
         const decisionClass = row.consensus_decision === 'UP' ? 'tag-up' : row.consensus_decision === 'DOWN' ? 'tag-down' : 'tag-inconclusive';
         const entryTag = row.entry_time_ist ? `<div style="font-size: 0.72rem; color: #34d399; font-family: monospace;">Entry: ${row.entry_time_ist}</div>` : '';
+        const screenshotThumb = row.initial_screenshot
+          ? `<a href="/uploads/${row.initial_screenshot}" target="_blank" onclick="event.stopPropagation();" title="Click to view full Quotex screenshot">
+              <img src="/uploads/${row.initial_screenshot}" alt="Chart Screenshot" style="width: 55px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-highlight); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.8)'; this.style.zIndex='10';" onmouseout="this.style.transform='scale(1)'; this.style.zIndex='1';">
+            </a>`
+          : `<span style="font-size: 0.75rem; color: var(--text-muted);">None</span>`;
 
         return `
           <tr style="cursor: pointer;" onclick="HistoryUI.viewDetail(${row.id})">
             <td>${date}</td>
+            <td style="text-align: center;">${screenshotThumb}</td>
             <td><strong>${row.trading_pair}</strong> <span class="${isOtc ? 'badge-otc' : 'badge-live'}">${isOtc ? 'OTC' : 'LIVE'}</span>${entryTag}</td>
             <td>${row.timeframe || '1M'}</td>
             <td><span class="model-decision-tag ${decisionClass}">${row.consensus_decision}</span></td>
@@ -89,6 +95,19 @@ const HistoryUI = (() => {
       if (res.success && res.analysis) {
         // Switch to Dashboard tab
         document.getElementById('navDashboard').click();
+
+        // Display stored screenshot in preview container
+        if (res.analysis.initial_screenshot) {
+          const previewImage = document.getElementById('previewImage');
+          const previewContainer = document.getElementById('previewContainer');
+          const previewFilename = document.getElementById('previewFilename');
+          const dropzone = document.getElementById('dropzone');
+          if (previewImage) previewImage.src = `/uploads/${res.analysis.initial_screenshot}`;
+          if (previewFilename) previewFilename.textContent = res.analysis.initial_screenshot_orig_name || 'Stored Quotex Screenshot';
+          if (previewContainer) previewContainer.style.display = 'block';
+          if (dropzone) dropzone.style.display = 'none';
+        }
+
         DashboardUI.renderAnalysis(res.analysis, res.ai_results || []);
         if (res.evaluation) {
           EvaluationUI.renderEvaluationResult(res.evaluation);
