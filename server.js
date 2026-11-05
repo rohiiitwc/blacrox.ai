@@ -47,11 +47,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-if (require.main === module) {
-  const server = app.listen(PORT, () => {
+function startServer(port = PORT) {
+  const server = app.listen(port, () => {
     console.log(`=======================================================`);
     console.log(`🚀 BLACROX.AI Trading Chart Analysis Server Running`);
-    console.log(`📡 URL: http://localhost:${PORT}`);
+    console.log(`📡 URL: http://localhost:${port}`);
     console.log(`⏱️ Session Expiration: 120 minutes (2 hours)`);
     console.log(`🤖 AI Providers: ChatGPT (OpenAI), Gemini (Google), Grok (xAI)`);
     console.log(`📊 Mode: ${process.env.NODE_ENV || 'development'}`);
@@ -60,11 +60,18 @@ if (require.main === module) {
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.error(`❌ Port ${PORT} is already in use. Set PORT in your .env or close the running instance.`);
+      console.error(`❌ Port ${port} is already in use. Set PORT in your .env or close the running instance.`);
     } else {
       console.error('❌ Server startup error:', err);
     }
   });
+
+  return server;
+}
+
+if (require.main === module) {
+  startServer();
 }
 
 module.exports = app;
+module.exports.startServer = startServer;
