@@ -269,14 +269,14 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let supY = modelWithY?.support_y_percent != null ? Number(modelWithY.support_y_percent) : null;
   let priceY = modelWithY?.current_price_y_percent != null ? Number(modelWithY.current_price_y_percent) : null;
 
-  // Respect AI vision coordinates on candles (kept between 20% and 82% to prevent lines from drawing in blank header/footer space)
-  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(20, Math.min(65, resY)) : 38;
-  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(45, Math.min(82, supY)) : 72;
-  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(20, Math.min(82, priceY)) : 52;
+  // Strictly bounded inside the candlestick chart grid (never in top toolbar < 22% or bottom RSI pane > 74%)
+  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(22, Math.min(48, resY)) : 26;
+  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(52, Math.min(74, supY)) : 68;
+  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(24, Math.min(72, priceY)) : 48;
 
-  // Logical guarantee: Resistance line is positioned higher up on the screen than Support
+  // Logical guarantee: Resistance line is strictly higher up on the screen than Support
   if (detectedResY >= detectedSupY) {
-    detectedResY = Math.max(20, detectedSupY - 14);
+    detectedResY = Math.max(22, detectedSupY - 14);
   }
 
   // 3. Determine unified directional signal (Models must not give different signals)

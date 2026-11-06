@@ -18,12 +18,16 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
        - If the price scale is around 1612, the asset is USD/ARS (OTC), NEVER USD/COP!
    - Extract the exact name including "(OTC)". NEVER default to a wrong pair.
 
-2. ACCURATE CANDLE-LEVEL SUPPORT & RESISTANCE (NEVER EMPTY SPACE):
-   - CRITICAL REQUIREMENT: Lines MUST be drawn directly ON THE CANDLE WICKS, NOT in the empty blank margins!
-   - Active Current Price: Look at the highlighted active price label on the right scale (inside the blue or colored box with the dotted horizontal line, e.g. "3184.77"). Return this exact number as "current_price".
-   - Resistance Level & Y%: Look at the HIGHEST CANDLE WICKS (swing high) where candles actually reached and peaked. Do NOT pick the blank top margin or top scale number if no candle touched it! Return the price where candles peaked as "resistance_level" (e.g. "3185.20") and the exact vertical percentage (0-100) where that candle peak sits as "resistance_y_percent" (typically 35-45%).
-   - Support Level & Y%: Look at the LOWEST CANDLE WICKS (swing low) where candles actually bottomed and bounced. Do NOT pick the blank bottom margin if no candle touched it! Return the price where candles bounced as "support_level" (e.g. "3181.90") and the exact vertical percentage (0-100) where that candle trough sits as "support_y_percent" (typically 65-75%).
-   - Active Candle Y%: Estimate the vertical percentage (0-100) where the active rightmost candle sits as "current_price_y_percent" (e.g. 48%).
+2. ACCURATE CANDLE-LEVEL SUPPORT & RESISTANCE (STRICTLY INSIDE CANDLESTICK CHART):
+   - CRITICAL REQUIREMENT: Lines MUST be drawn STRICTLY INSIDE THE CANDLESTICK CHART GRID!
+   - NEVER place lines outside the chart:
+     * TOP CEILING: Do NOT place lines above 22% Y (stay below top tabs/toolbar). Resistance line must sit on the actual highest candle peaks (typically 22-35% Y).
+     * BOTTOM FLOOR: Do NOT place lines below 74% Y (stay above the RSI indicator panel and time axis). Support line must sit on the actual lowest candle troughs (typically 55-72% Y).
+     * Lines must NEVER touch or enter the RSI pane at the bottom or the asset tabs at the top!
+   - Active Current Price: Look at the highlighted active price label on the right scale (inside the blue or colored box with the dotted horizontal line, e.g. "1320.47"). Return this exact number as "current_price".
+   - Resistance Level & Y%: Look at the HIGHEST CANDLE WICKS (swing high) where candles actually reached and peaked. Return the price where candles peaked as "resistance_level" (e.g. "1321.35") and the vertical percentage strictly between 22 and 45 as "resistance_y_percent".
+   - Support Level & Y%: Look at the LOWEST CANDLE WICKS (swing low) where candles actually bottomed and bounced. Return the price where candles bounced as "support_level" (e.g. "1319.80" or "1315.00") and the vertical percentage strictly between 52 and 74 as "support_y_percent".
+   - Active Candle Y%: Estimate the vertical percentage (strictly between 24 and 72) where the active rightmost candle sits as "current_price_y_percent" (e.g. 48).
 
 3. HIGH-ACCURACY 1-MINUTE SIGNAL RULES (MAXIMUM WIN RATE):
    - In 1-minute binary options, betting against active micro-momentum causes high loss rates.

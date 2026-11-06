@@ -457,29 +457,33 @@ const DashboardUI = (() => {
       const priceVal = currentAnalysis?.current_price || pairDefaults.price;
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
-      // 1. Resistance Line (dashed coral line, Prime Setu style)
+      // Inside candlestick chart bounds (staying strictly clear of sidebars)
+      const chartLeftX = canvas.width * 0.045;
+      const chartRightX = canvas.width * 0.925;
+
+      // 1. Resistance Line (dashed coral line, strictly inside chart)
       ctx.save();
       ctx.strokeStyle = 'rgba(234, 91, 117, 0.85)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.moveTo(0, resY);
-      ctx.lineTo(canvas.width, resY);
+      ctx.moveTo(chartLeftX, resY);
+      ctx.lineTo(chartRightX, resY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, resY - 4, 'RESISTANCE', '#ea5b75');
+      drawCleanLabel(ctx, chartLeftX + 8, resY - 4, 'RESISTANCE', '#ea5b75');
 
-      // 2. Support Line (dashed mint line, Prime Setu style)
+      // 2. Support Line (dashed mint line, strictly inside chart)
       ctx.save();
       ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
-      ctx.moveTo(0, supY);
-      ctx.lineTo(canvas.width, supY);
+      ctx.moveTo(chartLeftX, supY);
+      ctx.lineTo(chartRightX, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, supY - 4, 'SUPPORT', '#00e676');
+      drawCleanLabel(ctx, chartLeftX + 8, supY - 4, 'SUPPORT', '#00e676');
 
       // 3. Candle Pin & Action (Prime Setu style)
       const pinX = canvas.width * 0.75;
@@ -507,11 +511,16 @@ const DashboardUI = (() => {
       annotatedChartImg.src = imgSrc;
     }
 
-    const resY = analysis.resistance_y_percent || 38;
-    const supY = analysis.support_y_percent || 72;
-    const priceY = analysis.current_price_y_percent || 52;
+    const rawResY = Number(analysis.resistance_y_percent);
+    const rawSupY = Number(analysis.support_y_percent);
+    const rawPriceY = Number(analysis.current_price_y_percent);
 
-    // Position lines
+    // Strictly clamped inside the candlestick chart area (22% to 74%)
+    const resY = !isNaN(rawResY) ? Math.max(22, Math.min(48, rawResY)) : 26;
+    const supY = !isNaN(rawSupY) ? Math.max(52, Math.min(74, rawSupY)) : 68;
+    const priceY = !isNaN(rawPriceY) ? Math.max(24, Math.min(72, rawPriceY)) : 48;
+
+    // Position lines strictly inside chart
     if (overlayResistanceLine) overlayResistanceLine.style.top = `${resY}%`;
     if (overlaySupportLine) overlaySupportLine.style.top = `${supY}%`;
     if (overlayEntryLine) overlayEntryLine.style.top = `${priceY}%`;
