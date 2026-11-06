@@ -1403,6 +1403,7 @@ table.data-table tr:hover td {
   grid-template-columns: 1fr 340px;
   gap: 1.25rem;
   margin-top: 1.25rem;
+  align-items: start;
 }
 
 .ai-chart-stage {
@@ -1413,6 +1414,16 @@ table.data-table tr:hover td {
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.ai-chart-stage .sr-metric-panel {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 14, 24, 0.95);
+  padding: 0.95rem 1.15rem;
+  box-shadow: none;
 }
 
 .ai-chart-stage-header {

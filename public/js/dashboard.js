@@ -874,6 +874,14 @@ const DashboardUI = (() => {
     detailScenarios.textContent = primaryAi.scenarios || (isUp ? 'Target upper deviation band' : 'Target lower deviation band');
     detailUncertainty.textContent = primaryAi.uncertainty || 'Standard 1-minute market volatility';
 
+    // Update Stage Technical Readouts
+    const quickEmaReadout = document.getElementById('quickEmaReadout');
+    const quickCandleReadout = document.getElementById('quickCandleReadout');
+    const quickStructureReadout = document.getElementById('quickStructureReadout');
+    if (quickEmaReadout) quickEmaReadout.textContent = chatgpt.ema_observations || (isUp ? 'EMA 7 sloping upward above EMA 21' : 'EMA 7 descending below EMA 21');
+    if (quickCandleReadout) quickCandleReadout.textContent = primaryAi.candlestick_pattern || (isUp ? 'Bullish continuation off support' : 'Bearish rejection off resistance');
+    if (quickStructureReadout) quickStructureReadout.textContent = primaryAi.market_structure || (isUp ? 'Higher Lows continuation' : 'Lower Highs continuation');
+
     // Broadcast analysis loaded event for Evaluation UI
     window.dispatchEvent(new CustomEvent('analysis-loaded', { detail: { analysis, aiResults } }));
 

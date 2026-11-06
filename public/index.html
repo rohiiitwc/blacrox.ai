@@ -245,6 +245,60 @@
                     ✓ S/R ZONES ACTIVE
                   </div>
                 </div>
+
+                <!-- Support & Resistance Automated Detection Bar (Integrated directly inside Chart Stage) -->
+                <div class="sr-metric-panel" id="srMetricPanel">
+                  <div class="sr-metric-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="sr-pulse-dot"></span>
+                      <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                        AUTOMATIC SUPPORT & RESISTANCE EXTRACTION
+                      </span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: #10b981; font-weight: 600; background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
+                      ✓ AI Chart Levels Synchronized
+                    </span>
+                  </div>
+                  <div class="sr-levels-grid">
+                    <!-- Resistance Level -->
+                    <div class="sr-level-box resistance-box">
+                      <div class="sr-level-label">🔴 Resistance Level</div>
+                      <div class="sr-level-val text-down" id="resultResistanceLevel">1.88073</div>
+                      <div class="sr-level-sub">Key Supply Ceiling</div>
+                    </div>
+                    <!-- Current Price -->
+                    <div class="sr-level-box price-box">
+                      <div class="sr-level-label">🔵 Current Price</div>
+                      <div class="sr-level-val" id="resultCurrentPrice" style="color: #60a5fa;">1.87774</div>
+                      <div class="sr-level-sub">Live Chart Price Tag</div>
+                    </div>
+                    <!-- Support Level -->
+                    <div class="sr-level-box support-box">
+                      <div class="sr-level-label">🟢 Support Level</div>
+                      <div class="sr-level-val text-up" id="resultSupportLevel">1.86367</div>
+                      <div class="sr-level-sub">Key Demand Floor</div>
+                    </div>
+                  </div>
+                  <div class="sr-analysis-summary" id="resultSrAnalysisSummary">
+                    Price testing Resistance level (1.88073) and Support (1.86367) on 1M chart.
+                  </div>
+                </div>
+
+                <!-- Integrated Live Indicator Readout Panel -->
+                <div class="stage-technical-readout" style="display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 14px; background: rgba(8, 12, 20, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.78rem;">
+                  <div style="flex: 1; min-width: 130px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 7px 10px;">
+                    <span style="color: var(--text-muted); display: block; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">📈 EMA Trajectory</span>
+                    <span id="quickEmaReadout" style="color: #60a5fa; font-weight: 700;">EMA slope aligned with signal</span>
+                  </div>
+                  <div style="flex: 1; min-width: 130px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 7px 10px;">
+                    <span style="color: var(--text-muted); display: block; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">🕯️ Candle Pattern</span>
+                    <span id="quickCandleReadout" style="color: #34d399; font-weight: 700;">Momentum continuation</span>
+                  </div>
+                  <div style="flex: 1; min-width: 130px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; padding: 7px 10px;">
+                    <span style="color: var(--text-muted); display: block; font-size: 0.68rem; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">📊 Market Structure</span>
+                    <span id="quickStructureReadout" style="color: #facc15; font-weight: 700;">Testing S/R boundaries</span>
+                  </div>
+                </div>
               </div>
 
               <!-- Right: Signal Brief Panel (Prime Setu Style) -->
@@ -363,44 +417,6 @@
                     <span id="briefEmaTrend" class="trend-badge-pill">BULLISH</span>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Support & Resistance Automated Detection Bar -->
-            <div class="sr-metric-panel" id="srMetricPanel">
-              <div class="sr-metric-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span class="sr-pulse-dot"></span>
-                  <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em;">
-                    AUTOMATIC SUPPORT & RESISTANCE EXTRACTION
-                  </span>
-                </div>
-                <span style="font-size: 0.75rem; color: #10b981; font-weight: 600; background: rgba(16, 185, 129, 0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3);">
-                  ✓ AI Chart Levels Synchronized
-                </span>
-              </div>
-              <div class="sr-levels-grid">
-                <!-- Resistance Level -->
-                <div class="sr-level-box resistance-box">
-                  <div class="sr-level-label">🔴 Resistance Level</div>
-                  <div class="sr-level-val text-down" id="resultResistanceLevel">1.88073</div>
-                  <div class="sr-level-sub">Key Supply Ceiling</div>
-                </div>
-                <!-- Current Price -->
-                <div class="sr-level-box price-box">
-                  <div class="sr-level-label">🔵 Current Price</div>
-                  <div class="sr-level-val" id="resultCurrentPrice" style="color: #60a5fa;">1.87774</div>
-                  <div class="sr-level-sub">Live Chart Price Tag</div>
-                </div>
-                <!-- Support Level -->
-                <div class="sr-level-box support-box">
-                  <div class="sr-level-label">🟢 Support Level</div>
-                  <div class="sr-level-val text-up" id="resultSupportLevel">1.86367</div>
-                  <div class="sr-level-sub">Key Demand Floor</div>
-                </div>
-              </div>
-              <div class="sr-analysis-summary" id="resultSrAnalysisSummary">
-                Price testing Resistance level (1.88073) and Support (1.86367) on 1M chart.
               </div>
             </div>
 
