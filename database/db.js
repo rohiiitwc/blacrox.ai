@@ -98,19 +98,25 @@ function createFallbackDb() {
             return tables.users.find(u => u.reset_token === params[0]) || null;
           }
           if (sql.includes('FROM analyses') && sql.includes('WHERE id = ?')) {
-            const a = tables.analyses.find(item => item.id === params[0]);
-            if (a && sql.includes('AND user_id = ?') && a.user_id !== params[1]) {
-              return null;
+            loadStore();
+            const a = tables.analyses.find(item => Number(item.id) === Number(params[0]) || String(item.id) === String(params[0]));
+            if (a && sql.includes('AND user_id = ?')) {
+              if (params[1] !== undefined && Number(a.user_id) !== Number(params[1]) && String(a.user_id) !== String(params[1])) {
+                return null;
+              }
             }
             return a || null;
           }
           if (sql.includes('FROM evaluations') && sql.includes('WHERE id = ?')) {
-            return tables.evaluations.find(e => e.id === params[0]) || null;
+            loadStore();
+            return tables.evaluations.find(e => Number(e.id) === Number(params[0]) || String(e.id) === String(params[0])) || null;
           }
           if (sql.includes('FROM evaluations') && sql.includes('WHERE analysis_id = ?')) {
-            return tables.evaluations.find(e => e.analysis_id === params[0]) || null;
+            loadStore();
+            return tables.evaluations.find(e => Number(e.analysis_id) === Number(params[0]) || String(e.analysis_id) === String(params[0])) || null;
           }
           if (sql.includes('COUNT(*)')) {
+            loadStore();
             if (sql.includes('FROM users')) return { c: tables.users.length };
             if (sql.includes('FROM analyses')) return { c: tables.analyses.length };
             return { c: 0 };
@@ -119,9 +125,10 @@ function createFallbackDb() {
         },
         all: (...params) => {
           if (sql.includes('FROM analyses')) {
+            loadStore();
             let matched = [...tables.analyses];
             if (sql.includes('user_id = ?') || sql.includes('a.user_id = ?')) {
-              matched = matched.filter(a => a.user_id === params[0]);
+              matched = matched.filter(a => Number(a.user_id) === Number(params[0]) || String(a.user_id) === String(params[0]));
             }
             if (sql.includes('LEFT JOIN evaluations')) {
               matched = matched.map(a => {

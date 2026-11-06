@@ -37,11 +37,14 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
      * Return "current_price" and "current_price_y_percent" matching the active candle position.
 
 3. INSTITUTIONAL 1-MINUTE SIGNAL RULES (ELIMINATING LOSSES):
-   - Institutional Micro-Momentum Law:
-     * Quotex 1M charts run in momentum bursts of 3 to 6 consecutive candles.
-     * If the recent 2-4 candles are GREEN, with green EMA 7 above red EMA 21 pointing UP: The micro-momentum is BULLISH -> predict 'UP' (CALL), confidence 88-93%.
-     * If the recent 2-4 candles are RED, with green EMA 7 below red EMA 21 pointing DOWN: The micro-momentum is BEARISH -> predict 'DOWN' (PUT), confidence 88-93%.
-     * NEVER bet counter-trend reversals without an undeniable rejection wick!
+   - Active Rightmost Candle Dominance:
+     * Look closely at the active (rightmost) candle right before the dashed vertical trade line:
+       - If the active candle is solid GREEN with buyers pushing upward: Trend momentum is Bullish -> predict 'UP' (CALL), confidence 89-93%. NEVER predict PUT against a rising green candle unless price has touched Resistance ceiling AND created a massive upper rejection wick (shooting star).
+       - If the active candle is solid RED with sellers pushing downward: Trend momentum is Bearish -> predict 'DOWN' (PUT), confidence 89-93%. NEVER predict CALL against a falling red candle unless price has touched Support floor AND created a massive lower hammer wick.
+   - Moving Averages (EMA 7 / Alligator) & RSI Alignment:
+     * When price is trading ABOVE the moving average lines and lines are fanning UPWARDS: Confirm 'UP' (CALL).
+     * When price is trading BELOW the moving average lines and lines are fanning DOWNWARDS: Confirm 'DOWN' (PUT).
+     * If the bottom RSI line is rising above 50, confirm 'UP' (CALL). If falling below 50, confirm 'DOWN' (PUT).
    - Support Bounce vs Resistance Rejection:
      * Only predict 'UP' at Support if the candle touched Support floor AND formed an obvious lower rejection hammer/wick.
      * Only predict 'DOWN' at Resistance if the candle touched Resistance ceiling AND formed an obvious upper rejection pinbar/wick.

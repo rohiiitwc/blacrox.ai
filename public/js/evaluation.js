@@ -46,10 +46,9 @@ const EvaluationUI = (() => {
     btnSubmitEval.disabled = true;
     btnSubmitEval.textContent = 'Evaluated';
 
-    // Auto-clear preview screenshot and stop countdown on trade evaluation completion
+    // Stop trade countdown on trade evaluation completion (preserve chart and history)
     if (window.DashboardUI) {
       DashboardUI.stopTradeExpiryCountdown();
-      DashboardUI.resetUpload();
     }
 
     // Broadcast stats refresh
@@ -93,6 +92,13 @@ const EvaluationUI = (() => {
       const formData = new FormData();
       formData.append('analysis_id', activeAnalysisId);
       formData.append('candle_color', selectedCandleColor);
+      if (activeOriginalDecision) {
+        formData.append('original_decision', activeOriginalDecision);
+      }
+      const pairElem = document.getElementById('resultPair');
+      if (pairElem && pairElem.textContent) {
+        formData.append('trading_pair', pairElem.textContent.trim());
+      }
       if (selectedResultScreenshot) {
         formData.append('completed_screenshot', selectedResultScreenshot);
       }
