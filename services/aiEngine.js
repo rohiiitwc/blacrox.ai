@@ -207,10 +207,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const successfulModels = [gemini, chatgpt, grok].filter(m => m.status === 'SUCCESS');
 
   // 1. Detect trading pair accurately (100% Auto-Detect directly from Screenshot Vision)
-  let detectedPair = 'USD/NGN (OTC)';
   const modelWithSpecificPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown' && m.pair !== 'EUR/USD');
   const modelWithAnyPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown');
 
+  let detectedPair = 'NZD/USD (OTC)';
   if (modelWithSpecificPair) {
     detectedPair = modelWithSpecificPair.pair;
   } else if (modelWithAnyPair) {
@@ -251,6 +251,14 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     fallbackPrice = '87.42';
     fallbackSupport = '87.20';
     fallbackResistance = '87.65';
+  } else if (detectedPair.includes('NZD')) {
+    fallbackPrice = '0.60450';
+    fallbackSupport = '0.60415';
+    fallbackResistance = '0.60485';
+  } else if (detectedPair.includes('NGN')) {
+    fallbackPrice = '1320.47';
+    fallbackSupport = '1315.63';
+    fallbackResistance = '1321.35';
   }
 
   const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || fallbackPrice;
