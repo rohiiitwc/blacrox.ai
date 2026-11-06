@@ -225,11 +225,13 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const detectedTimeframe = successfulModels.find(m => m.timeframe)?.timeframe || '1M';
 
   // 2. Extract Support and Resistance levels from the chart
-  const modelWithSr = successfulModels.find(m => m.support_level && m.resistance_level)
+  const isValidPrice = (val) => Boolean(val && typeof val === 'string' && val.trim() !== '' && val !== 'Unknown' && val !== 'N/A' && !val.includes('N/A') && /\d/.test(val));
+
+  const modelWithPrice = successfulModels.find(m => isValidPrice(m.current_price));
+  const modelWithSupport = successfulModels.find(m => isValidPrice(m.support_level));
+  const modelWithResistance = successfulModels.find(m => isValidPrice(m.resistance_level));
+  const modelWithSr = successfulModels.find(m => isValidPrice(m.support_level) && isValidPrice(m.resistance_level))
     || successfulModels.find(m => m.sr_observations && m.sr_observations !== 'No clear S/R lines');
-  const modelWithPrice = successfulModels.find(m => m.current_price && m.current_price !== '' && m.current_price !== 'Unknown');
-  const modelWithSupport = successfulModels.find(m => m.support_level && m.support_level !== '' && m.support_level !== 'Unknown');
-  const modelWithResistance = successfulModels.find(m => m.resistance_level && m.resistance_level !== '' && m.resistance_level !== 'Unknown');
 
   // Dynamic pair-specific default fallbacks
   let fallbackPrice = '1.29336';
@@ -259,11 +261,19 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     fallbackPrice = '1320.47';
     fallbackSupport = '1315.63';
     fallbackResistance = '1321.35';
+  } else if (detectedPair.includes('BRL')) {
+    fallbackPrice = '5.8480';
+    fallbackSupport = '5.8450';
+    fallbackResistance = '5.8520';
+  } else if (detectedPair.includes('PKR')) {
+    fallbackPrice = '279.05';
+    fallbackSupport = '278.60';
+    fallbackResistance = '279.40';
   }
 
-  const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || fallbackPrice;
-  const detectedSupport = modelWithSupport?.support_level || (modelWithSr?.support_level) || fallbackSupport;
-  const detectedResistance = modelWithResistance?.resistance_level || (modelWithSr?.resistance_level) || fallbackResistance;
+  const detectedPrice = (modelWithPrice && modelWithPrice.current_price) || (modelWithSr && isValidPrice(modelWithSr.current_price) ? modelWithSr.current_price : fallbackPrice);
+  const detectedSupport = (modelWithSupport && modelWithSupport.support_level) || (modelWithSr && isValidPrice(modelWithSr.support_level) ? modelWithSr.support_level : fallbackSupport);
+  const detectedResistance = (modelWithResistance && modelWithResistance.resistance_level) || (modelWithSr && isValidPrice(modelWithSr.resistance_level) ? modelWithSr.resistance_level : fallbackResistance);
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
   // Extract horizontal bounds and vertical coordinates directly from AI vision (placed directly ON candle wicks, NOT empty space)

@@ -1567,30 +1567,29 @@ table.data-table tr:hover td {
   left: 8px;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  backdrop-filter: none;
+  padding: 1.5px 6px;
+  background: rgba(10, 15, 26, 0.85);
+  border-radius: 4px;
   pointer-events: none;
   user-select: none;
+  white-space: nowrap;
 }
 
 .res-clean-label {
   bottom: 3px;
   color: #ea5b75;
-  border: none;
-  box-shadow: none;
+  border: 1px solid rgba(234, 91, 117, 0.45);
+  box-shadow: 0 0 4px rgba(234, 91, 117, 0.2);
 }
 
 .sup-clean-label {
   top: 3px;
   color: #00e676;
-  border: none;
-  box-shadow: none;
+  border: 1px solid rgba(0, 230, 118, 0.45);
+  box-shadow: 0 0 4px rgba(0, 230, 118, 0.2);
 }
 
 .entry-clean-label {
