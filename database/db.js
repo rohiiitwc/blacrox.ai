@@ -98,9 +98,17 @@ function createFallbackDb() {
           return [];
         },
         run: (...params) => {
-          if (sql.includes('INSERT INTO users')) {
-            const id = autoIds.users++;
-            tables.users.push({ id, full_name: params[0], email: params[1], password_hash: params[2], created_at: params[3] });
+          if (sql.includes('INSERT INTO users') || sql.includes('INSERT OR IGNORE INTO users')) {
+            const hasExplicitId = sql.includes('(id,') || sql.includes('(id ');
+            const id = hasExplicitId ? params[0] : autoIds.users++;
+            const name = hasExplicitId ? params[1] : params[0];
+            const mail = hasExplicitId ? params[2] : params[1];
+            const hash = hasExplicitId ? params[3] : params[2];
+            const cat = hasExplicitId ? params[4] : params[3];
+            const existing = tables.users.find(u => u.id === id || (u.email || '').toLowerCase() === (mail || '').toLowerCase());
+            if (!existing) {
+              tables.users.push({ id, full_name: name, email: mail, password_hash: hash, created_at: cat });
+            }
             return { lastInsertRowid: id, changes: 1 };
           }
           if (sql.includes('UPDATE users')) {

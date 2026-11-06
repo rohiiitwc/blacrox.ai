@@ -170,8 +170,9 @@ const DashboardUI = (() => {
       btnStartAnalysis.textContent = '⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)';
       scanCountdownContainer.style.display = 'none';
       processingDeck.style.display = 'none';
-      if (err.message && err.message.includes('expired')) {
-        AuthUI.openModal('Your session has expired. Please log in again.');
+      if (err.message && (err.message.includes('expired') || err.message.includes('User account not found') || err.message.includes('Unauthorized') || err.message.includes('Authentication required'))) {
+        API.handleSessionExpiry('Please log in again to continue your analysis session.');
+        AuthUI.openModal('Your session needs refreshing. Please log in to continue.');
       } else {
         alert(`Analysis Error: ${err.message}`);
       }
