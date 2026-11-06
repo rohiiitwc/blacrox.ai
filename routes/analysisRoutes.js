@@ -122,6 +122,8 @@ router.post('/upload', requireAuth, (req, res, next) => {
       fullAnalysis.is_low_win_rate = analysisResult.is_low_win_rate !== undefined ? analysisResult.is_low_win_rate : (Number(fullAnalysis.all_in_one_win_rate) < 80);
       fullAnalysis.entry_time_ist = analysisResult.entry_time_ist || fullAnalysis.entry_time_ist || '';
       fullAnalysis.expiry_time_ist = analysisResult.expiry_time_ist || fullAnalysis.expiry_time_ist || '';
+      fullAnalysis.chart_left_x_percent = analysisResult.chart_left_x_percent !== undefined ? analysisResult.chart_left_x_percent : (fullAnalysis.chart_left_x_percent || 8.5);
+      fullAnalysis.chart_right_x_percent = analysisResult.chart_right_x_percent !== undefined ? analysisResult.chart_right_x_percent : (fullAnalysis.chart_right_x_percent || 84.0);
 
       const aiResults = db.prepare(`
         SELECT * FROM ai_results WHERE analysis_id = ?

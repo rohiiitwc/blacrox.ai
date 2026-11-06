@@ -56,7 +56,7 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
               {
                 parts: [
                   {
-                    text: `${SYSTEM_CHART_PROMPT}\n\nPlease inspect this Quotex trading chart screenshot carefully. Identify the exact trading pair shown in the top-left tab or right panel (e.g. GBP/NZD (OTC)), extract the exact Support price level number, Resistance price level number, Current price, and evaluate the upcoming 1-minute candle direction based on Support and Resistance reaction and momentum.`
+                    text: `${SYSTEM_CHART_PROMPT}\n\nPlease inspect this Quotex trading chart screenshot with maximum precision. Accurately identify the exact trading pair (e.g. GBP/NZD (OTC)), the candlestick chart horizontal boundaries (chart_left_x_percent and chart_right_x_percent), the exact swing high Resistance price and vertical Y% touching the upper candle wicks, the exact swing low Support price and vertical Y% touching the lower candle wicks, the active candle Current price and vertical Y%, and evaluate the upcoming 1-minute candle direction based on momentum and S/R interaction.`
                   },
                   {
                     inline_data: {
@@ -112,6 +112,8 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
       current_price: parsed.current_price || '',
       chart_high_price: parsed.chart_high_price || '',
       chart_low_price: parsed.chart_low_price || '',
+      chart_left_x_percent: parsed.chart_left_x_percent !== undefined && parsed.chart_left_x_percent !== null ? Number(parsed.chart_left_x_percent) : null,
+      chart_right_x_percent: parsed.chart_right_x_percent !== undefined && parsed.chart_right_x_percent !== null ? Number(parsed.chart_right_x_percent) : null,
       support_y_percent: parsed.support_y_percent !== undefined && parsed.support_y_percent !== null ? Number(parsed.support_y_percent) : null,
       resistance_y_percent: parsed.resistance_y_percent !== undefined && parsed.resistance_y_percent !== null ? Number(parsed.resistance_y_percent) : null,
       current_price_y_percent: parsed.current_price_y_percent !== undefined && parsed.current_price_y_percent !== null ? Number(parsed.current_price_y_percent) : null,

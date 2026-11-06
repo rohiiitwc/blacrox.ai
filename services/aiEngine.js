@@ -266,7 +266,17 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const detectedResistance = modelWithResistance?.resistance_level || (modelWithSr?.resistance_level) || fallbackResistance;
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
-  // Extract vertical coordinate percentages directly from AI vision (placed directly ON candle wicks, NOT empty space)
+  // Extract horizontal bounds and vertical coordinates directly from AI vision (placed directly ON candle wicks, NOT empty space)
+  const modelWithBounds = successfulModels.find(m => m.chart_left_x_percent != null && m.chart_right_x_percent != null);
+  let leftX = modelWithBounds?.chart_left_x_percent != null ? Number(modelWithBounds.chart_left_x_percent) : null;
+  let rightX = modelWithBounds?.chart_right_x_percent != null ? Number(modelWithBounds.chart_right_x_percent) : null;
+
+  let detectedLeftX = (leftX != null && !isNaN(leftX) && leftX >= 0 && leftX <= 40) ? leftX : 8.5;
+  let detectedRightX = (rightX != null && !isNaN(rightX) && rightX >= 50 && rightX <= 98) ? rightX : 84.0;
+  if (detectedRightX <= detectedLeftX + 20) {
+    detectedRightX = Math.min(95, detectedLeftX + 65);
+  }
+
   const modelWithY = successfulModels.find(m => m.support_y_percent != null && m.resistance_y_percent != null)
     || successfulModels.find(m => m.current_price_y_percent != null);
 
@@ -274,14 +284,18 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let supY = modelWithY?.support_y_percent != null ? Number(modelWithY.support_y_percent) : null;
   let priceY = modelWithY?.current_price_y_percent != null ? Number(modelWithY.current_price_y_percent) : null;
 
-  // Strictly bounded inside the candlestick chart grid (never in top toolbar < 22% or bottom RSI pane > 74%)
-  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(22, Math.min(48, resY)) : 26;
-  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(52, Math.min(74, supY)) : 68;
-  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(24, Math.min(72, priceY)) : 48;
+  // Real candle wicks are typically between 15% (below top tabs) and 90% (above bottom time axis)
+  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(15, Math.min(85, resY)) : 28;
+  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(25, Math.min(90, supY)) : 72;
+  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(16, Math.min(88, priceY)) : 50;
 
-  // Logical guarantee: Resistance line is strictly higher up on the screen than Support
+  // Logical guarantee: Resistance line is strictly higher up on the screen (lower Y%) than Support
   if (detectedResY >= detectedSupY) {
-    detectedResY = Math.max(22, detectedSupY - 14);
+    if (detectedSupY > 35) {
+      detectedResY = Math.max(16, detectedSupY - 20);
+    } else {
+      detectedSupY = Math.min(88, detectedResY + 20);
+    }
   }
 
   // 3. Determine unified directional signal (Models must not give different signals)
@@ -463,6 +477,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
           support_y_percent = ?,
           resistance_y_percent = ?,
           current_price_y_percent = ?,
+          chart_left_x_percent = ?,
+          chart_right_x_percent = ?,
           entry_time_ist = ?,
           expiry_time_ist = ?,
           trade_recommendation = ?,
@@ -484,6 +500,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       detectedSupY,
       detectedResY,
       detectedPriceY,
+      detectedLeftX,
+      detectedRightX,
       entryTimeIst,
       expiryTimeIst,
       tradeRecommendation,
@@ -510,6 +528,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     support_y_percent: detectedSupY,
     resistance_y_percent: detectedResY,
     current_price_y_percent: detectedPriceY,
+    chart_left_x_percent: detectedLeftX,
+    chart_right_x_percent: detectedRightX,
     entry_time_ist: entryTimeIst,
     expiry_time_ist: expiryTimeIst,
     expiry_timestamp: timing.expiryTimestamp,

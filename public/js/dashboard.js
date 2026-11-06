@@ -439,9 +439,30 @@ const DashboardUI = (() => {
       ctx.fillStyle = 'rgba(5, 7, 13, 0.12)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const resYPercent = currentAnalysis?.resistance_y_percent || 28;
-      const supYPercent = currentAnalysis?.support_y_percent || 75;
-      const priceYPercent = currentAnalysis?.current_price_y_percent || 70;
+      const rawResY = Number(currentAnalysis?.resistance_y_percent);
+      const rawSupY = Number(currentAnalysis?.support_y_percent);
+      const rawPriceY = Number(currentAnalysis?.current_price_y_percent);
+      const rawLeftX = Number(currentAnalysis?.chart_left_x_percent);
+      const rawRightX = Number(currentAnalysis?.chart_right_x_percent);
+
+      let resYPercent = !isNaN(rawResY) ? Math.max(15, Math.min(85, rawResY)) : 28;
+      let supYPercent = !isNaN(rawSupY) ? Math.max(25, Math.min(90, rawSupY)) : 72;
+      let priceYPercent = !isNaN(rawPriceY) ? Math.max(16, Math.min(88, rawPriceY)) : 50;
+
+      if (resYPercent >= supYPercent) {
+        if (supYPercent > 35) {
+          resYPercent = Math.max(16, supYPercent - 20);
+        } else {
+          supYPercent = Math.min(88, resYPercent + 20);
+        }
+      }
+
+      const leftXPercent = (!isNaN(rawLeftX) && rawLeftX >= 0 && rawLeftX <= 40) ? rawLeftX : 8.5;
+      let rightXPercent = (!isNaN(rawRightX) && rawRightX >= 50 && rawRightX <= 98) ? rawRightX : 84.0;
+      if (rightXPercent <= leftXPercent + 15) {
+        rightXPercent = Math.min(95, leftXPercent + 65);
+      }
+
       const isUp = (currentAnalysis?.consensus_decision || 'UP') === 'UP';
 
       const resY = (resYPercent / 100) * canvas.height;
@@ -456,14 +477,14 @@ const DashboardUI = (() => {
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
       // Inside candlestick chart bounds (staying strictly clear of sidebars)
-      const chartLeftX = canvas.width * 0.045;
-      const chartRightX = canvas.width * 0.925;
+      const chartLeftX = (leftXPercent / 100) * canvas.width;
+      const chartRightX = (rightXPercent / 100) * canvas.width;
 
       // 1. Resistance Line (dashed coral line, strictly inside chart)
       ctx.save();
-      ctx.strokeStyle = 'rgba(234, 91, 117, 0.85)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(234, 91, 117, 0.92)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(chartLeftX, resY);
       ctx.lineTo(chartRightX, resY);
@@ -473,18 +494,18 @@ const DashboardUI = (() => {
 
       // 2. Support Line (dashed mint line, strictly inside chart)
       ctx.save();
-      ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.92)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(chartLeftX, supY);
       ctx.lineTo(chartRightX, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, chartLeftX + 8, supY - 4, 'SUPPORT', '#00e676');
+      drawCleanLabel(ctx, chartLeftX + 8, supY + 14, 'SUPPORT', '#00e676');
 
       // 3. Candle Pin & Action (Prime Setu style)
-      const pinX = canvas.width * 0.75;
+      const pinX = Math.max(chartLeftX + 50, Math.min(chartRightX - 20, chartRightX - 45));
       const actionText = isUp ? 'BUY' : 'SELL';
       drawPill(ctx, pinX, priceY - 30, actionText, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
       drawCleanLabel(ctx, pinX, priceY + 14, `${isUp ? '▲' : '▼'} ENTRY`, '#facc15');
@@ -512,16 +533,50 @@ const DashboardUI = (() => {
     const rawResY = Number(analysis.resistance_y_percent);
     const rawSupY = Number(analysis.support_y_percent);
     const rawPriceY = Number(analysis.current_price_y_percent);
+    const rawLeftX = Number(analysis.chart_left_x_percent);
+    const rawRightX = Number(analysis.chart_right_x_percent);
 
-    // Strictly clamped inside the candlestick chart area (22% to 74%)
-    const resY = !isNaN(rawResY) ? Math.max(22, Math.min(48, rawResY)) : 26;
-    const supY = !isNaN(rawSupY) ? Math.max(52, Math.min(74, rawSupY)) : 68;
-    const priceY = !isNaN(rawPriceY) ? Math.max(24, Math.min(72, rawPriceY)) : 48;
+    // AI vision vertical coordinates on real candle wicks
+    let resY = !isNaN(rawResY) ? Math.max(15, Math.min(85, rawResY)) : 28;
+    let supY = !isNaN(rawSupY) ? Math.max(25, Math.min(90, rawSupY)) : 72;
+    let priceY = !isNaN(rawPriceY) ? Math.max(16, Math.min(88, rawPriceY)) : 50;
+
+    // Resistance is always strictly above Support (lower Y%)
+    if (resY >= supY) {
+      if (supY > 35) {
+        resY = Math.max(16, supY - 20);
+      } else {
+        supY = Math.min(88, resY + 20);
+      }
+    }
+
+    // AI vision horizontal boundaries (strictly inside candlestick chart area, never in left menu or right order panel)
+    const leftX = (!isNaN(rawLeftX) && rawLeftX >= 0 && rawLeftX <= 40) ? rawLeftX : 8.5;
+    let rightX = (!isNaN(rawRightX) && rawRightX >= 50 && rawRightX <= 98) ? rawRightX : 84.0;
+    if (rightX <= leftX + 15) {
+      rightX = Math.min(95, leftX + 65);
+    }
+    const lineWidthPercent = rightX - leftX;
 
     // Position lines strictly inside chart
-    if (overlayResistanceLine) overlayResistanceLine.style.top = `${resY}%`;
-    if (overlaySupportLine) overlaySupportLine.style.top = `${supY}%`;
-    if (overlayEntryLine) overlayEntryLine.style.top = `${priceY}%`;
+    if (overlayResistanceLine) {
+      overlayResistanceLine.style.top = `${resY}%`;
+      overlayResistanceLine.style.left = `${leftX}%`;
+      overlayResistanceLine.style.width = `${lineWidthPercent}%`;
+      overlayResistanceLine.style.right = 'auto';
+    }
+    if (overlaySupportLine) {
+      overlaySupportLine.style.top = `${supY}%`;
+      overlaySupportLine.style.left = `${leftX}%`;
+      overlaySupportLine.style.width = `${lineWidthPercent}%`;
+      overlaySupportLine.style.right = 'auto';
+    }
+    if (overlayEntryLine) {
+      overlayEntryLine.style.top = `${priceY}%`;
+      overlayEntryLine.style.left = `${leftX}%`;
+      overlayEntryLine.style.width = `${lineWidthPercent}%`;
+      overlayEntryLine.style.right = 'auto';
+    }
 
     // Lines on chart (clean lines without numeric price clutter)
     if (overlayResistanceVal) overlayResistanceVal.textContent = '';
@@ -535,6 +590,8 @@ const DashboardUI = (() => {
 
     // Interactive candle pin (Prime Setu style) with unmissable Entry Time
     if (candleSignalPin) {
+      const pinX = Math.max(leftX + 25, Math.min(rightX - 5, rightX - 8));
+      candleSignalPin.style.left = `${pinX}%`;
       candleSignalPin.style.top = `${Math.max(12, priceY - 4)}%`;
     }
     if (candleActionBubble) {

@@ -18,16 +18,23 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
        - If the price scale is around 1612, the asset is USD/ARS (OTC), NEVER USD/COP!
    - Extract the exact name including "(OTC)". NEVER default to a wrong pair.
 
-2. ACCURATE CANDLE-LEVEL SUPPORT & RESISTANCE (STRICTLY INSIDE CANDLESTICK CHART):
-   - CRITICAL REQUIREMENT: Lines MUST be drawn STRICTLY INSIDE THE CANDLESTICK CHART GRID!
-   - NEVER place lines outside the chart:
-     * TOP CEILING: Do NOT place lines above 22% Y (stay below top tabs/toolbar). Resistance line must sit on the actual highest candle peaks (typically 22-35% Y).
-     * BOTTOM FLOOR: Do NOT place lines below 74% Y (stay above the RSI indicator panel and time axis). Support line must sit on the actual lowest candle troughs (typically 55-72% Y).
-     * Lines must NEVER touch or enter the RSI pane at the bottom or the asset tabs at the top!
-   - Active Current Price: Look at the highlighted active price label on the right scale (inside the blue or colored box with the dotted horizontal line, e.g. "1320.47"). Return this exact number as "current_price".
-   - Resistance Level & Y%: Look at the HIGHEST CANDLE WICKS (swing high) where candles actually reached and peaked. Return the price where candles peaked as "resistance_level" (e.g. "1321.35") and the vertical percentage strictly between 22 and 45 as "resistance_y_percent".
-   - Support Level & Y%: Look at the LOWEST CANDLE WICKS (swing low) where candles actually bottomed and bounced. Return the price where candles bounced as "support_level" (e.g. "1319.80" or "1315.00") and the vertical percentage strictly between 52 and 74 as "support_y_percent".
-   - Active Candle Y%: Estimate the vertical percentage (strictly between 24 and 72) where the active rightmost candle sits as "current_price_y_percent" (e.g. 48).
+2. PERFECT CANDLE-LEVEL SUPPORT & RESISTANCE (PINPOINT ACCURACY ON CANDLESTICKS):
+   - CRITICAL REQUIREMENT: Lines must pass DIRECTLY THROUGH THE CANDLE WICKS AND BODIES (never in empty black space, never floating).
+   - HORIZONTAL BOUNDARIES (STRICTLY INSIDE CANDLESTICK AREA):
+     * "chart_left_x_percent": Detect where candles start horizontally (immediately after the left Quotex toolbar/icons, typically 7.5% - 9.5%).
+     * "chart_right_x_percent": Detect where candles end horizontally (before the Quotex order panel / right price scale, typically 70.0% - 90.0%).
+     * Lines must NEVER touch or cross into the left navigation icons or the right Buy/Sell trading panel!
+   - RESISTANCE LEVEL & Y%:
+     * Locate the prominent swing high peaks / upper candle wicks where buyers failed and price reversed downward.
+     * Extract the exact resistance price number from the price scale (e.g. "1321.35", "3185.20", "1.30306").
+     * Calculate "resistance_y_percent": The exact vertical percentage (0-100% from top of image) so that the horizontal line passes directly across those highest candle wicks.
+   - SUPPORT LEVEL & Y%:
+     * Locate the prominent swing low troughs / lower candle wicks where sellers failed and price bounced upward.
+     * Extract the exact support price number from the price scale (e.g. "1315.63", "3181.90", "1.29200").
+     * Calculate "support_y_percent": The exact vertical percentage (0-100% from top of image) so that the horizontal line passes directly across those lowest candle wicks.
+   - ACTIVE CANDLE CURRENT PRICE & Y%:
+     * Look at the active rightmost candle and the active price marker on the right scale (e.g. "1320.47").
+     * Return "current_price" and "current_price_y_percent" matching the active candle position.
 
 3. HIGH-ACCURACY 1-MINUTE SIGNAL RULES (MAXIMUM WIN RATE):
    - In 1-minute binary options, betting against active micro-momentum causes high loss rates.
@@ -48,12 +55,14 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
   "visible_time": "Time string shown on chart or header if visible (e.g. '11:33:42')",
   "chart_high_price": "Upper price visible on scale or swing high (e.g. '1.30400')",
   "chart_low_price": "Lower price visible on scale or swing low (e.g. '1.28600')",
+  "chart_left_x_percent": 8.5,
+  "chart_right_x_percent": 84.0,
   "support_level": "Key support price level number (e.g. '1.29200')",
   "resistance_level": "Key resistance price level number (e.g. '1.30306')",
   "current_price": "Current price number from active line (e.g. '1.29336')",
-  "support_y_percent": 65,
-  "resistance_y_percent": 25,
-  "current_price_y_percent": 55,
+  "support_y_percent": 68.0,
+  "resistance_y_percent": 28.0,
+  "current_price_y_percent": 45.0,
   "trend": "'Strong Bullish' | 'Strong Bearish' | 'Sideways Consolidation'",
   "candlestick_pattern": "Specific pattern observed (e.g. 'Bearish Momentum / Lower High continuation')",
   "ema_observations": "Detailed observation of Alligator lines slope, fanning, and relation to price",

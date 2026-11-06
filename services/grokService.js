@@ -89,6 +89,8 @@ async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
       current_price: parsed.current_price || '',
       chart_high_price: parsed.chart_high_price || '',
       chart_low_price: parsed.chart_low_price || '',
+      chart_left_x_percent: parsed.chart_left_x_percent !== undefined && parsed.chart_left_x_percent !== null ? Number(parsed.chart_left_x_percent) : null,
+      chart_right_x_percent: parsed.chart_right_x_percent !== undefined && parsed.chart_right_x_percent !== null ? Number(parsed.chart_right_x_percent) : null,
       support_y_percent: parsed.support_y_percent !== undefined && parsed.support_y_percent !== null ? Number(parsed.support_y_percent) : null,
       resistance_y_percent: parsed.resistance_y_percent !== undefined && parsed.resistance_y_percent !== null ? Number(parsed.resistance_y_percent) : null,
       current_price_y_percent: parsed.current_price_y_percent !== undefined && parsed.current_price_y_percent !== null ? Number(parsed.current_price_y_percent) : null,

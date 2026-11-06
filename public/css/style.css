@@ -1539,22 +1539,23 @@ table.data-table tr:hover td {
 /* S/R Drawn Lines - Sleek Prime Setu Minimalist Style strictly inside candlestick chart */
 .sr-drawn-line {
   position: absolute;
-  left: 4.5%;
-  right: 7.5%;
+  left: 8.5%;
+  right: auto;
+  width: 75.5%;
   height: 0;
   z-index: 5;
   pointer-events: none;
-  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.4s ease, width 0.4s ease;
 }
 
 .resistance-line {
-  border-top: 1px dashed rgba(234, 91, 117, 0.85);
-  filter: drop-shadow(0 0 2px rgba(234, 91, 117, 0.35));
+  border-top: 1.5px dashed rgba(234, 91, 117, 0.92);
+  filter: drop-shadow(0 0 3px rgba(234, 91, 117, 0.45));
 }
 
 .support-line {
-  border-top: 1px dashed rgba(0, 230, 118, 0.85);
-  filter: drop-shadow(0 0 2px rgba(0, 230, 118, 0.35));
+  border-top: 1.5px dashed rgba(0, 230, 118, 0.92);
+  filter: drop-shadow(0 0 3px rgba(0, 230, 118, 0.45));
 }
 
 .entry-line {
@@ -1564,10 +1565,9 @@ table.data-table tr:hover td {
 .sr-clean-label {
   position: absolute;
   left: 8px;
-  bottom: 2px;
-  font-size: 8.5px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   padding: 0;
@@ -1576,15 +1576,18 @@ table.data-table tr:hover td {
   box-shadow: none;
   backdrop-filter: none;
   pointer-events: none;
+  user-select: none;
 }
 
 .res-clean-label {
+  bottom: 3px;
   color: #ea5b75;
   border: none;
   box-shadow: none;
 }
 
 .sup-clean-label {
+  top: 3px;
   color: #00e676;
   border: none;
   box-shadow: none;
