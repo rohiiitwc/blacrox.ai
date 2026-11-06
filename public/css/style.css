@@ -1413,7 +1413,7 @@ table.data-table tr:hover td {
 }
 
 /* ==========================================================================
-   AI Technical Chart Terminal & S/R Overlay (Prime Setu Style)
+   AI Technical Chart Terminal & S/R Overlay (Prime Setu Exact Replica)
    ========================================================================== */
 .ai-terminal-grid {
   display: grid;
@@ -1429,18 +1429,19 @@ table.data-table tr:hover td {
 }
 
 .ai-chart-stage {
-  background: #090d16;
-  border: 1px solid var(--border-highlight);
-  border-radius: var(--radius-md);
+  background: #06080e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .ai-chart-stage-header {
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(13, 17, 28, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1457,21 +1458,92 @@ table.data-table tr:hover td {
   gap: 8px;
 }
 
+/* Top HUD over chart */
+.chart-top-hud {
+  padding: 8px 14px;
+  background: rgba(8, 11, 18, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.hud-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hud-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pill-structure {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pill-direction {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+}
+
+.pill-direction.pill-put {
+  background: rgba(255, 91, 121, 0.15);
+  color: #ff5b79;
+  border: 1px solid rgba(255, 91, 121, 0.4);
+  box-shadow: 0 0 10px rgba(255, 91, 121, 0.2);
+}
+
+.pill-conf {
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.hud-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.hud-time strong {
+  color: #38bdf8;
+}
+
+/* Chart Canvas Stage & Responsive Overlay Wrapping */
 .chart-overlay-frame {
   position: relative;
   width: 100%;
-  background: #05070d;
+  background: #030508;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 380px;
-  max-height: 560px;
+  min-height: 400px;
   overflow: hidden;
+}
+
+.chart-stage-canvas-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 100%;
 }
 
 .chart-screenshot-base {
   width: 100%;
-  height: 100%;
+  height: auto;
   max-height: 560px;
   object-fit: contain;
   display: block;
@@ -1486,93 +1558,190 @@ table.data-table tr:hover td {
   pointer-events: none;
 }
 
-/* S/R Drawn Lines */
+/* S/R Drawn Lines - Sleek Prime Setu Style */
 .sr-drawn-line {
   position: absolute;
   left: 0;
   right: 0;
-  height: 2px;
-  display: flex;
-  align-items: center;
-  transition: top 0.4s ease;
+  height: 0;
   z-index: 5;
+  pointer-events: none;
+  transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resistance-line {
-  border-top: 2px dashed #f43f5e;
-  box-shadow: 0 0 10px rgba(244, 63, 94, 0.7);
+  border-top: 1.5px dashed #ff5b79;
+  filter: drop-shadow(0 0 4px rgba(255, 91, 121, 0.7));
 }
 
 .support-line {
-  border-top: 2px dashed #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+  border-top: 1.5px dashed #00e676;
+  filter: drop-shadow(0 0 4px rgba(0, 230, 118, 0.7));
 }
 
 .entry-line {
-  border-top: 2px dashed #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+  border-top: 1.5px dashed #38bdf8;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7));
 }
 
-.sr-drawn-badge {
-  font-size: 0.75rem;
+.sr-clean-label {
+  position: absolute;
+  left: 14px;
+  bottom: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(6, 8, 14, 0.82);
+  backdrop-filter: blur(4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.res-clean-label {
+  color: #ff5b79;
+  border-left: 2px solid #ff5b79;
+}
+
+.sup-clean-label {
+  color: #00e676;
+  border-left: 2px solid #00e676;
+}
+
+.entry-clean-label {
+  color: #38bdf8;
+  border-left: 2px solid #38bdf8;
+}
+
+.sr-scale-price {
+  position: absolute;
+  right: 6px;
+  bottom: -8px;
+  font-size: 10px;
   font-weight: 700;
   font-family: monospace;
-  padding: 3px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  pointer-events: auto;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+  z-index: 6;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
-.res-badge {
-  margin-left: 14px;
-  background: rgba(244, 63, 94, 0.9);
+.res-scale-price {
+  background: #ff5b79;
   color: #ffffff;
-  border: 1px solid #fda4af;
 }
 
-.sup-badge {
-  margin-left: 14px;
-  background: rgba(16, 185, 129, 0.9);
-  color: #ffffff;
-  border: 1px solid #6ee7b7;
+.sup-scale-price {
+  background: #00e676;
+  color: #022c15;
 }
 
-.entry-badge {
-  margin-left: auto;
-  margin-right: 14px;
-  background: rgba(56, 189, 248, 0.95);
+.entry-scale-price {
+  background: #38bdf8;
   color: #030712;
-  border: 1px solid #bae6fd;
 }
 
-.chart-floating-regime-pill {
+/* Candle Signal Pin (Prime Setu BUY/SELL badge at candle) */
+.candle-signal-pin {
   position: absolute;
-  bottom: 12px;
-  left: 14px;
-  padding: 5px 12px;
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #38bdf8;
-  backdrop-filter: blur(6px);
-  z-index: 6;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  right: 18%; /* positioned right over the recent 1M candle */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 7;
+  pointer-events: none;
+  transition: all 0.4s ease;
 }
 
-.ai-chart-stage-footer {
+.signal-action-bubble {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #00e676;
+  color: #022c15;
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.7);
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+.signal-action-bubble.sell {
+  background: #ff5b79;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 91, 121, 0.7);
+}
+
+.signal-entry-callout {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #00e676;
+  background: rgba(6, 8, 14, 0.85);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+
+.signal-entry-callout.sell {
+  color: #ff5b79;
+  border-color: rgba(255, 91, 121, 0.4);
+}
+
+.signal-entry-subtag {
+  font-size: 9px;
+  font-weight: 800;
+  color: #facc15;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+  margin-top: 2px;
+}
+
+/* Bottom HUD of Chart Stage */
+.chart-bottom-hud {
   padding: 8px 14px;
-  background: rgba(0, 0, 0, 0.35);
-  border-top: 1px solid var(--border-subtle);
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  background: rgba(8, 11, 18, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+
+.hud-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-vol { background: #00e676; }
+.dot-ema7 { background: #eab308; }
+.dot-ema21 { background: #38bdf8; }
+.dot-sr { background: #ff5b79; }
 
 /* Signal Brief Panel */
 .terminal-signal-brief {
@@ -1634,6 +1803,63 @@ table.data-table tr:hover td {
   font-size: 0.68rem;
   color: var(--text-muted);
   text-transform: uppercase;
+}
+
+.brief-session-card {
+  background: rgba(13, 17, 28, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.brief-session-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.session-stat-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px;
+  text-align: center;
+}
+
+.session-stat-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.session-stat-lbl {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.brief-market-read {
+  background: rgba(13, 17, 28, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.trend-badge-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.trend-badge-pill.bearish {
+  background: rgba(255, 91, 121, 0.15);
+  color: #ff5b79;
+  border-color: rgba(255, 91, 121, 0.3);
 }
 
 
