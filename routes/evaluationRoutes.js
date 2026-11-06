@@ -134,19 +134,8 @@ router.post('/submit', requireAuth, (req, res, next) => {
 
       const savedEval = db.prepare('SELECT * FROM evaluations WHERE id = ?').get(result.lastInsertRowid);
 
-      // Auto-delete the initial screenshot after completion of trade (per user requirement)
-      if (analysis.initial_screenshot) {
-        const initialPath = path.join(uploadDir, analysis.initial_screenshot);
-        if (fs.existsSync(initialPath)) {
-          try { fs.unlinkSync(initialPath); } catch (e) {}
-        }
-      }
-      if (completedScreenshotFilename) {
-        const completedPath = path.join(uploadDir, completedScreenshotFilename);
-        if (fs.existsSync(completedPath)) {
-          try { fs.unlinkSync(completedPath); } catch (e) {}
-        }
-      }
+      // Preserve screenshots permanently in user analysis history (never auto-delete)
+      // Screenshots are retained so users can review historic charts and visual analytics anytime.
 
       return res.json({
         success: true,

@@ -44,6 +44,7 @@ try {
 }
 
 function createFallbackDb() {
+  const storePath = path.join(dbDir, 'store.json');
   const tables = {
     users: [],
     analyses: [],
@@ -51,6 +52,34 @@ function createFallbackDb() {
     evaluations: []
   };
   let autoIds = { users: 1, analyses: 1, ai_results: 1, evaluations: 1 };
+
+  function loadStore() {
+    try {
+      if (fs.existsSync(storePath)) {
+        const raw = fs.readFileSync(storePath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.tables) {
+          tables.users = parsed.tables.users || [];
+          tables.analyses = parsed.tables.analyses || [];
+          tables.ai_results = parsed.tables.ai_results || [];
+          tables.evaluations = parsed.tables.evaluations || [];
+          autoIds = parsed.autoIds || autoIds;
+        }
+      }
+    } catch (e) {
+      console.warn('Fallback store load failed:', e.message);
+    }
+  }
+
+  function saveStore() {
+    try {
+      fs.writeFileSync(storePath, JSON.stringify({ tables, autoIds }, null, 2), 'utf8');
+    } catch (e) {
+      console.warn('Fallback store save failed:', e.message);
+    }
+  }
+
+  loadStore();
 
   return {
     exec: () => {},
@@ -69,7 +98,11 @@ function createFallbackDb() {
             return tables.users.find(u => u.reset_token === params[0]) || null;
           }
           if (sql.includes('FROM analyses') && sql.includes('WHERE id = ?')) {
-            return tables.analyses.find(a => a.id === params[0]) || null;
+            const a = tables.analyses.find(item => item.id === params[0]);
+            if (a && sql.includes('AND user_id = ?') && a.user_id !== params[1]) {
+              return null;
+            }
+            return a || null;
           }
           if (sql.includes('FROM evaluations') && sql.includes('WHERE id = ?')) {
             return tables.evaluations.find(e => e.id === params[0]) || null;
@@ -78,13 +111,34 @@ function createFallbackDb() {
             return tables.evaluations.find(e => e.analysis_id === params[0]) || null;
           }
           if (sql.includes('COUNT(*)')) {
+            if (sql.includes('FROM users')) return { c: tables.users.length };
+            if (sql.includes('FROM analyses')) return { c: tables.analyses.length };
             return { c: 0 };
           }
           return null;
         },
         all: (...params) => {
-          if (sql.includes('FROM analyses') && sql.includes('WHERE user_id = ?')) {
-            return tables.analyses.filter(a => a.user_id === params[0]);
+          if (sql.includes('FROM analyses')) {
+            let matched = [...tables.analyses];
+            if (sql.includes('user_id = ?') || sql.includes('a.user_id = ?')) {
+              matched = matched.filter(a => a.user_id === params[0]);
+            }
+            if (sql.includes('LEFT JOIN evaluations')) {
+              matched = matched.map(a => {
+                const evalRec = tables.evaluations.find(e => e.analysis_id === a.id);
+                return {
+                  ...a,
+                  evaluation_id: evalRec ? evalRec.id : null,
+                  candle_color: evalRec ? evalRec.candle_color : null,
+                  evaluation_result: evalRec ? evalRec.evaluation_result : null,
+                  evaluated_at: evalRec ? evalRec.evaluated_at : null
+                };
+              });
+            }
+            if (sql.includes('ORDER BY')) {
+              matched.sort((x, y) => y.id - x.id);
+            }
+            return matched;
           }
           if (sql.includes('FROM ai_results') && sql.includes('WHERE analysis_id = ?')) {
             return tables.ai_results.filter(r => r.analysis_id === params[0]);
@@ -108,25 +162,142 @@ function createFallbackDb() {
             const existing = tables.users.find(u => u.id === id || (u.email || '').toLowerCase() === (mail || '').toLowerCase());
             if (!existing) {
               tables.users.push({ id, full_name: name, email: mail, password_hash: hash, created_at: cat });
+              saveStore();
             }
             return { lastInsertRowid: id, changes: 1 };
           }
           if (sql.includes('UPDATE users')) {
+            if (sql.includes('WHERE id = ?')) {
+              const u = tables.users.find(item => item.id === params[params.length - 1]);
+              if (u && sql.includes('password_hash = ?')) {
+                u.password_hash = params[0];
+                u.reset_token = null;
+                u.reset_token_expires = null;
+                saveStore();
+              }
+            }
             return { lastInsertRowid: 1, changes: 1 };
           }
           if (sql.includes('INSERT INTO analyses')) {
             const id = autoIds.analyses++;
-            tables.analyses.push({ id, user_id: params[0], initial_screenshot: params[1], initial_screenshot_orig_name: params[2], upload_timestamp: params[3], server_time: params[4], status: 'PROCESSING' });
+            tables.analyses.push({
+              id,
+              user_id: params[0],
+              initial_screenshot: params[1],
+              initial_screenshot_orig_name: params[2],
+              upload_timestamp: params[3],
+              server_time: params[4],
+              status: 'PROCESSING'
+            });
+            saveStore();
             return { lastInsertRowid: id, changes: 1 };
+          }
+          if (sql.includes('UPDATE analyses')) {
+            if (sql.includes('SET status = ? WHERE id = ?')) {
+              const a = tables.analyses.find(item => item.id === params[1]);
+              if (a) { a.status = params[0]; saveStore(); }
+            } else if (sql.includes('SET trading_pair = ?')) {
+              const targetId = params[params.length - 1];
+              const a = tables.analyses.find(item => item.id === targetId);
+              if (a) {
+                a.trading_pair = params[0];
+                a.market_type = params[1];
+                a.timeframe = params[2];
+                a.support_level = params[3];
+                a.resistance_level = params[4];
+                a.current_price = params[5];
+                a.support_y_percent = params[6];
+                a.resistance_y_percent = params[7];
+                a.current_price_y_percent = params[8];
+                a.chart_left_x_percent = params[9];
+                a.chart_right_x_percent = params[10];
+                a.entry_time_ist = params[11];
+                a.expiry_time_ist = params[12];
+                a.trade_recommendation = params[13];
+                a.status = 'COMPLETED';
+                a.consensus_decision = params[14];
+                a.consensus_confidence = params[15];
+                a.agreement_score = params[16];
+                a.agreement_type = params[17];
+                a.combined_conclusion = params[18];
+                a.limitations_notes = params[19];
+                saveStore();
+              }
+            }
+            return { lastInsertRowid: 1, changes: 1 };
           }
           if (sql.includes('INSERT INTO evaluations')) {
             const id = autoIds.evaluations++;
-            tables.evaluations.push({ id, analysis_id: params[0], user_id: params[1], completed_screenshot: params[2], candle_color: params[3], original_decision: params[4], evaluation_result: params[5], evaluation_notes: params[6], evaluated_at: params[7] });
+            tables.evaluations.push({
+              id,
+              analysis_id: params[0],
+              user_id: params[1],
+              completed_screenshot: params[2],
+              candle_color: params[3],
+              original_decision: params[4],
+              evaluation_result: params[5],
+              evaluation_notes: params[6],
+              evaluated_at: params[7]
+            });
+            saveStore();
             return { lastInsertRowid: id, changes: 1 };
           }
           if (sql.includes('INSERT INTO ai_results')) {
             const id = autoIds.ai_results++;
+            tables.ai_results.push({
+              id,
+              analysis_id: params[0],
+              provider: params[1],
+              provider_label: params[2],
+              decision: params[3],
+              confidence: params[4],
+              pair: params[5],
+              market_type: params[6],
+              timeframe: params[7],
+              support_level: params[8],
+              resistance_level: params[9],
+              current_price: params[10],
+              trend: params[11],
+              candlestick_pattern: params[12],
+              ema_observations: params[13],
+              bb_observations: params[14],
+              sr_observations: params[15],
+              volume_observations: params[16],
+              market_structure: params[17],
+              scenarios: params[18],
+              uncertainty: params[19],
+              response_time_ms: params[20],
+              status: params[21],
+              error_message: params[22],
+              raw_response: params[23]
+            });
+            saveStore();
             return { lastInsertRowid: id, changes: 1 };
+          }
+          if (sql.includes('DELETE FROM analyses')) {
+            if (sql.includes('WHERE user_id = ?')) {
+              tables.analyses = tables.analyses.filter(a => a.user_id !== params[0]);
+            } else if (sql.includes('WHERE id = ?')) {
+              tables.analyses = tables.analyses.filter(a => a.id !== params[0]);
+            }
+            saveStore();
+            return { lastInsertRowid: 1, changes: 1 };
+          }
+          if (sql.includes('DELETE FROM evaluations')) {
+            if (sql.includes('WHERE user_id = ?')) {
+              tables.evaluations = tables.evaluations.filter(e => e.user_id !== params[0]);
+            } else if (sql.includes('WHERE analysis_id = ?')) {
+              tables.evaluations = tables.evaluations.filter(e => e.analysis_id !== params[0]);
+            }
+            saveStore();
+            return { lastInsertRowid: 1, changes: 1 };
+          }
+          if (sql.includes('DELETE FROM ai_results')) {
+            if (sql.includes('WHERE analysis_id = ?')) {
+              tables.ai_results = tables.ai_results.filter(r => r.analysis_id !== params[0]);
+            }
+            saveStore();
+            return { lastInsertRowid: 1, changes: 1 };
           }
           return { lastInsertRowid: 1, changes: 1 };
         }

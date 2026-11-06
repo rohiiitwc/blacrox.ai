@@ -236,7 +236,7 @@ const DashboardUI = (() => {
     const toast = document.getElementById('tradeCompletionNotice');
     const toastText = document.getElementById('tradeCompletionNoticeText');
     if (toast && toastText) {
-      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Screenshot automatically deleted. Drop your next chart screenshot below!`;
+      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Analysis saved permanently to your history. Drop your next chart screenshot below!`;
       toast.style.display = 'flex';
     }
   }
@@ -259,6 +259,9 @@ const DashboardUI = (() => {
     }
     if (previewAutoDeleteNotice) {
       previewAutoDeleteNotice.style.display = 'inline-flex';
+      previewAutoDeleteNotice.style.background = 'rgba(59, 130, 246, 0.12)';
+      previewAutoDeleteNotice.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+      previewAutoDeleteNotice.style.color = '#60a5fa';
     }
     if (headerTradeStatusBadge) {
       headerTradeStatusBadge.style.display = 'inline-flex';
@@ -273,20 +276,17 @@ const DashboardUI = (() => {
 
       if (secondsLeft > 0) {
         if (tradeCountdownText) {
-          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until expiry (at ${expiryTimeIst}) — Screenshot will auto-delete upon completion`;
+          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until candle close (Expiry: ${expiryTimeIst}) — Signal & Chart Saved in History`;
         }
         if (previewAutoDeleteNotice) {
-          previewAutoDeleteNotice.textContent = `⏱️ Auto-deleting in ${secondsLeft}s (trade completion)`;
+          previewAutoDeleteNotice.textContent = `⏱️ Trade Active: ${secondsLeft}s left (Expiry: ${expiryTimeIst})`;
         }
         if (headerTradeStatusBadge) {
           headerTradeStatusBadge.textContent = `⏳ Trade: ${secondsLeft}s left (Expiry ${expiryTimeIst})`;
         }
       } else {
-        // Trade is complete!
+        // Trade is complete! Stop countdown and preserve chart permanently
         stopTradeExpiryCountdown();
-
-        // Auto delete / clear the screenshot preview
-        resetUpload();
 
         if (tradeCountdownBox) {
           tradeCountdownBox.style.background = 'rgba(16, 185, 129, 0.15)';
@@ -294,10 +294,14 @@ const DashboardUI = (() => {
           tradeCountdownBox.style.color = '#34d399';
         }
         if (tradeCountdownText) {
-          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Screenshot automatically deleted. Ready for next chart.`;
+          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Signal and chart permanently saved in Analysis History. Ready for next chart.`;
         }
         if (previewAutoDeleteNotice) {
-          previewAutoDeleteNotice.style.display = 'none';
+          previewAutoDeleteNotice.style.display = 'inline-flex';
+          previewAutoDeleteNotice.textContent = '✅ Trade Completed · Preserved in History';
+          previewAutoDeleteNotice.style.background = 'rgba(16, 185, 129, 0.15)';
+          previewAutoDeleteNotice.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          previewAutoDeleteNotice.style.color = '#34d399';
         }
         if (headerTradeStatusBadge) {
           headerTradeStatusBadge.textContent = `✅ Trade Completed (${expiryTimeIst})`;
@@ -607,9 +611,22 @@ const DashboardUI = (() => {
       candleSignalPin.style.left = `${pinX}%`;
       candleSignalPin.style.top = `${Math.max(12, priceY - 4)}%`;
     }
+    const isInconclusive = (analysis.consensus_decision === 'INCONCLUSIVE' || analysis.trade_recommendation === "DON'T TRADE" || Number(analysis.all_in_one_win_rate || analysis.consensus_confidence) < 80);
+
     if (candleActionBubble) {
-      candleActionBubble.textContent = isUp ? 'BUY ▲' : 'SELL ▼';
-      candleActionBubble.className = isUp ? 'signal-action-bubble' : 'signal-action-bubble sell';
+      if (isInconclusive) {
+        candleActionBubble.textContent = 'WAIT ⚠️';
+        candleActionBubble.className = 'signal-action-bubble wait';
+        candleActionBubble.style.background = 'rgba(239, 68, 68, 0.25)';
+        candleActionBubble.style.borderColor = '#ef4444';
+        candleActionBubble.style.color = '#f87171';
+      } else {
+        candleActionBubble.textContent = isUp ? 'BUY ▲' : 'SELL ▼';
+        candleActionBubble.className = isUp ? 'signal-action-bubble' : 'signal-action-bubble sell';
+        candleActionBubble.style.background = '';
+        candleActionBubble.style.borderColor = '';
+        candleActionBubble.style.color = '';
+      }
     }
     if (candleEntryCallout) {
       candleEntryCallout.style.display = 'none';
@@ -623,14 +640,14 @@ const DashboardUI = (() => {
       candleEntryTimeText.textContent = entryTimeIst || '--:--:-- IST';
     }
     if (candleEntrySubtag) {
-      candleEntrySubtag.textContent = isUp ? '▲ ENTRY' : '▼ ENTRY';
-      candleEntrySubtag.style.color = isUp ? '#facc15' : '#f97316';
+      candleEntrySubtag.textContent = isInconclusive ? '⚠️ AVOID' : (isUp ? '▲ ENTRY' : '▼ ENTRY');
+      candleEntrySubtag.style.color = isInconclusive ? '#ef4444' : (isUp ? '#facc15' : '#f97316');
     }
 
     // Top HUD Pills (Prime Setu style)
     if (hudSignalPill) {
-      hudSignalPill.textContent = isUp ? 'CALL' : 'PUT';
-      hudSignalPill.className = isUp ? 'hud-pill pill-direction' : 'hud-pill pill-direction pill-put';
+      hudSignalPill.textContent = isInconclusive ? "DON'T TRADE" : (isUp ? 'CALL' : 'PUT');
+      hudSignalPill.className = isInconclusive ? 'hud-pill pill-warning' : (isUp ? 'hud-pill pill-direction' : 'hud-pill pill-direction pill-put');
     }
     const confVal = analysis.consensus_confidence || 92;
     if (hudConfidencePill) {
@@ -643,8 +660,8 @@ const DashboardUI = (() => {
     // Signal Brief Specs
     if (briefPair) briefPair.textContent = analysis.trading_pair || 'USD/ARS (OTC)';
     if (briefDirection) {
-      briefDirection.textContent = isUp ? 'CALL' : 'PUT';
-      briefDirection.style.color = isUp ? '#00e676' : '#ff5b79';
+      briefDirection.textContent = isInconclusive ? "DON'T TRADE" : (isUp ? 'CALL' : 'PUT');
+      briefDirection.style.color = isInconclusive ? '#ef4444' : (isUp ? '#00e676' : '#ff5b79');
     }
     if (briefEntryPrice) briefEntryPrice.textContent = priceVal;
     if (briefPayout) briefPayout.textContent = '93%';
@@ -654,14 +671,14 @@ const DashboardUI = (() => {
     const winRateVal = analysis.all_in_one_win_rate || confVal;
     if (briefWinRateVal) briefWinRateVal.textContent = `${winRateVal}%`;
     if (briefRegimeTag) {
-      briefRegimeTag.textContent = isUp ? 'SUPPORT_BOUNCE' : 'RESISTANCE_REJECT';
-      briefRegimeTag.style.color = isUp ? '#a855f7' : '#ec4899';
+      briefRegimeTag.textContent = isInconclusive ? 'SIDEWAYS_RANGE' : (isUp ? 'SUPPORT_BOUNCE' : 'RESISTANCE_REJECT');
+      briefRegimeTag.style.color = isInconclusive ? '#f59e0b' : (isUp ? '#a855f7' : '#ec4899');
     }
 
     // Market Read Trend
     if (briefEmaTrend) {
-      briefEmaTrend.textContent = isUp ? 'BULLISH' : 'BEARISH';
-      briefEmaTrend.className = isUp ? 'trend-badge-pill' : 'trend-badge-pill bearish';
+      briefEmaTrend.textContent = isInconclusive ? 'SIDEWAYS' : (isUp ? 'BULLISH' : 'BEARISH');
+      briefEmaTrend.className = isInconclusive ? 'trend-badge-pill neutral' : (isUp ? 'trend-badge-pill' : 'trend-badge-pill bearish');
     }
 
     // Paper Trading Session Track (Prime Setu style)
@@ -723,18 +740,16 @@ const DashboardUI = (() => {
 
     // Unified Master Signal
     const decision = analysis.consensus_decision || 'UP';
+    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
+    const isLowWinRate = Number(allInOneWinRate) < 80 || decision === 'INCONCLUSIVE' || analysis.trade_recommendation === "DON'T TRADE";
     const isUp = decision === 'UP' || decision.includes('CALL');
-    const signalLabel = isUp ? '▲ CALL (UP)' : '▼ PUT (DOWN)';
+    const signalLabel = isLowWinRate ? "🚫 DON'T TRADE" : (isUp ? '▲ CALL (UP)' : '▼ PUT (DOWN)');
 
     resultDecisionBig.textContent = signalLabel;
-    resultDecisionBig.className = `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
+    resultDecisionBig.className = isLowWinRate ? 'decision-action-big text-warning' : `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
 
     // Render S/R and Entry Lines Directly on Chart Screenshot (Prime Setu Style)
     renderChartLevelsOverlay(analysis, isUp, supportVal, resistanceVal, priceVal, entryTimeIst);
-
-    // All-In-One Win Percentage & Less Than 80% Check
-    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
-    const isLowWinRate = Number(allInOneWinRate) < 80;
 
     if (isLowWinRate) {
       // WIN RATE < 80%: Still give the signal, but explicitly mention "DON'T TRADE"
