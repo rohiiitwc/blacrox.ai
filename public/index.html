@@ -205,28 +205,28 @@
                     <img id="annotatedChartImg" class="chart-screenshot-base" src="" alt="Quotex 1M Chart Analyzed by AI">
 
                     <div class="chart-overlay-canvas" id="chartOverlayContainer">
-                      <!-- Resistance Line (Thin dashed pink line with sleek text like Prime Setu) -->
-                      <div class="sr-drawn-line resistance-line" id="overlayResistanceLine" style="top: 28%;">
-                        <span class="sr-clean-label res-clean-label">RESISTANCE <strong id="overlayResistanceVal">1.88073</strong></span>
-                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale">1.88073</span>
+                      <!-- Resistance Line (Thin dashed pink line with sleek floating text like Prime Setu) -->
+                      <div class="sr-drawn-line resistance-line" id="overlayResistanceLine" style="top: 25%;">
+                        <span class="sr-clean-label res-clean-label" id="overlayResText">RESISTANCE<span id="overlayResistanceVal" style="display:none;"></span></span>
+                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale" style="display:none;"></span>
                       </div>
 
-                      <!-- Support Line (Thin dashed green line with sleek text like Prime Setu) -->
-                      <div class="sr-drawn-line support-line" id="overlaySupportLine" style="top: 75%;">
-                        <span class="sr-clean-label sup-clean-label">SUPPORT <strong id="overlaySupportVal">1.86367</strong></span>
-                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale">1.86367</span>
+                      <!-- Support Line (Thin dashed green line with sleek floating text like Prime Setu) -->
+                      <div class="sr-drawn-line support-line" id="overlaySupportLine" style="top: 70%;">
+                        <span class="sr-clean-label sup-clean-label" id="overlaySupText">SUPPORT<span id="overlaySupportVal" style="display:none;"></span></span>
+                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale" style="display:none;"></span>
                       </div>
 
-                      <!-- Entry Line (Thin dashed cyan line with entry level) -->
-                      <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 70%;">
-                        <span class="sr-clean-label entry-clean-label">ENTRY <strong id="overlayEntryVal">1.87774</strong></span>
-                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale">1.87774</span>
+                      <!-- Entry Guideline & Scale Badge (Matches Prime Setu) -->
+                      <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 55%;">
+                        <span class="sr-clean-label entry-clean-label" id="overlayEntryVal" style="display:none;"></span>
+                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale">1.29336</span>
                       </div>
 
                       <!-- Interactive Candle Entry Pointer (Matches user picture) -->
-                      <div class="candle-signal-pin" id="candleSignalPin" style="top: 66%;">
+                      <div class="candle-signal-pin" id="candleSignalPin" style="top: 52%;">
                         <div class="signal-action-bubble" id="candleActionBubble">BUY ▲</div>
-                        <div class="signal-entry-callout" id="candleEntryCallout">ENTRY <span id="candleEntryPrice">1.87774</span></div>
+                        <div class="signal-entry-callout" id="candleEntryCallout">ENTRY <span id="candleEntryPrice">1.29336</span></div>
                         <div class="signal-entry-subtag" id="candleEntrySubtag">▲ ENTRY</div>
                       </div>
                     </div>

@@ -373,10 +373,9 @@ const DashboardUI = (() => {
 
   function drawCleanLabel(ctx, x, y, text, color) {
     ctx.save();
-    ctx.font = 'bold 13px monospace';
-    const textWidth = ctx.measureText(text).width;
-    ctx.fillStyle = 'rgba(6, 8, 14, 0.85)';
-    ctx.fillRect(x - 4, y - 14, textWidth + 8, 18);
+    ctx.font = 'bold 11px monospace';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+    ctx.shadowBlur = 6;
     ctx.fillStyle = color;
     ctx.fillText(text, x, y);
     ctx.restore();
@@ -458,13 +457,12 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, resY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, resY - 6, `RESISTANCE  ${resVal}`, '#ff5b79');
-      drawScalePrice(ctx, canvas.width - 70, resY + 4, resVal, '#ff5b79', '#ffffff');
+      drawCleanLabel(ctx, 24, resY - 6, 'RESISTANCE', '#ff5b79');
 
       // 2. Support Line (dashed green)
       ctx.save();
       ctx.strokeStyle = '#00e676';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.5;
       ctx.setLineDash([8, 6]);
       ctx.shadowColor = 'rgba(0, 230, 118, 0.7)';
       ctx.shadowBlur = 6;
@@ -473,28 +471,25 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, supY - 6, `SUPPORT  ${supVal}`, '#00e676');
-      drawScalePrice(ctx, canvas.width - 70, supY + 4, supVal, '#00e676', '#022c15');
+      drawCleanLabel(ctx, 24, supY - 6, 'SUPPORT', '#00e676');
 
-      // 3. Entry Line (dashed cyan)
+      // 3. Entry Scale Tag & Guideline (dashed cyan)
       ctx.save();
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.lineWidth = 1;
       ctx.setLineDash([6, 5]);
-      ctx.shadowColor = 'rgba(56, 189, 248, 0.7)';
-      ctx.shadowBlur = 6;
       ctx.beginPath();
       ctx.moveTo(0, priceY);
       ctx.lineTo(canvas.width, priceY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, priceY - 6, `ENTRY  ${priceVal}`, '#38bdf8');
       drawScalePrice(ctx, canvas.width - 70, priceY + 4, priceVal, '#38bdf8', '#030712');
 
       // 4. Candle Pin & Action
       const pinX = canvas.width * 0.8;
       const actionText = isUp ? 'BUY ▲' : 'SELL ▼';
       drawPill(ctx, pinX, priceY - 32, actionText, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
+      drawCleanLabel(ctx, pinX, priceY + 16, isUp ? '▲ ENTRY' : '▼ ENTRY', '#facc15');
 
       // Top HUD Watermark
       drawPill(ctx, 20, 24, `BLACROX.AI • ${pair} • 1M CANDLE`, '#0f172a', '#38bdf8');
@@ -516,9 +511,9 @@ const DashboardUI = (() => {
       annotatedChartImg.src = imgSrc;
     }
 
-    const resY = analysis.resistance_y_percent || 28;
-    const supY = analysis.support_y_percent || 75;
-    const priceY = analysis.current_price_y_percent || (isUp ? 70 : 32);
+    const resY = analysis.resistance_y_percent || 25;
+    const supY = analysis.support_y_percent || 70;
+    const priceY = analysis.current_price_y_percent || 55;
 
     // Position lines
     if (overlayResistanceLine) overlayResistanceLine.style.top = `${resY}%`;

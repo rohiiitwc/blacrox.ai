@@ -86,49 +86,27 @@ function generateEducationalSimulation(provider, providerLabel, targetDecision =
   let trend = '';
   let structure = '';
   let sr = '';
-  let confidence = 88;
+  const baseConf = context.confidence || 89;
+  let confidence = baseConf;
+  if (provider === 'chatgpt') confidence = Math.min(95, Math.max(75, baseConf));
+  else if (provider === 'gemini') confidence = Math.min(95, Math.max(75, baseConf + 1));
+  else confidence = Math.min(95, Math.max(75, baseConf - 1));
 
   if (targetDecision === 'UP') {
-    trend = 'Short-term bullish trend on 1M chart';
+    trend = context.trend || 'Short-term bullish trend on 1M chart';
     structure = 'Higher lows forming ascending dynamic support channel';
     sr = context.srObservations || `Key support at ${supportLevel} holding firm; price bounced off demand zone targeting resistance at ${resistanceLevel}.`;
-    if (provider === 'chatgpt') {
-      confidence = 88;
-      pattern = 'Bullish Engulfing candle breaking previous minor resistance';
-      ema = 'EMA 7 (green) established firmly above EMA 21 (red), positive slope';
-      bb = 'Price riding above middle Bollinger Band targeting upper band';
-    } else if (provider === 'gemini') {
-      confidence = 90;
-      pattern = 'Strong rejection wick at dynamic demand zone with bullish volume';
-      ema = 'EMA 7 provides dynamic support on recent 1-minute pullback';
-      bb = 'Lower Bollinger Band bounce confirmed, bands expanding upward';
-    } else {
-      confidence = 87;
-      pattern = 'Three white soldiers sequence forming with continuous momentum';
-      ema = 'EMA 7 / EMA 21 divergence widening in bullish continuation';
-      bb = 'Volatility expanding towards upper Bollinger deviation';
-    }
+    pattern = context.candlestickPattern || 'Bullish Engulfing candle / momentum continuation';
+    ema = context.emaObservations || 'Alligator / EMA 7 (green) established firmly above EMA 21 (red), positive slope';
+    bb = 'Price riding above middle Bollinger Band targeting upper band';
   } else {
     // DOWN scenario
-    trend = 'Short-term bearish trend on 1M chart';
+    trend = context.trend || 'Short-term bearish trend on 1M chart';
     structure = 'Lower highs forming descending resistance trajectory';
     sr = context.srObservations || `Key resistance at ${resistanceLevel} capping upside; price rejected at supply zone targeting support at ${supportLevel}.`;
-    if (provider === 'chatgpt') {
-      confidence = 88;
-      pattern = 'Bearish Pin Bar formed with upper wick rejection at supply zone';
-      ema = 'EMA 7 (green) descending below EMA 21 (red), negative slope';
-      bb = 'Price rejected at upper Bollinger Band moving towards lower band';
-    } else if (provider === 'gemini') {
-      confidence = 90;
-      pattern = 'Bearish Engulfing pattern confirming buyer exhaustion';
-      ema = 'EMA 7 acting as overhead dynamic resistance';
-      bb = 'Lower Bollinger Band expansion with downward momentum';
-    } else {
-      confidence = 87;
-      pattern = 'Three black crows continuation forming off local ceiling';
-      ema = 'EMA 21 capping any upward retracement';
-      bb = 'Bollinger squeeze resolving into sharp downward breakout';
-    }
+    pattern = context.candlestickPattern || 'Bearish momentum / Three black crows trend continuation';
+    ema = context.emaObservations || 'Alligator / EMA 7 (green) descending below EMA 21 (red), negative slope confirming continuation';
+    bb = 'Price hugging lower Bollinger Band with downward momentum expansion';
   }
 
   return {
@@ -235,29 +213,55 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
   // Extract or dynamically compute vertical coordinate percentages (from top of chart screenshot)
-  let detectedResY = 28;
-  let detectedSupY = 74;
-  let detectedPriceY = 70;
+  const modelWithY = successfulModels.find(m => m.support_y_percent != null && m.resistance_y_percent != null)
+    || successfulModels.find(m => m.current_price_y_percent != null);
 
-  const modelWithY = successfulModels.find(m => m.support_y_percent && m.resistance_y_percent);
-  if (modelWithY) {
-    detectedSupY = Number(modelWithY.support_y_percent) || 74;
-    detectedResY = Number(modelWithY.resistance_y_percent) || 28;
-    detectedPriceY = Number(modelWithY.current_price_y_percent) || 70;
-  } else {
-    const rNum = parseFloat(detectedResistance);
-    const sNum = parseFloat(detectedSupport);
-    const pNum = parseFloat(detectedPrice);
-    if (!isNaN(rNum) && !isNaN(sNum) && rNum > sNum && !isNaN(pNum)) {
-      const ratio = (rNum - pNum) / (rNum - sNum);
-      const clampedRatio = Math.max(0, Math.min(1, ratio));
-      detectedPriceY = Math.round(detectedResY + clampedRatio * (detectedSupY - detectedResY));
+  let resY = modelWithY?.resistance_y_percent != null ? Number(modelWithY.resistance_y_percent) : null;
+  let supY = modelWithY?.support_y_percent != null ? Number(modelWithY.support_y_percent) : null;
+  let priceY = modelWithY?.current_price_y_percent != null ? Number(modelWithY.current_price_y_percent) : null;
+
+  const rVal = parseFloat(detectedResistance);
+  const sVal = parseFloat(detectedSupport);
+  const pVal = parseFloat(detectedPrice);
+
+  const modelWithScales = successfulModels.find(m => m.chart_high_price && m.chart_low_price);
+  const scaleHigh = parseFloat(modelWithScales?.chart_high_price) || (rVal > sVal ? rVal : NaN);
+  const scaleLow = parseFloat(modelWithScales?.chart_low_price) || (sVal < rVal ? sVal : NaN);
+
+  if (!isNaN(scaleHigh) && !isNaN(scaleLow) && scaleHigh > scaleLow) {
+    // In Quotex screenshots, the candlestick chart spans from ~16% (below top toolbar) to ~77% (above RSI pane)
+    const chartTopY = 16;
+    const chartBottomY = 77;
+    const chartSpan = chartBottomY - chartTopY;
+    const mapPriceToY = (val) => {
+      const ratio = (scaleHigh - val) / (scaleHigh - scaleLow);
+      const clamped = Math.max(0.02, Math.min(0.98, ratio));
+      return Math.round(chartTopY + (clamped * chartSpan));
+    };
+
+    if (!isNaN(pVal)) {
+      const mathPriceY = mapPriceToY(pVal);
+      if (priceY == null || Math.abs(priceY - mathPriceY) > 15) {
+        priceY = mathPriceY;
+      }
+    }
+    if (!isNaN(rVal)) {
+      const mathResY = mapPriceToY(rVal);
+      if (resY == null || Math.abs(resY - mathResY) > 15) {
+        resY = mathResY;
+      }
+    }
+    if (!isNaN(sVal)) {
+      const mathSupY = mapPriceToY(sVal);
+      if (supY == null || Math.abs(supY - mathSupY) > 15) {
+        supY = mathSupY;
+      }
     }
   }
 
-  detectedResY = Math.max(15, Math.min(45, detectedResY));
-  detectedSupY = Math.max(55, Math.min(85, detectedSupY));
-  detectedPriceY = Math.max(18, Math.min(82, detectedPriceY));
+  let detectedResY = Math.max(16, Math.min(48, resY || 24));
+  let detectedSupY = Math.max(54, Math.min(78, supY || 70));
+  let detectedPriceY = Math.max(18, Math.min(74, priceY || 56));
 
   // 3. Determine unified directional signal (Models must not give different signals)
   let targetDecision = 'UP';
@@ -270,7 +274,12 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     const downVotes = liveDecisions.filter(d => d === 'DOWN').length;
     targetDecision = upVotes >= downVotes ? 'UP' : 'DOWN';
   } else {
-    targetDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
+    // If no live vision model succeeded, derive deterministic trend from price interaction
+    if (!isNaN(pVal) && !isNaN(sVal) && !isNaN(rVal) && rVal > sVal) {
+      targetDecision = (pVal - sVal) < (rVal - pVal) ? 'DOWN' : 'UP';
+    } else {
+      targetDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
+    }
   }
 
   // 4. Build unified shared context for all models
@@ -281,7 +290,11 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     supportLevel: detectedSupport,
     resistanceLevel: detectedResistance,
     currentPrice: detectedPrice,
-    srObservations: detectedSrObs
+    srObservations: detectedSrObs,
+    trend: successfulModels.find(m => m.trend)?.trend,
+    candlestickPattern: successfulModels.find(m => m.candlestick_pattern)?.candlestick_pattern,
+    emaObservations: successfulModels.find(m => m.ema_observations)?.ema_observations,
+    confidence: successfulModels.find(m => m.confidence)?.confidence
   };
 
   // Harmonize all models so they NEVER give conflicting signals
