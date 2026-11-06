@@ -53,10 +53,12 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom Scrollbars */
@@ -111,7 +113,7 @@ header.app-header {
 }
 
 .brand-title {
-  font-size: 1.25rem;
+  font-size: clamp(1.05rem, 3.5vw, 1.25rem);
   font-weight: 700;
   letter-spacing: -0.02em;
   display: flex;
@@ -196,13 +198,22 @@ header.app-header {
   color: var(--color-bullish);
 }
 
-/* Nav Tabs */
+/* Nav Tabs - Modern Responsive & Touch-Swipeable */
 nav.app-nav {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   padding: 0 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+nav.app-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-tab {
@@ -211,13 +222,15 @@ nav.app-nav {
   color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 600;
-  padding: 0.85rem 0.5rem;
+  padding: 0.85rem 0.75rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: var(--transition);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  flex-shrink: 0;
+  min-height: 44px;
 }
 
 .nav-tab:hover {
@@ -465,7 +478,7 @@ main.app-main {
 }
 
 .countdown-digits {
-  font-size: 3rem;
+  font-size: clamp(2rem, 7vw, 3rem);
   font-weight: 900;
   font-family: monospace;
   color: #60a5fa;
@@ -728,7 +741,7 @@ main.app-main {
 }
 
 .pair-title {
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
   font-weight: 800;
   letter-spacing: -0.01em;
 }
@@ -790,7 +803,7 @@ main.app-main {
 }
 
 .decision-action-big {
-  font-size: 2.8rem;
+  font-size: clamp(2rem, 6vw, 2.8rem);
   font-weight: 900;
   letter-spacing: 0.05em;
   line-height: 1;
@@ -1124,10 +1137,13 @@ main.app-main {
 /* History Table */
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 table.data-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.9rem;
@@ -1167,6 +1183,8 @@ table.data-table tr:hover td {
 .auth-modal {
   width: 100%;
   max-width: 440px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
   background: var(--bg-card);
   border: 1px solid var(--border-highlight);
   border-radius: var(--radius-lg);
@@ -1377,41 +1395,6 @@ table.data-table tr:hover td {
   line-height: 1.45;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 900px) {
-  .decision-display-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-  .models-comparison-grid {
-    grid-template-columns: 1fr;
-  }
-  .ai-processing-deck {
-    grid-template-columns: 1fr;
-  }
-  .stats-overview-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .indicators-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 600px) {
-  header.app-header {
-    padding: 0 1rem;
-  }
-  .header-meta .sync-clock {
-    display: none;
-  }
-  .stats-overview-grid {
-    grid-template-columns: 1fr;
-  }
-  main.app-main {
-    padding: 1rem;
-  }
-}
-
 /* ==========================================================================
    AI Technical Chart Terminal & S/R Overlay (Prime Setu Exact Replica)
    ========================================================================== */
@@ -1420,12 +1403,6 @@ table.data-table tr:hover td {
   grid-template-columns: 1fr 340px;
   gap: 1.25rem;
   margin-top: 1.25rem;
-}
-
-@media (max-width: 1024px) {
-  .ai-terminal-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .ai-chart-stage {
@@ -1530,7 +1507,7 @@ table.data-table tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: clamp(220px, 48vw, 480px);
   overflow: hidden;
 }
 
@@ -1855,5 +1832,345 @@ table.data-table tr:hover td {
   color: #ff5b79;
   border-color: rgba(255, 91, 121, 0.3);
 }
+
+/* ==========================================================================
+   Comprehensive Responsive System (Laptops, Tablets, Phones)
+   ========================================================================== */
+
+/* 1. Laptops & Compact Desktops (<= 1200px) */
+@media (max-width: 1200px) {
+  .ai-terminal-grid {
+    grid-template-columns: 1fr 310px;
+    gap: 1rem;
+  }
+  .brief-setup-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 2. Tablets & Small Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .ai-terminal-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .terminal-signal-brief {
+    max-width: 100%;
+  }
+  .decision-display-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .stats-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .models-comparison-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .indicators-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 3. Phablets & Large Phones / Tablets Portrait (<= 768px) */
+@media (max-width: 768px) {
+  header.app-header {
+    padding: 0 1rem;
+    height: 58px;
+  }
+  .header-meta {
+    gap: 0.65rem;
+  }
+  .header-meta .sync-clock {
+    display: none; /* Conserve header space on smaller screens */
+  }
+  nav.app-nav {
+    padding: 0 1rem;
+  }
+  main.app-main {
+    padding: 1rem 0.85rem;
+  }
+  .card {
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+  .models-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+  .ai-processing-deck {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .indicators-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+  .sr-levels-grid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.65rem;
+  }
+  .evaluation-buttons-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+  .btn-outcome {
+    min-height: 46px;
+    padding: 0.65rem;
+    font-size: 0.85rem;
+  }
+  .chart-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .chart-meta-row > div:last-child {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  .ai-chart-stage-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+  .ai-chart-stage-header > div:last-child {
+    width: 100%;
+    display: flex;
+    gap: 6px;
+  }
+  .ai-chart-stage-header > div:last-child button {
+    flex: 1;
+    min-height: 38px;
+    padding: 6px;
+  }
+  .chart-top-hud {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 8px 10px;
+  }
+  .hud-left {
+    gap: 6px;
+  }
+  .hud-pill {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+  }
+  .hud-time {
+    font-size: 0.72rem;
+  }
+}
+
+/* 4. Standard Mobile Phones (<= 480px) */
+@media (max-width: 480px) {
+  header.app-header {
+    padding: 0 0.75rem;
+    height: 54px;
+  }
+  .brand-badge {
+    display: none; /* Keep header clean and compact on small phones */
+  }
+  .brand-logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+  }
+  .session-timer-pill {
+    padding: 3px 7px;
+    font-size: 0.72rem;
+    border-radius: 4px;
+  }
+  .user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+  #btnLogout {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+  nav.app-nav {
+    padding: 0 0.75rem;
+    gap: 0.4rem;
+  }
+  .nav-tab {
+    padding: 0.7rem 0.65rem;
+    font-size: 0.8rem;
+  }
+  main.app-main {
+    padding: 0.75rem 0.5rem;
+  }
+  .card {
+    padding: 1rem 0.75rem;
+    border-radius: var(--radius-md);
+  }
+  .card-header {
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+  }
+  .card-title {
+    font-size: 0.95rem;
+  }
+  .dropzone {
+    padding: 1.5rem 0.75rem;
+  }
+  .dropzone-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.35rem;
+  }
+  .dropzone-text {
+    font-size: 0.85rem;
+  }
+  .dropzone-subtext {
+    font-size: 0.72rem;
+  }
+  .asset-selector-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 8px 10px;
+  }
+  .asset-selector-bar > div {
+    width: 100%;
+    justify-content: space-between;
+  }
+  #selectPairOverride {
+    width: 100%;
+    min-height: 42px;
+    font-size: 16px; /* 16px prevents iOS Safari from automatically zooming in */
+  }
+  .preview-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+  .preview-actions > div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .preview-actions button {
+    width: 100%;
+    min-height: 42px;
+    font-size: 0.85rem;
+  }
+  .stats-overview-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .stat-metric-card {
+    padding: 0.85rem;
+  }
+  .stat-metric-value {
+    font-size: 1.45rem;
+  }
+  .sr-levels-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .sr-level-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0.85rem;
+    text-align: left;
+  }
+  .sr-level-val {
+    font-size: 1.05rem;
+  }
+  .sr-level-sub {
+    display: none;
+  }
+  .candle-signal-pin {
+    right: 12%;
+  }
+  .signal-action-bubble {
+    font-size: 8.5px;
+    padding: 1px 6px;
+  }
+  .signal-entry-callout {
+    font-size: 8.5px;
+    padding: 1px 5px;
+  }
+  .signal-entry-subtag {
+    font-size: 7.5px;
+  }
+  .chart-bottom-hud {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+  .hud-legend-row {
+    font-size: 0.62rem;
+    gap: 6px;
+  }
+  .brief-setup-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+  .brief-setup-item {
+    padding: 5px 8px;
+  }
+  .brief-setup-label {
+    font-size: 0.62rem;
+  }
+  .brief-setup-value {
+    font-size: 0.78rem;
+  }
+  .brief-quality-circle {
+    font-size: 1rem;
+  }
+  .session-stat-box {
+    padding: 4px;
+  }
+  .session-stat-val {
+    font-size: 0.95rem;
+  }
+  .session-stat-lbl {
+    font-size: 0.58rem;
+  }
+  .auth-overlay {
+    padding: 0.75rem;
+  }
+  .auth-modal {
+    padding: 1.25rem 1rem;
+    border-radius: var(--radius-md);
+  }
+  .form-control {
+    font-size: 16px; /* Prevents auto-zoom in mobile browsers */
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+  }
+  .table-container {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+  table.data-table th,
+  table.data-table td {
+    padding: 0.6rem 0.65rem;
+    font-size: 0.78rem;
+  }
+}
+
+/* 5. Extra Compact Screens (<= 360px - e.g. iPhone SE / Galaxy Z Flip cover) */
+@media (max-width: 360px) {
+  .brand-title {
+    font-size: 1rem;
+  }
+  .session-timer-pill {
+    display: none; /* Maximize title and user badge visibility */
+  }
+  .brief-setup-grid {
+    grid-template-columns: 1fr;
+  }
+  .evaluation-buttons-group {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 
