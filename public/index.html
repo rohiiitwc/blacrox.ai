@@ -209,36 +209,36 @@
                     <img id="annotatedChartImg" class="chart-screenshot-base" src="" alt="Quotex 1M Chart Analyzed by AI">
 
                     <div class="chart-overlay-canvas" id="chartOverlayContainer">
-                      <!-- Resistance Line (Thin dashed pink line with sleek floating text & price) -->
+                      <!-- Resistance Line (Thin dashed pink line with clean RESISTANCE tag) -->
                       <div class="sr-drawn-line resistance-line" id="overlayResistanceLine" style="top: 25%;">
                         <span class="sr-clean-label res-clean-label" id="overlayResText">
-                          RESISTANCE <span id="overlayResistanceVal">3186.00</span>
+                          RESISTANCE<span id="overlayResistanceVal" style="display: none;"></span>
                         </span>
-                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale">3186.00</span>
+                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale" style="display: none;"></span>
                       </div>
 
-                      <!-- Support Line (Thin dashed green line with sleek floating text & price) -->
+                      <!-- Support Line (Thin dashed green line with clean SUPPORT tag) -->
                       <div class="sr-drawn-line support-line" id="overlaySupportLine" style="top: 70%;">
                         <span class="sr-clean-label sup-clean-label" id="overlaySupText">
-                          SUPPORT <span id="overlaySupportVal">3181.50</span>
+                          SUPPORT<span id="overlaySupportVal" style="display: none;"></span>
                         </span>
-                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale">3181.50</span>
+                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale" style="display: none;"></span>
                       </div>
 
-                      <!-- Entry Guideline & Scale Badge -->
-                      <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 55%;">
+                      <!-- Entry Guideline & Scale Badge (No numeric price) -->
+                      <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 55%; display: none;">
                         <span class="sr-clean-label entry-clean-label" id="overlayEntryVal">
-                          ENTRY <span id="overlayEntryValText">3182.42</span>
+                          ENTRY <span id="overlayEntryValText" style="display: none;"></span>
                         </span>
-                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale">3182.42</span>
+                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale" style="display: none;"></span>
                       </div>
 
                       <!-- Interactive Candle Entry Pointer with unmissable Entry Time -->
                       <div class="candle-signal-pin" id="candleSignalPin" style="top: 52%;">
-                        <div class="signal-action-bubble" id="candleActionBubble">SELL ▼</div>
-                        <div class="signal-entry-callout" id="candleEntryCallout">ENTRY <span id="candleEntryPrice">3182.42</span></div>
-                        <div class="signal-entry-timing" id="candleEntryTiming">⏰ <span id="candleEntryTimeText">13:12:00 IST</span></div>
-                        <div class="signal-entry-subtag" id="candleEntrySubtag">▼ ENTRY</div>
+                        <div class="signal-action-bubble" id="candleActionBubble">BUY ▲</div>
+                        <div class="signal-entry-timing" id="candleEntryTiming">⏰ <span id="candleEntryTimeText">15:31:00 IST</span></div>
+                        <div class="signal-entry-subtag" id="candleEntrySubtag">▲ ENTRY</div>
+                        <div class="signal-entry-callout" id="candleEntryCallout" style="display: none;">ENTRY <span id="candleEntryPrice" style="display: none;"></span></div>
                       </div>
                     </div>
                   </div>

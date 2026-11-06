@@ -391,8 +391,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     : `✓ Win rate is ${allInOneWinRate}% (meets the 80% minimum confidence threshold). Entry at ${entryTimeIst}.`;
 
   let combinedConclusion = consensusDecision === 'UP'
-    ? `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms bounce off support at ${detectedSupport} towards resistance ${detectedResistance} with aligned bullish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`
-    : `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms rejection at resistance ${detectedResistance} towards support ${detectedSupport} with aligned bearish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    ? `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms bounce off key Support towards Resistance with aligned bullish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`
+    : `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms rejection at key Resistance towards Support with aligned bearish momentum. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
 
   if (isLowWinRate) {
     combinedConclusion += ` [ADVISORY: Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE at ${entryTimeIst} - High Risk / Low Probability.]`;

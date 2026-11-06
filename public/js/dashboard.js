@@ -469,8 +469,7 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, resY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 80, resY - 6, `RESISTANCE ${resVal}`, '#ff5b79');
-      drawScalePrice(ctx, canvas.width - 90, resY + 4, resVal, '#ff5b79', '#ffffff');
+      drawCleanLabel(ctx, 80, resY - 6, 'RESISTANCE', '#ff5b79');
 
       // 2. Support Line (dashed green)
       ctx.save();
@@ -484,26 +483,13 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 80, supY - 6, `SUPPORT ${supVal}`, '#00e676');
-      drawScalePrice(ctx, canvas.width - 90, supY + 4, supVal, '#00e676', '#022c15');
+      drawCleanLabel(ctx, 80, supY - 6, 'SUPPORT', '#00e676');
 
-      // 3. Entry Scale Tag & Guideline (dashed cyan)
-      ctx.save();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 5]);
-      ctx.beginPath();
-      ctx.moveTo(0, priceY);
-      ctx.lineTo(canvas.width, priceY);
-      ctx.stroke();
-      ctx.restore();
-      drawScalePrice(ctx, canvas.width - 90, priceY + 4, priceVal, '#38bdf8', '#030712');
-
-      // 4. Candle Pin & Action
+      // 3. Candle Pin & Action (no price numbers)
       const pinX = canvas.width * 0.75;
       const actionText = isUp ? 'BUY ▲' : 'SELL ▼';
       drawPill(ctx, pinX, priceY - 36, `${actionText} ${entryTime}`, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
-      drawCleanLabel(ctx, pinX, priceY + 16, `${isUp ? '▲' : '▼'} ENTRY ${priceVal}`, '#facc15');
+      drawCleanLabel(ctx, pinX, priceY + 16, `${isUp ? '▲' : '▼'} ENTRY`, '#facc15');
 
       // Top HUD Watermark
       drawPill(ctx, 20, 24, `BLACROX.AI • ${pair} • 1M CANDLE`, '#0f172a', '#38bdf8');
@@ -534,14 +520,15 @@ const DashboardUI = (() => {
     if (overlaySupportLine) overlaySupportLine.style.top = `${supY}%`;
     if (overlayEntryLine) overlayEntryLine.style.top = `${priceY}%`;
 
-    // Values on lines and scale tags
-    if (overlayResistanceVal) overlayResistanceVal.textContent = resistanceVal;
-    if (overlayResistanceScale) overlayResistanceScale.textContent = resistanceVal;
-    if (overlaySupportVal) overlaySupportVal.textContent = supportVal;
-    if (overlaySupportScale) overlaySupportScale.textContent = supportVal;
+    // Lines on chart (clean lines without numeric price clutter)
+    if (overlayResistanceVal) overlayResistanceVal.textContent = '';
+    if (overlayResistanceScale) overlayResistanceScale.style.display = 'none';
+    if (overlaySupportVal) overlaySupportVal.textContent = '';
+    if (overlaySupportScale) overlaySupportScale.style.display = 'none';
     const overlayEntryValText = document.getElementById('overlayEntryValText');
-    if (overlayEntryValText) overlayEntryValText.textContent = priceVal;
-    if (overlayEntryScale) overlayEntryScale.textContent = priceVal;
+    if (overlayEntryValText) overlayEntryValText.textContent = '';
+    if (overlayEntryScale) overlayEntryScale.style.display = 'none';
+    if (overlayEntryLine) overlayEntryLine.style.display = 'none';
 
     // Interactive candle pin (Prime Setu style) with unmissable Entry Time
     if (candleSignalPin) {
@@ -552,9 +539,9 @@ const DashboardUI = (() => {
       candleActionBubble.className = isUp ? 'signal-action-bubble' : 'signal-action-bubble sell';
     }
     if (candleEntryCallout) {
-      candleEntryCallout.className = isUp ? 'signal-entry-callout' : 'signal-entry-callout sell';
+      candleEntryCallout.style.display = 'none';
     }
-    if (candleEntryPrice) candleEntryPrice.textContent = priceVal;
+    if (candleEntryPrice) candleEntryPrice.textContent = '';
     const candleEntryTimeText = document.getElementById('candleEntryTimeText');
     if (candleEntryTimeText) {
       candleEntryTimeText.textContent = entryTimeIst || '--:--:-- IST';
@@ -578,15 +565,15 @@ const DashboardUI = (() => {
     }
 
     // Signal Brief Specs
-    if (briefPair) briefPair.textContent = analysis.trading_pair || 'USD/COP (OTC)';
+    if (briefPair) briefPair.textContent = analysis.trading_pair || 'USD/ARS (OTC)';
     if (briefDirection) {
       briefDirection.textContent = isUp ? 'CALL' : 'PUT';
       briefDirection.style.color = isUp ? '#00e676' : '#ff5b79';
     }
-    if (briefEntryPrice) briefEntryPrice.textContent = priceVal;
-    if (briefPayout) briefPayout.textContent = '87%';
-    if (briefResistance) briefResistance.textContent = resistanceVal;
-    if (briefSupport) briefSupport.textContent = supportVal;
+    if (briefEntryPrice) briefEntryPrice.textContent = 'At Candle Open';
+    if (briefPayout) briefPayout.textContent = '93%';
+    if (briefResistance) briefResistance.textContent = 'Upper Wick Zone';
+    if (briefSupport) briefSupport.textContent = 'Lower Wick Zone';
     if (briefConfidencePercent) briefConfidencePercent.textContent = `${confVal}%`;
     const winRateVal = analysis.all_in_one_win_rate || confVal;
     if (briefWinRateVal) briefWinRateVal.textContent = `${winRateVal}%`;
@@ -634,9 +621,9 @@ const DashboardUI = (() => {
     const resistanceVal = analysis.resistance_level || pairDefaults.res;
     const priceVal = analysis.current_price || pairDefaults.price;
 
-    if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
-    if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;
-    if (resultCurrentPrice) resultCurrentPrice.textContent = priceVal;
+    if (resultSupportLevel) resultSupportLevel.textContent = 'Lower Wick Zone';
+    if (resultResistanceLevel) resultResistanceLevel.textContent = 'Upper Wick Zone';
+    if (resultCurrentPrice) resultCurrentPrice.textContent = 'At Candle Open';
 
     // Trade Entry & Expiry in Indian Standard Time (IST)
     let entryTimeIst = analysis.entry_time_ist;
@@ -731,8 +718,8 @@ const DashboardUI = (() => {
 
     if (resultSrAnalysisSummary) {
       resultSrAnalysisSummary.textContent = isUp
-        ? `🟢 Price tested key Support (${supportVal}) and held firmly. Technical setup indicates upward continuation targeting Resistance (${resistanceVal}).`
-        : `🔴 Price tested key Resistance (${resistanceVal}) and showed upper rejection. Technical setup indicates downward retracement targeting Support (${supportVal}).`;
+        ? `🟢 Price tested key Support and held firmly. Technical setup indicates upward continuation targeting Resistance.`
+        : `🔴 Price tested key Resistance and showed upper rejection. Technical setup indicates downward retracement targeting Support.`;
     }
 
     // Agreement Pill (100% Unified Consensus)
@@ -747,7 +734,7 @@ const DashboardUI = (() => {
     const gemini = aiResults.find(r => r.provider === 'gemini') || {};
     const grok = aiResults.find(r => r.provider === 'grok') || {};
 
-    const srLabel = `${pairName} • S: ${supportVal} | R: ${resistanceVal}`;
+    const srLabel = `${pairName} • AI S/R Zones Active`;
     if (chatgptPairSr) chatgptPairSr.textContent = srLabel;
     if (geminiPairSr) geminiPairSr.textContent = srLabel;
     if (grokPairSr) grokPairSr.textContent = srLabel;
