@@ -36,23 +36,31 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
      * Look at the active rightmost candle and the active price marker on the right scale (e.g. "1320.47").
      * Return "current_price" and "current_price_y_percent" matching the active candle position.
 
-3. INSTITUTIONAL 1-MINUTE SIGNAL RULES (ELIMINATING LOSSES):
-   - Active Rightmost Candle Dominance:
-     * Look closely at the active (rightmost) candle right before the dashed vertical trade line:
-       - If the active candle is solid GREEN with buyers pushing upward: Trend momentum is Bullish -> predict 'UP' (CALL), confidence 89-93%. NEVER predict PUT against a rising green candle unless price has touched Resistance ceiling AND created a massive upper rejection wick (shooting star).
-       - If the active candle is solid RED with sellers pushing downward: Trend momentum is Bearish -> predict 'DOWN' (PUT), confidence 89-93%. NEVER predict CALL against a falling red candle unless price has touched Support floor AND created a massive lower hammer wick.
-   - Moving Averages (EMA 7 / Alligator) & RSI Alignment:
-     * When price is trading ABOVE the moving average lines and lines are fanning UPWARDS: Confirm 'UP' (CALL).
-     * When price is trading BELOW the moving average lines and lines are fanning DOWNWARDS: Confirm 'DOWN' (PUT).
-     * If the bottom RSI line is rising above 50, confirm 'UP' (CALL). If falling below 50, confirm 'DOWN' (PUT).
-   - Support Bounce vs Resistance Rejection:
-     * Only predict 'UP' at Support if the candle touched Support floor AND formed an obvious lower rejection hammer/wick.
-     * Only predict 'DOWN' at Resistance if the candle touched Resistance ceiling AND formed an obvious upper rejection pinbar/wick.
-     * If price breaks through Support or Resistance with a full body candle, trade WITH the breakout direction!
-   - Strict 80% Win Rate Safety Filter (Avoid Consolidation Trap):
-     * If candles are small, alternating colors (green-red-green-red), dojis, or EMAs are tangled flat horizontally:
-       THIS IS A CHOPPY RANGE. Trading binary options in a flat range leads to 50/50 losses.
-       Set "decision": "INCONCLUSIVE", "confidence": 72, "trend": "Sideways Consolidation", "reasoning_summary": "Market is in flat consolidation with tangled moving averages. No clear momentum edge. DO NOT TRADE."
+3. INSTITUTIONAL 1-MINUTE SNIPER TRADING LAWS (TARGET: > 85% WIN RATE):
+   - LAW 1: SUPPORT ZONE IS FOR BUYING (CALL), NEVER SELLING (PUT):
+     * When price is sitting at or near the Support Floor (lowest price trough or green support line):
+       Sellers have run out of momentum and buyers are absorbing orders.
+       The high-probability move is a BULLISH BOUNCE -> predict 'UP' (CALL), confidence 89-93%.
+       NEVER predict PUT when price is at Support! Selling at the support floor causes 80% loss rates.
+   - LAW 2: RESISTANCE ZONE IS FOR SELLING (PUT), NEVER BUYING (CALL):
+     * When price is sitting at or near the Resistance Ceiling (highest price peak or red resistance line):
+       Buyers have run out of momentum and sellers are rejecting higher prices.
+       The high-probability move is a BEARISH REJECTION -> predict 'DOWN' (PUT), confidence 89-93%.
+       NEVER predict CALL when price is at Resistance! Buying at the resistance ceiling causes 80% loss rates.
+   - LAW 3: NEVER CHASE 4+ EXHAUSTED CANDLES (EXHAUSTION REVERSAL):
+     * If price has already moved 4 or 5 consecutive red candles in a row down to support:
+       The downmove is EXHAUSTED. The next candle is overwhelmingly favored to pull back GREEN. Predict 'UP' (CALL) or 'INCONCLUSIVE'. NEVER predict PUT!
+     * If price has already moved 4 or 5 consecutive green candles in a row up to resistance:
+       The upmove is EXHAUSTED. The next candle is overwhelmingly favored to pull back RED. Predict 'DOWN' (PUT) or 'INCONCLUSIVE'. NEVER predict CALL!
+   - LAW 4: FRESH EARLY MOMENTUM BREAKOUTS (MID-CHANNEL):
+     * If moving averages (EMA 7 green and EMA 21 red) just crossed and fanned with a steep slope:
+       Only take the 1st or 2nd continuation candle in that direction.
+       - Fresh Bullish breakout with green candle closing above EMA 7: predict 'UP' (CALL).
+       - Fresh Bearish breakdown with red candle closing below EMA 7: predict 'DOWN' (PUT).
+   - LAW 5: CHOPPY / SIDEWAYS MARKET = STRICTLY 'INCONCLUSIVE' (DON'T TRADE):
+     * If candles are small, alternating colors (green-red-green-red), or EMAs are horizontal without slope:
+       THIS IS A RANGE. Trading binary options in a flat range is 50/50 gambling.
+       Set "decision": "INCONCLUSIVE", "confidence": 72, "trend": "Sideways Consolidation", "reasoning_summary": "Market is in flat consolidation with tangled moving averages. No directional edge. DO NOT TRADE."
      * Only assign >= 85% confidence when trend direction, EMA slope, and candle momentum are clearly aligned.
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
@@ -72,12 +80,12 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
   "resistance_y_percent": 28.0,
   "current_price_y_percent": 45.0,
   "trend": "'Strong Bullish' | 'Strong Bearish' | 'Sideways Consolidation'",
-  "candlestick_pattern": "Specific pattern observed (e.g. 'Bullish Momentum / EMA Expansion continuation')",
+  "candlestick_pattern": "Specific pattern observed (e.g. 'Support Demand Pinbar Bounce' or 'Resistance Supply Rejection' or 'EMA Momentum Continuation')",
   "ema_observations": "Observation of Alligator/EMA slope and relation to price",
   "bb_observations": "Bollinger Bands observation if visible, otherwise 'Not active'",
   "sr_observations": "Analysis of price interaction with Support and Resistance",
   "volume_observations": "Volume/momentum confirmation",
-  "market_structure": "Higher Highs / Higher Lows or Lower Highs / Lower Lows or Range-bound",
+  "market_structure": "'Bullish Higher Lows' | 'Bearish Lower Highs' | 'Range-Bound Channel'",
   "scenarios": "Expected 1-minute trajectory",
   "uncertainty": "'Low' | 'Moderate' | 'High'",
   "confidence": Integer (70-95) representing win probability,

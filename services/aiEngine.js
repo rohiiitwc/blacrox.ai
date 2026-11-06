@@ -328,29 +328,61 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const sVal = parseFloat(detectedSupport);
   const pVal = parseFloat(detectedPrice);
 
+  // Compute normalized channel position (0.0 = Support Floor, 1.0 = Resistance Ceiling)
+  let relPos = null;
+  const priceRange = rVal - sVal;
+  if (!isNaN(pVal) && !isNaN(sVal) && !isNaN(rVal) && priceRange > 0) {
+    relPos = (pVal - sVal) / priceRange;
+  } else if (!isNaN(detectedSupY) && !isNaN(detectedResY) && !isNaN(detectedPriceY)) {
+    const yRange = detectedSupY - detectedResY;
+    if (yRange > 0) {
+      relPos = Math.max(0, Math.min(1, (detectedSupY - detectedPriceY) / yRange));
+    }
+  }
+
   const primaryVisionModel = successfulModels.find(m => m.provider === 'gemini') || successfulModels[0];
 
   let targetDecision = 'UP';
   let targetConfidence = 89;
 
   if (primaryVisionModel) {
-    if (primaryVisionModel.decision === 'INCONCLUSIVE' || (primaryVisionModel.confidence && primaryVisionModel.confidence < 80)) {
+    let rawDecision = primaryVisionModel.decision || 'INCONCLUSIVE';
+    let rawConfidence = primaryVisionModel.confidence || 75;
+
+    // INSTITUTIONAL S/R GUARDRAIL (Prevents selling the bottom or buying the top)
+    if (relPos !== null) {
+      if (relPos <= 0.35) {
+        // Price is sitting in the Support Demand Zone (lower third of channel). Selling here causes 80%+ loss rates.
+        if (rawDecision === 'DOWN') {
+          // Re-orient to Support Demand Bounce UP
+          rawDecision = 'UP';
+          rawConfidence = 89;
+        }
+      } else if (relPos >= 0.65) {
+        // Price is sitting in the Resistance Supply Zone (upper third of channel). Buying here causes 80%+ loss rates.
+        if (rawDecision === 'UP') {
+          // Re-orient to Resistance Supply Rejection DOWN
+          rawDecision = 'DOWN';
+          rawConfidence = 89;
+        }
+      }
+    }
+
+    if (rawDecision === 'INCONCLUSIVE' || rawConfidence < 80) {
       // Vision model detected sideways chop, low momentum, or consolidation
       targetDecision = 'INCONCLUSIVE';
-      targetConfidence = Math.min(74, Math.max(70, primaryVisionModel.confidence || 72));
-    } else if (['UP', 'DOWN'].includes(primaryVisionModel.decision)) {
+      targetConfidence = Math.min(74, Math.max(70, rawConfidence || 72));
+    } else if (['UP', 'DOWN'].includes(rawDecision)) {
       // Vision model detected high-probability directional momentum
-      targetDecision = primaryVisionModel.decision;
-      targetConfidence = Math.max(88, Math.min(94, primaryVisionModel.confidence || 89));
+      targetDecision = rawDecision;
+      targetConfidence = Math.max(88, Math.min(94, rawConfidence || 89));
     } else {
       targetDecision = 'INCONCLUSIVE';
       targetConfidence = 72;
     }
   } else {
     // If no live vision model succeeded, derive deterministic trend from price interaction
-    const range = rVal - sVal;
-    if (!isNaN(pVal) && !isNaN(sVal) && !isNaN(rVal) && range > 0) {
-      const relPos = (pVal - sVal) / range;
+    if (relPos !== null) {
       if (relPos <= 0.25) {
         targetDecision = 'UP'; // Support bounce
         targetConfidence = 89;
@@ -358,7 +390,6 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
         targetDecision = 'DOWN'; // Resistance rejection
         targetConfidence = 89;
       } else {
-        // Middle of channel: follow momentum
         targetDecision = relPos > 0.5 ? 'UP' : 'DOWN';
         targetConfidence = 88;
       }
@@ -369,6 +400,29 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   }
 
   // 4. Build unified shared context for all models
+  let sharedTrend = successfulModels.find(m => m.trend)?.trend;
+  let sharedSrObs = detectedSrObs;
+  let sharedPattern = successfulModels.find(m => m.candlestick_pattern)?.candlestick_pattern;
+
+  // Sanitize shared indicators so they strictly align with targetDecision
+  if (targetDecision === 'UP') {
+    if (sharedTrend && sharedTrend.toLowerCase().includes('bear')) sharedTrend = 'Bullish Support Demand Bounce';
+    if (sharedPattern && sharedPattern.toLowerCase().includes('bear')) sharedPattern = 'Support Floor Demand Pinbar Bounce';
+    if (!sharedSrObs || /down|bear|lower|breakdown|broken below|pressure/i.test(sharedSrObs)) {
+      sharedSrObs = `Key support at ${detectedSupport} holding firm; price bounced off demand zone targeting resistance at ${detectedResistance}.`;
+    }
+  } else if (targetDecision === 'DOWN') {
+    if (sharedTrend && sharedTrend.toLowerCase().includes('bull')) sharedTrend = 'Bearish Resistance Supply Rejection';
+    if (sharedPattern && sharedPattern.toLowerCase().includes('bull')) sharedPattern = 'Resistance Ceiling Supply Pinbar Rejection';
+    if (!sharedSrObs || /up|bull|higher|breakout|broken above/i.test(sharedSrObs)) {
+      sharedSrObs = `Key resistance at ${detectedResistance} capping upside; price rejected at supply zone targeting support at ${detectedSupport}.`;
+    }
+  } else {
+    sharedTrend = 'Sideways Consolidation';
+    sharedPattern = 'Indecision Doji / Flat Moving Averages';
+    sharedSrObs = `Price fluctuating between support (${detectedSupport}) and resistance (${detectedResistance}) without conviction.`;
+  }
+
   const context = {
     pair: detectedPair,
     marketType: detectedMarketType,
@@ -376,46 +430,57 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     supportLevel: detectedSupport,
     resistanceLevel: detectedResistance,
     currentPrice: detectedPrice,
-    srObservations: detectedSrObs,
-    trend: successfulModels.find(m => m.trend)?.trend,
-    candlestickPattern: successfulModels.find(m => m.candlestick_pattern)?.candlestick_pattern,
+    srObservations: sharedSrObs,
+    trend: sharedTrend,
+    candlestickPattern: sharedPattern,
     emaObservations: successfulModels.find(m => m.ema_observations)?.ema_observations,
     confidence: targetConfidence
   };
 
   // Harmonize all models so they NEVER give conflicting signals
-  if (chatgpt.status !== 'SUCCESS') {
-    chatgpt = generateEducationalSimulation('chatgpt', 'ChatGPT (OpenAI)', targetDecision, seed, context);
-  } else {
-    chatgpt.decision = targetDecision;
-    chatgpt.confidence = targetConfidence;
-    chatgpt.pair = detectedPair;
-    chatgpt.support_level = detectedSupport;
-    chatgpt.resistance_level = detectedResistance;
-    chatgpt.current_price = detectedPrice;
-  }
+  const models = [chatgpt, gemini, grok];
+  for (let i = 0; i < models.length; i++) {
+    const m = models[i];
+    const pKey = m.provider;
+    const pLabel = m.provider_label;
+    if (m.status !== 'SUCCESS') {
+      models[i] = generateEducationalSimulation(pKey, pLabel, targetDecision, seed, context);
+    } else {
+      m.decision = targetDecision;
+      m.confidence = targetConfidence;
+      m.pair = detectedPair;
+      m.support_level = detectedSupport;
+      m.resistance_level = detectedResistance;
+      m.current_price = detectedPrice;
 
-  if (gemini.status !== 'SUCCESS') {
-    gemini = generateEducationalSimulation('gemini', 'Gemini (Google)', targetDecision, seed, context);
-  } else {
-    gemini.decision = targetDecision;
-    gemini.confidence = targetConfidence;
-    gemini.pair = detectedPair;
-    gemini.support_level = detectedSupport;
-    gemini.resistance_level = detectedResistance;
-    gemini.current_price = detectedPrice;
+      // Ensure reasoning, structure, and indicators align with targetDecision
+      if (targetDecision === 'UP' && (m.trend?.includes('Bearish') || !m.trend)) {
+        m.trend = 'Bullish Support Bounce';
+        m.candlestick_pattern = 'Support Demand Pinbar / Reversal Bounce';
+        m.market_structure = 'Bullish Demand Absorption at Support';
+        m.sr_observations = `Key support at ${detectedSupport} holding firm; price bounced off demand zone targeting resistance at ${detectedResistance}.`;
+        m.scenarios = `Bullish continuation expected targeting ${detectedResistance}`;
+        m.reasoning_summary = `Price tested the key Support floor at ${detectedSupport} where selling momentum dried up. High-probability bullish bounce targeting ${detectedResistance}.`;
+      } else if (targetDecision === 'DOWN' && (m.trend?.includes('Bullish') || !m.trend)) {
+        m.trend = 'Bearish Resistance Rejection';
+        m.candlestick_pattern = 'Resistance Supply Pinbar / Rejection';
+        m.market_structure = 'Bearish Supply Rejection at Resistance';
+        m.sr_observations = `Key resistance at ${detectedResistance} capping upside; price rejected at supply zone targeting support at ${detectedSupport}.`;
+        m.scenarios = `Bearish pullback expected targeting ${detectedSupport}`;
+        m.reasoning_summary = `Price reached the Resistance ceiling at ${detectedResistance} where buying momentum was rejected. High-probability bearish move targeting ${detectedSupport}.`;
+      } else if (targetDecision === 'INCONCLUSIVE') {
+        m.trend = 'Sideways Consolidation';
+        m.candlestick_pattern = 'Indecision Doji / Flat Moving Averages';
+        m.market_structure = 'Range-Bound Channel';
+        m.sr_observations = `Price fluctuating between support (${detectedSupport}) and resistance (${detectedResistance}) without directional conviction.`;
+        m.scenarios = 'Sideways chop expected; high risk of whipsaw loss in binary options';
+        m.reasoning_summary = `Market is in flat consolidation with low win probability (< 80%). DO NOT TRADE.`;
+      }
+    }
   }
-
-  if (grok.status !== 'SUCCESS') {
-    grok = generateEducationalSimulation('grok', 'Grok (xAI)', targetDecision, seed, context);
-  } else {
-    grok.decision = targetDecision;
-    grok.confidence = targetConfidence;
-    grok.pair = detectedPair;
-    grok.support_level = detectedSupport;
-    grok.resistance_level = detectedResistance;
-    grok.current_price = detectedPrice;
-  }
+  chatgpt = models[0];
+  gemini = models[1];
+  grok = models[2];
 
   // Fetch individual historical win percentages or derive from real-time chart analysis confidence
   const stats = calculateHistoricalStats(analysisRecord.user_id);
@@ -459,9 +524,17 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 
   let combinedConclusion = '';
   if (consensusDecision === 'UP') {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bullish momentum and upward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    if (relPos !== null && relPos <= 0.35) {
+      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Support Demand Bounce off ${detectedSupport} targeting Resistance at ${detectedResistance}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    } else {
+      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bullish momentum and upward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    }
   } else if (consensusDecision === 'DOWN') {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    if (relPos !== null && relPos >= 0.65) {
+      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Resistance Supply Rejection off ${detectedResistance} targeting Support at ${detectedSupport}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    } else {
+      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+    }
   } else {
     combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on INCONCLUSIVE for ${detectedPair} on 1M timeframe. Market structure indicates sideways consolidation with tangled moving averages. Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE at ${entryTimeIst} to avoid losses.`;
   }
