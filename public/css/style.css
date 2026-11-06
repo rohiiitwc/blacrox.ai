@@ -1535,7 +1535,7 @@ table.data-table tr:hover td {
   pointer-events: none;
 }
 
-/* S/R Drawn Lines - Sleek Prime Setu Style */
+/* S/R Drawn Lines - Sleek Prime Setu Minimalist Style */
 .sr-drawn-line {
   position: absolute;
   left: 0;
@@ -1547,50 +1547,46 @@ table.data-table tr:hover td {
 }
 
 .resistance-line {
-  border-top: 1.5px dashed #ff5b79;
-  filter: drop-shadow(0 0 4px rgba(255, 91, 121, 0.7));
+  border-top: 1px dashed rgba(234, 91, 117, 0.85);
+  filter: drop-shadow(0 0 2px rgba(234, 91, 117, 0.35));
 }
 
 .support-line {
-  border-top: 1.5px dashed #00e676;
-  filter: drop-shadow(0 0 4px rgba(0, 230, 118, 0.7));
+  border-top: 1px dashed rgba(0, 230, 118, 0.85);
+  filter: drop-shadow(0 0 2px rgba(0, 230, 118, 0.35));
 }
 
 .entry-line {
-  border-top: 1.5px dashed #38bdf8;
-  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.7));
+  border-top: 1px dashed rgba(56, 189, 248, 0.65);
 }
 
 .sr-clean-label {
   position: absolute;
-  left: 80px;
-  bottom: 3px;
-  font-size: 10px;
+  left: 20px;
+  bottom: 2px;
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  padding: 2px 8px;
-  background: rgba(10, 15, 29, 0.88);
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
   pointer-events: none;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .res-clean-label {
-  color: #ff5b79;
-  border: 1px solid rgba(255, 91, 121, 0.6);
-  box-shadow: 0 0 8px rgba(255, 91, 121, 0.35);
+  color: #ea5b75;
+  border: none;
+  box-shadow: none;
 }
 
 .sup-clean-label {
   color: #00e676;
-  border: 1px solid rgba(0, 230, 118, 0.6);
-  box-shadow: 0 0 8px rgba(0, 230, 118, 0.35);
+  border: none;
+  box-shadow: none;
 }
 
 .entry-clean-label {
@@ -1598,37 +1594,19 @@ table.data-table tr:hover td {
 }
 
 .sr-scale-price {
-  position: absolute;
-  right: 6px;
-  bottom: -8px;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: monospace;
-  padding: 2px 7px;
-  border-radius: 4px;
-  letter-spacing: 0.02em;
-  z-index: 6;
+  display: none !important;
 }
 
 .res-scale-price {
-  background: #ff5b79;
-  color: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 91, 121, 0.7);
-  display: inline-block;
+  display: none !important;
 }
 
 .sup-scale-price {
-  background: #00e676;
-  color: #022c15;
-  box-shadow: 0 0 8px rgba(0, 230, 118, 0.7);
-  display: inline-block;
+  display: none !important;
 }
 
 .entry-scale-price {
-  background: #38bdf8;
-  color: #020617;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
-  display: inline-block;
+  display: none !important;
 }
 
 /* Candle Signal Pin (Prime Setu BUY/SELL badge at candle) */

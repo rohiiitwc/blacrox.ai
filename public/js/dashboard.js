@@ -457,39 +457,35 @@ const DashboardUI = (() => {
       const priceVal = currentAnalysis?.current_price || pairDefaults.price;
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
-      // 1. Resistance Line (dashed pink)
+      // 1. Resistance Line (dashed coral line, Prime Setu style)
       ctx.save();
-      ctx.strokeStyle = '#ff5b79';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 6]);
-      ctx.shadowColor = 'rgba(255, 91, 121, 0.7)';
-      ctx.shadowBlur = 6;
+      ctx.strokeStyle = 'rgba(234, 91, 117, 0.85)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(0, resY);
       ctx.lineTo(canvas.width, resY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 80, resY - 6, 'RESISTANCE', '#ff5b79');
+      drawCleanLabel(ctx, 24, resY - 4, 'RESISTANCE', '#ea5b75');
 
-      // 2. Support Line (dashed green)
+      // 2. Support Line (dashed mint line, Prime Setu style)
       ctx.save();
-      ctx.strokeStyle = '#00e676';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([8, 6]);
-      ctx.shadowColor = 'rgba(0, 230, 118, 0.7)';
-      ctx.shadowBlur = 6;
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(0, supY);
       ctx.lineTo(canvas.width, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 80, supY - 6, 'SUPPORT', '#00e676');
+      drawCleanLabel(ctx, 24, supY - 4, 'SUPPORT', '#00e676');
 
-      // 3. Candle Pin & Action (no price numbers)
+      // 3. Candle Pin & Action (Prime Setu style)
       const pinX = canvas.width * 0.75;
-      const actionText = isUp ? 'BUY ▲' : 'SELL ▼';
-      drawPill(ctx, pinX, priceY - 36, `${actionText} ${entryTime}`, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
-      drawCleanLabel(ctx, pinX, priceY + 16, `${isUp ? '▲' : '▼'} ENTRY`, '#facc15');
+      const actionText = isUp ? 'BUY' : 'SELL';
+      drawPill(ctx, pinX, priceY - 30, actionText, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
+      drawCleanLabel(ctx, pinX, priceY + 14, `${isUp ? '▲' : '▼'} ENTRY`, '#facc15');
 
       // Top HUD Watermark
       drawPill(ctx, 20, 24, `BLACROX.AI • ${pair} • 1M CANDLE`, '#0f172a', '#38bdf8');
