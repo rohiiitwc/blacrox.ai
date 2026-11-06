@@ -8,7 +8,21 @@ const { evaluateCandleOutcome, calculateHistoricalStats } = require('../services
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, '../uploads');
+const isVercel = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT
+);
+
+let uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, '../uploads');
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (e) {
+  uploadDir = '/tmp';
+}
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
