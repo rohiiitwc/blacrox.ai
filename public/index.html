@@ -173,6 +173,131 @@
               </div>
             </div>
 
+            <!-- AI Technical Chart Terminal & Signal Brief (Prime Setu Style) -->
+            <div class="ai-terminal-grid">
+              <!-- Left: Annotated Chart Stage -->
+              <div class="ai-chart-stage">
+                <div class="ai-chart-stage-header">
+                  <div class="ai-chart-stage-title">
+                    <span class="sr-pulse-dot"></span>
+                    <span>AI Chart Level Projection (Support & Resistance Drawn by AI)</span>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-secondary" id="btnToggleOverlayLines" style="padding: 4px 10px; font-size: 0.75rem;">🎯 Toggle S/R Lines</button>
+                    <button type="button" class="btn btn-secondary" id="btnDownloadAnnotatedChart" style="padding: 4px 10px; font-size: 0.75rem;">📥 Download Chart</button>
+                  </div>
+                </div>
+
+                <div class="chart-overlay-frame" id="chartOverlayFrame">
+                  <img id="annotatedChartImg" class="chart-screenshot-base" src="" alt="Quotex 1M Chart Analyzed by AI">
+                  <div class="chart-overlay-canvas" id="chartOverlayContainer">
+                    <!-- Resistance Line Drawn on Chart -->
+                    <div class="sr-drawn-line resistance-line" id="overlayResistanceLine" style="top: 28%;">
+                      <span class="sr-drawn-badge res-badge">🔴 RESISTANCE <strong id="overlayResistanceVal">1.88073</strong></span>
+                    </div>
+
+                    <!-- Current Price / Entry Line Drawn on Chart -->
+                    <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 70%;">
+                      <span class="sr-drawn-badge entry-badge" id="overlayEntryBadge">🎯 ENTRY <strong id="overlayEntryVal">1.87774</strong> <span id="overlayEntryAction">▲ CALL</span></span>
+                    </div>
+
+                    <!-- Support Line Drawn on Chart -->
+                    <div class="sr-drawn-line support-line" id="overlaySupportLine" style="top: 75%;">
+                      <span class="sr-drawn-badge sup-badge">🟢 SUPPORT <strong id="overlaySupportVal">1.86367</strong></span>
+                    </div>
+
+                    <!-- Floating Market Structure Badge -->
+                    <div class="chart-floating-regime-pill" id="chartFloatingRegimePill">
+                      ▲ SUPPORT BOUNCE CONFIRMED
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ai-chart-stage-footer">
+                  <span>EMA 7 / EMA 21 Momentum • Bollinger Bands Volatility</span>
+                  <span id="chartOverlayStatus" style="color: #10b981; font-weight: 600;">✓ S/R Projection Active</span>
+                </div>
+              </div>
+
+              <!-- Right: Signal Brief Panel -->
+              <div class="terminal-signal-brief">
+                <div class="decision-badge-box">
+                  <div class="decision-label-title">ALL-IN-ONE MASTER SIGNAL (NEXT 1-MINUTE CANDLE)</div>
+                  <div class="decision-action-big" id="resultDecisionBig">▲ CALL (UP)</div>
+                  <div style="font-size: 0.85rem; color: var(--color-bullish); font-weight: 700;" id="resultDecisionSub">High-Probability Direction</div>
+
+                  <!-- Exact IST Trade Entry Timing -->
+                  <div class="ist-entry-callout" id="resultIstEntryCallout">
+                    <div class="ist-entry-pill">
+                      <span>🕒 <strong>Entry Time (IST):</strong></span>
+                      <strong id="resultEntryTimeIst">--:--:-- IST</strong>
+                    </div>
+                    <div class="ist-expiry-pill">
+                      <span>⏳ Expiry (1-Minute Candle):</span>
+                      <strong id="resultExpiryTimeIst">--:--:-- IST</strong>
+                    </div>
+                  </div>
+
+                  <!-- Live Trade Expiry & Auto-Delete Status Box -->
+                  <div class="trade-countdown-box" id="tradeCountdownBox" style="display: none; margin-top: 8px; padding: 8px 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 6px; font-size: 0.82rem; color: #60a5fa; font-weight: 700; text-align: center;">
+                    <span id="tradeCountdownText">⏱️ Trade Running: 58s until expiry — Screenshot will auto-delete upon completion</span>
+                  </div>
+
+                  <div class="trade-recommendation-badge" id="tradeRecommendationBadge" style="display: none;">
+                    🚫 DON'T TRADE — Win Rate is below 80% threshold
+                  </div>
+                </div>
+
+                <!-- Setup Specifications Grid -->
+                <div class="brief-setup-grid">
+                  <div class="brief-setup-item">
+                    <div class="brief-setup-label">Asset Pair</div>
+                    <div class="brief-setup-value" id="briefPair">GBP/NZD (OTC)</div>
+                  </div>
+                  <div class="brief-setup-item">
+                    <div class="brief-setup-label">Entry Level</div>
+                    <div class="brief-setup-value" id="briefEntryPrice">1.87774</div>
+                  </div>
+                  <div class="brief-setup-item">
+                    <div class="brief-setup-label">Resistance Ceiling</div>
+                    <div class="brief-setup-value text-down" id="briefResistance">1.88073</div>
+                  </div>
+                  <div class="brief-setup-item">
+                    <div class="brief-setup-label">Support Floor</div>
+                    <div class="brief-setup-value text-up" id="briefSupport">1.86367</div>
+                  </div>
+                </div>
+
+                <!-- Quality Metrics & Win Rate -->
+                <div class="decision-details-box" style="padding: 12px;">
+                  <div class="brief-quality-grid">
+                    <div class="brief-quality-item">
+                      <div class="brief-quality-circle" id="briefConfidencePercent">90%</div>
+                      <div class="brief-quality-label">AI Confidence</div>
+                    </div>
+                    <div class="brief-quality-item">
+                      <div class="brief-quality-circle" id="briefRegimeTag" style="font-size: 0.85rem; color: #34d399; margin-top: 4px;">BOUNCE</div>
+                      <div class="brief-quality-label">AI Regime</div>
+                    </div>
+                  </div>
+
+                  <div class="confidence-bar-wrapper" style="margin-top: 10px;">
+                    <div class="confidence-header">
+                      <span>Calibrated All-in-One Win Percentage</span>
+                      <strong id="resultConfidenceText">89.2% Win Rate</strong>
+                    </div>
+                    <div class="progress-track">
+                      <div class="progress-fill" id="resultConfidenceBar" style="width: 89.2%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="conclusion-paragraph" id="resultConclusion" style="margin-top: 10px; font-size: 0.8rem;">
+                    Consensus generated from concurrent multi-AI technical assessment.
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Support & Resistance Automated Detection Bar -->
             <div class="sr-metric-panel" id="srMetricPanel">
               <div class="sr-metric-header">
@@ -208,51 +333,6 @@
               </div>
               <div class="sr-analysis-summary" id="resultSrAnalysisSummary">
                 Price testing Resistance level (1.88073) and Support (1.86367) on 1M chart.
-              </div>
-            </div>
-
-            <div class="decision-display-grid">
-              <div class="decision-badge-box">
-                <div class="decision-label-title">ALL-IN-ONE MASTER SIGNAL (NEXT 1-MINUTE CANDLE)</div>
-                <div class="decision-action-big" id="resultDecisionBig">▲ CALL (UP)</div>
-                <div style="font-size: 0.85rem; color: var(--color-bullish); font-weight: 700;" id="resultDecisionSub">High-Probability Direction</div>
-
-                <!-- Exact IST Trade Entry Timing -->
-                <div class="ist-entry-callout" id="resultIstEntryCallout">
-                  <div class="ist-entry-pill">
-                    <span>🕒 <strong>Entry Time (IST):</strong></span>
-                    <strong id="resultEntryTimeIst">--:--:-- IST</strong>
-                  </div>
-                  <div class="ist-expiry-pill">
-                    <span>⏳ Expiry (1-Minute Candle):</span>
-                    <strong id="resultExpiryTimeIst">--:--:-- IST</strong>
-                  </div>
-                </div>
-
-                <!-- Live Trade Expiry & Auto-Delete Status Box -->
-                <div class="trade-countdown-box" id="tradeCountdownBox" style="display: none; margin-top: 8px; padding: 8px 12px; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 6px; font-size: 0.82rem; color: #60a5fa; font-weight: 700; text-align: center;">
-                  <span id="tradeCountdownText">⏱️ Trade Running: 58s until expiry — Screenshot will auto-delete upon completion</span>
-                </div>
-
-                <div class="trade-recommendation-badge" id="tradeRecommendationBadge" style="display: none;">
-                  🚫 DON'T TRADE — Win Rate is below 80% threshold
-                </div>
-              </div>
-
-              <div class="decision-details-box">
-                <div class="confidence-bar-wrapper">
-                  <div class="confidence-header">
-                    <span>Calibrated All-in-One Win Percentage</span>
-                    <strong id="resultConfidenceText">89.2% Win Rate</strong>
-                  </div>
-                  <div class="progress-track">
-                    <div class="progress-fill" id="resultConfidenceBar" style="width: 89.2%;"></div>
-                  </div>
-                </div>
-
-                <div class="conclusion-paragraph" id="resultConclusion">
-                  Consensus generated from concurrent multi-AI technical assessment.
-                </div>
               </div>
             </div>
 

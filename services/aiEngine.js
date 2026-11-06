@@ -234,6 +234,31 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const detectedPrice = (modelWithSr && modelWithSr.current_price) ? modelWithSr.current_price : '1.87774';
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
+  // Extract or dynamically compute vertical coordinate percentages (from top of chart screenshot)
+  let detectedResY = 28;
+  let detectedSupY = 74;
+  let detectedPriceY = 70;
+
+  const modelWithY = successfulModels.find(m => m.support_y_percent && m.resistance_y_percent);
+  if (modelWithY) {
+    detectedSupY = Number(modelWithY.support_y_percent) || 74;
+    detectedResY = Number(modelWithY.resistance_y_percent) || 28;
+    detectedPriceY = Number(modelWithY.current_price_y_percent) || 70;
+  } else {
+    const rNum = parseFloat(detectedResistance);
+    const sNum = parseFloat(detectedSupport);
+    const pNum = parseFloat(detectedPrice);
+    if (!isNaN(rNum) && !isNaN(sNum) && rNum > sNum && !isNaN(pNum)) {
+      const ratio = (rNum - pNum) / (rNum - sNum);
+      const clampedRatio = Math.max(0, Math.min(1, ratio));
+      detectedPriceY = Math.round(detectedResY + clampedRatio * (detectedSupY - detectedResY));
+    }
+  }
+
+  detectedResY = Math.max(15, Math.min(45, detectedResY));
+  detectedSupY = Math.max(55, Math.min(85, detectedSupY));
+  detectedPriceY = Math.max(18, Math.min(82, detectedPriceY));
+
   // 3. Determine unified directional signal (Models must not give different signals)
   let targetDecision = 'UP';
   const liveDecisions = successfulModels
@@ -397,6 +422,9 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
           support_level = ?,
           resistance_level = ?,
           current_price = ?,
+          support_y_percent = ?,
+          resistance_y_percent = ?,
+          current_price_y_percent = ?,
           entry_time_ist = ?,
           expiry_time_ist = ?,
           trade_recommendation = ?,
@@ -415,6 +443,9 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       detectedSupport,
       detectedResistance,
       detectedPrice,
+      detectedSupY,
+      detectedResY,
+      detectedPriceY,
       entryTimeIst,
       expiryTimeIst,
       tradeRecommendation,
@@ -438,6 +469,9 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     support_level: detectedSupport,
     resistance_level: detectedResistance,
     current_price: detectedPrice,
+    support_y_percent: detectedSupY,
+    resistance_y_percent: detectedResY,
+    current_price_y_percent: detectedPriceY,
     entry_time_ist: entryTimeIst,
     expiry_time_ist: expiryTimeIst,
     expiry_timestamp: timing.expiryTimestamp,

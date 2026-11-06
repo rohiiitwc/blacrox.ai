@@ -1412,3 +1412,228 @@ table.data-table tr:hover td {
   }
 }
 
+/* ==========================================================================
+   AI Technical Chart Terminal & S/R Overlay (Prime Setu Style)
+   ========================================================================== */
+.ai-terminal-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .ai-terminal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-chart-stage {
+  background: #090d16;
+  border: 1px solid var(--border-highlight);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-chart-stage-header {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ai-chart-stage-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-overlay-frame {
+  position: relative;
+  width: 100%;
+  background: #05070d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  max-height: 560px;
+  overflow: hidden;
+}
+
+.chart-screenshot-base {
+  width: 100%;
+  height: 100%;
+  max-height: 560px;
+  object-fit: contain;
+  display: block;
+}
+
+.chart-overlay-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* S/R Drawn Lines */
+.sr-drawn-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  display: flex;
+  align-items: center;
+  transition: top 0.4s ease;
+  z-index: 5;
+}
+
+.resistance-line {
+  border-top: 2px dashed #f43f5e;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.7);
+}
+
+.support-line {
+  border-top: 2px dashed #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
+}
+
+.entry-line {
+  border-top: 2px dashed #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+}
+
+.sr-drawn-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.res-badge {
+  margin-left: 14px;
+  background: rgba(244, 63, 94, 0.9);
+  color: #ffffff;
+  border: 1px solid #fda4af;
+}
+
+.sup-badge {
+  margin-left: 14px;
+  background: rgba(16, 185, 129, 0.9);
+  color: #ffffff;
+  border: 1px solid #6ee7b7;
+}
+
+.entry-badge {
+  margin-left: auto;
+  margin-right: 14px;
+  background: rgba(56, 189, 248, 0.95);
+  color: #030712;
+  border: 1px solid #bae6fd;
+}
+
+.chart-floating-regime-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  padding: 5px 12px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #38bdf8;
+  backdrop-filter: blur(6px);
+  z-index: 6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.ai-chart-stage-footer {
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Signal Brief Panel */
+.terminal-signal-brief {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.brief-setup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+.brief-setup-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.brief-setup-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.brief-setup-value {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.brief-quality-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.brief-quality-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+}
+
+.brief-quality-circle {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 2px;
+}
+
+.brief-quality-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+

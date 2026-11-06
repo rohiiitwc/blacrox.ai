@@ -108,6 +108,9 @@ function initSchema() {
   try { db.exec("ALTER TABLE analyses ADD COLUMN entry_time_ist TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE analyses ADD COLUMN expiry_time_ist TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE analyses ADD COLUMN trade_recommendation TEXT DEFAULT 'TRADE';"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN support_y_percent INTEGER DEFAULT 75;"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN resistance_y_percent INTEGER DEFAULT 28;"); } catch (e) {}
+  try { db.exec("ALTER TABLE analyses ADD COLUMN current_price_y_percent INTEGER DEFAULT 33;"); } catch (e) {}
 
   try { db.exec("ALTER TABLE ai_results ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
   try { db.exec("ALTER TABLE ai_results ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}

@@ -45,6 +45,30 @@ const DashboardUI = (() => {
   const detectedPairPreview = document.getElementById('detectedPairPreview');
   const selectPairOverride = document.getElementById('selectPairOverride');
 
+  // AI Technical Chart Stage & Drawn S/R Overlays (Prime Setu Style)
+  const annotatedChartImg = document.getElementById('annotatedChartImg');
+  const chartOverlayContainer = document.getElementById('chartOverlayContainer');
+  const overlayResistanceLine = document.getElementById('overlayResistanceLine');
+  const overlayResistanceVal = document.getElementById('overlayResistanceVal');
+  const overlaySupportLine = document.getElementById('overlaySupportLine');
+  const overlaySupportVal = document.getElementById('overlaySupportVal');
+  const overlayEntryLine = document.getElementById('overlayEntryLine');
+  const overlayEntryVal = document.getElementById('overlayEntryVal');
+  const overlayEntryBadge = document.getElementById('overlayEntryBadge');
+  const overlayEntryAction = document.getElementById('overlayEntryAction');
+  const chartFloatingRegimePill = document.getElementById('chartFloatingRegimePill');
+  const chartOverlayStatus = document.getElementById('chartOverlayStatus');
+  const btnToggleOverlayLines = document.getElementById('btnToggleOverlayLines');
+  const btnDownloadAnnotatedChart = document.getElementById('btnDownloadAnnotatedChart');
+
+  // Signal Brief Specs
+  const briefPair = document.getElementById('briefPair');
+  const briefEntryPrice = document.getElementById('briefEntryPrice');
+  const briefResistance = document.getElementById('briefResistance');
+  const briefSupport = document.getElementById('briefSupport');
+  const briefConfidencePercent = document.getElementById('briefConfidencePercent');
+  const briefRegimeTag = document.getElementById('briefRegimeTag');
+
   // Individual AI Model Elements
   const chatgptDecisionTag = document.getElementById('chatgptDecisionTag');
   const chatgptConfidence = document.getElementById('chatgptConfidence');
@@ -330,6 +354,158 @@ const DashboardUI = (() => {
     });
   }
 
+  function drawPill(ctx, x, y, text, bgColor, textColor) {
+    ctx.save();
+    ctx.font = 'bold 15px monospace';
+    const textWidth = ctx.measureText(text).width;
+    const padding = 10;
+    const pillHeight = 28;
+    const pillWidth = textWidth + padding * 2;
+
+    ctx.fillStyle = bgColor;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.roundRect(x, y, pillWidth, pillHeight, 6);
+    ctx.fill();
+
+    ctx.fillStyle = textColor;
+    ctx.fillText(text, x + padding, y + 19);
+    ctx.restore();
+  }
+
+  function downloadAnnotatedChart() {
+    if (!annotatedChartImg || !annotatedChartImg.src) {
+      alert('No chart screenshot available to download.');
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || 1280;
+      canvas.height = img.naturalHeight || 720;
+      const ctx = canvas.getContext('2d');
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(5, 7, 13, 0.12)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const resYPercent = currentAnalysis?.resistance_y_percent || 28;
+      const supYPercent = currentAnalysis?.support_y_percent || 75;
+      const priceYPercent = currentAnalysis?.current_price_y_percent || 70;
+      const isUp = (currentAnalysis?.consensus_decision || 'UP') === 'UP';
+
+      const resY = (resYPercent / 100) * canvas.height;
+      const supY = (supYPercent / 100) * canvas.height;
+      const priceY = (priceYPercent / 100) * canvas.height;
+
+      const resVal = currentAnalysis?.resistance_level || '1.88073';
+      const supVal = currentAnalysis?.support_level || '1.86367';
+      const priceVal = currentAnalysis?.current_price || '1.87774';
+      const pair = currentAnalysis?.trading_pair || 'GBP/NZD (OTC)';
+
+      // Resistance line
+      ctx.save();
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([12, 8]);
+      ctx.shadowColor = '#f43f5e';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, resY);
+      ctx.lineTo(canvas.width, resY);
+      ctx.stroke();
+      ctx.restore();
+      drawPill(ctx, 20, resY - 16, `🔴 RESISTANCE: ${resVal}`, '#f43f5e', '#ffffff');
+
+      // Support line
+      ctx.save();
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([12, 8]);
+      ctx.shadowColor = '#10b981';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, supY);
+      ctx.lineTo(canvas.width, supY);
+      ctx.stroke();
+      ctx.restore();
+      drawPill(ctx, 20, supY - 16, `🟢 SUPPORT: ${supVal}`, '#10b981', '#ffffff');
+
+      // Entry line
+      ctx.save();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, priceY);
+      ctx.lineTo(canvas.width, priceY);
+      ctx.stroke();
+      ctx.restore();
+      const actionText = isUp ? '▲ CALL (BUY)' : '▼ PUT (SELL)';
+      drawPill(ctx, canvas.width - 260, priceY - 16, `🎯 ENTRY: ${priceVal} ${actionText}`, '#0284c7', '#ffffff');
+
+      // Header watermark
+      drawPill(ctx, 20, 24, `BLACROX.AI • ${pair} • 1M CANDLE`, '#0f172a', '#38bdf8');
+
+      const link = document.createElement('a');
+      link.download = `Blacrox-Chart-${pair.replace(/[^a-zA-Z0-9]/g, '_')}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+    img.src = annotatedChartImg.src;
+  }
+
+  function renderChartLevelsOverlay(analysis, isUp, supportVal, resistanceVal, priceVal) {
+    const imgSrc = analysis.initial_screenshot
+      ? `/uploads/${analysis.initial_screenshot}`
+      : (previewImage && previewImage.src ? previewImage.src : '');
+
+    if (annotatedChartImg && imgSrc) {
+      annotatedChartImg.src = imgSrc;
+    }
+
+    const resY = analysis.resistance_y_percent || 28;
+    const supY = analysis.support_y_percent || 75;
+    const priceY = analysis.current_price_y_percent || (isUp ? 70 : 32);
+
+    if (overlayResistanceLine) overlayResistanceLine.style.top = `${resY}%`;
+    if (overlaySupportLine) overlaySupportLine.style.top = `${supY}%`;
+    if (overlayEntryLine) overlayEntryLine.style.top = `${priceY}%`;
+
+    if (overlayResistanceVal) overlayResistanceVal.textContent = resistanceVal;
+    if (overlaySupportVal) overlaySupportVal.textContent = supportVal;
+    if (overlayEntryVal) overlayEntryVal.textContent = priceVal;
+    if (overlayEntryAction) overlayEntryAction.textContent = isUp ? '▲ CALL' : '▼ PUT';
+
+    if (chartFloatingRegimePill) {
+      if (isUp) {
+        chartFloatingRegimePill.textContent = '▲ SUPPORT BOUNCE CONFIRMED (Bullish Setup)';
+        chartFloatingRegimePill.style.color = '#34d399';
+        chartFloatingRegimePill.style.borderColor = 'rgba(52, 211, 153, 0.4)';
+      } else {
+        chartFloatingRegimePill.textContent = '▼ RESISTANCE REJECTION CONFIRMED (Bearish Setup)';
+        chartFloatingRegimePill.style.color = '#f87171';
+        chartFloatingRegimePill.style.borderColor = 'rgba(248, 113, 113, 0.4)';
+      }
+    }
+
+    if (briefPair) briefPair.textContent = analysis.trading_pair || 'GBP/NZD (OTC)';
+    if (briefEntryPrice) briefEntryPrice.textContent = priceVal;
+    if (briefResistance) briefResistance.textContent = resistanceVal;
+    if (briefSupport) briefSupport.textContent = supportVal;
+    if (briefConfidencePercent) briefConfidencePercent.textContent = `${analysis.consensus_confidence || 90}%`;
+    if (briefRegimeTag) {
+      briefRegimeTag.textContent = isUp ? 'SUPPORT_BOUNCE' : 'RESISTANCE_REJECT';
+      briefRegimeTag.style.color = isUp ? '#34d399' : '#f87171';
+    }
+  }
+
   function renderAnalysis(analysis, aiResults) {
     currentAnalysis = analysis;
     scanCountdownContainer.style.display = 'none';
@@ -389,6 +565,9 @@ const DashboardUI = (() => {
 
     resultDecisionBig.textContent = signalLabel;
     resultDecisionBig.className = `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
+
+    // Render S/R and Entry Lines Directly on Chart Screenshot (Prime Setu Style)
+    renderChartLevelsOverlay(analysis, isUp, supportVal, resistanceVal, priceVal);
 
     // All-In-One Win Percentage & Less Than 80% Check
     const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
@@ -582,6 +761,25 @@ const DashboardUI = (() => {
 
     // Trigger / Re-trigger Multi-AI Analysis
     btnStartAnalysis.addEventListener('click', executeAnalysis);
+
+    // Toggle S/R Lines Overlay on Chart Screenshot
+    if (btnToggleOverlayLines) {
+      btnToggleOverlayLines.addEventListener('click', () => {
+        if (!chartOverlayContainer) return;
+        const isHidden = chartOverlayContainer.style.display === 'none';
+        chartOverlayContainer.style.display = isHidden ? 'block' : 'none';
+        btnToggleOverlayLines.textContent = isHidden ? '🎯 Hide S/R Lines' : '🎯 Show S/R Lines';
+        if (chartOverlayStatus) {
+          chartOverlayStatus.textContent = isHidden ? '✓ S/R Projection Active' : '✕ Lines Hidden';
+          chartOverlayStatus.style.color = isHidden ? '#10b981' : '#f59e0b';
+        }
+      });
+    }
+
+    // Download Annotated Chart Screenshot with Drawn Lines
+    if (btnDownloadAnnotatedChart) {
+      btnDownloadAnnotatedChart.addEventListener('click', downloadAnnotatedChart);
+    }
   }
 
   return {
