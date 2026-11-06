@@ -115,6 +115,16 @@ router.post('/upload', requireAuth, (req, res, next) => {
         SELECT * FROM analyses WHERE id = ? AND user_id = ?
       `).get(analysisId, userId);
 
+      // Embed Base64 Image Data URL so client never suffers 404 broken images on serverless platforms
+      let imageDataUrl = '';
+      try {
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+          const imgBuffer = fs.readFileSync(req.file.path);
+          imageDataUrl = `data:${req.file.mimetype || 'image/png'};base64,${imgBuffer.toString('base64')}`;
+        }
+      } catch (imgErr) {}
+
+      fullAnalysis.image_data_url = imageDataUrl;
       fullAnalysis.all_in_one_win_rate = analysisResult.all_in_one_win_rate || fullAnalysis.consensus_confidence;
       fullAnalysis.all_in_one_signal = analysisResult.all_in_one_signal || (fullAnalysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)');
       fullAnalysis.trade_recommendation = analysisResult.trade_recommendation || fullAnalysis.trade_recommendation || 'TRADE';
@@ -198,6 +208,17 @@ router.get('/:id', requireAuth, (req, res) => {
 
     analysis.all_in_one_win_rate = analysis.consensus_confidence;
     analysis.all_in_one_signal = analysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)';
+
+    if (analysis.initial_screenshot) {
+      try {
+        const filePath = path.join(uploadDir, analysis.initial_screenshot);
+        if (fs.existsSync(filePath)) {
+          const imgBuffer = fs.readFileSync(filePath);
+          const ext = path.extname(filePath).slice(1) || 'png';
+          analysis.image_data_url = `data:image/${ext};base64,${imgBuffer.toString('base64')}`;
+        }
+      } catch (e) {}
+    }
 
     const aiResults = db.prepare(`
       SELECT * FROM ai_results WHERE analysis_id = ?

@@ -177,6 +177,8 @@ const DashboardUI = (() => {
     }
   }
 
+  let currentUploadedDataUrl = '';
+
   function handleFileSelected(file) {
     if (!file) return;
 
@@ -197,6 +199,7 @@ const DashboardUI = (() => {
 
     const reader = new FileReader();
     reader.onload = (e) => {
+      currentUploadedDataUrl = e.target.result;
       previewImage.src = e.target.result;
       previewContainer.style.display = 'block';
       dropzone.style.display = 'none';
@@ -532,12 +535,23 @@ const DashboardUI = (() => {
   }
 
   function renderChartLevelsOverlay(analysis, isUp, supportVal, resistanceVal, priceVal, entryTimeIst) {
-    const imgSrc = analysis.initial_screenshot
-      ? `/uploads/${analysis.initial_screenshot}`
-      : (previewImage && previewImage.src ? previewImage.src : '');
+    let imgSrc = currentUploadedDataUrl || (analysis && analysis.image_data_url) || (previewImage && previewImage.src ? previewImage.src : '');
+    if (!imgSrc && analysis && analysis.initial_screenshot) {
+      imgSrc = `/uploads/${analysis.initial_screenshot}`;
+    }
 
     if (annotatedChartImg && imgSrc) {
       annotatedChartImg.src = imgSrc;
+    }
+
+    if (annotatedChartImg) {
+      annotatedChartImg.onerror = function() {
+        if (currentUploadedDataUrl && annotatedChartImg.src !== currentUploadedDataUrl) {
+          annotatedChartImg.src = currentUploadedDataUrl;
+        } else if (analysis && analysis.image_data_url && annotatedChartImg.src !== analysis.image_data_url) {
+          annotatedChartImg.src = analysis.image_data_url;
+        }
+      };
     }
 
     const rawResY = Number(analysis.resistance_y_percent);
