@@ -80,14 +80,22 @@ function generateEducationalSimulation(provider, providerLabel, targetDecision =
   let defaultPrice = '1.29336';
   let defaultSupport = '1.29200';
   let defaultResistance = '1.30306';
-  if (pair.includes('COP') || pair.includes('ARS') || pair.includes('INR')) {
+  if (pair.includes('COP')) {
     defaultPrice = '3184.77';
     defaultSupport = '3181.90';
     defaultResistance = '3185.20';
+  } else if (pair.includes('ARS')) {
+    defaultPrice = '1612.61';
+    defaultSupport = '1611.90';
+    defaultResistance = '1615.20';
   } else if (pair.includes('AVA')) {
     defaultPrice = '10.88300';
     defaultSupport = '10.88300';
     defaultResistance = '10.96391';
+  } else if (pair.includes('INR')) {
+    defaultPrice = '87.42';
+    defaultSupport = '87.20';
+    defaultResistance = '87.65';
   }
 
   const supportLevel = context.supportLevel || defaultSupport;
@@ -230,14 +238,22 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let fallbackPrice = '1.29336';
   let fallbackSupport = '1.29200';
   let fallbackResistance = '1.30306';
-  if (detectedPair.includes('COP') || detectedPair.includes('ARS') || detectedPair.includes('INR')) {
+  if (detectedPair.includes('COP')) {
     fallbackPrice = '3184.77';
     fallbackSupport = '3181.90';
     fallbackResistance = '3185.20';
+  } else if (detectedPair.includes('ARS')) {
+    fallbackPrice = '1612.61';
+    fallbackSupport = '1611.90';
+    fallbackResistance = '1615.20';
   } else if (detectedPair.includes('AVA')) {
     fallbackPrice = '10.88300';
     fallbackSupport = '10.88300';
     fallbackResistance = '10.96391';
+  } else if (detectedPair.includes('INR')) {
+    fallbackPrice = '87.42';
+    fallbackSupport = '87.20';
+    fallbackResistance = '87.65';
   }
 
   const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || fallbackPrice;

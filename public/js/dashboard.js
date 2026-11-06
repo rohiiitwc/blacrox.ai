@@ -413,6 +413,15 @@ const DashboardUI = (() => {
     ctx.restore();
   }
 
+  function getPairPriceDefaults(p = '') {
+    const upper = String(p).toUpperCase();
+    if (upper.includes('COP')) return { res: '3185.20', sup: '3181.90', price: '3184.77' };
+    if (upper.includes('ARS')) return { res: '1615.20', sup: '1611.90', price: '1612.61' };
+    if (upper.includes('AVA')) return { res: '10.96391', sup: '10.88300', price: '10.88300' };
+    if (upper.includes('INR')) return { res: '87.65', sup: '87.20', price: '87.42' };
+    return { res: '1.30306', sup: '1.29200', price: '1.29336' };
+  }
+
   function downloadAnnotatedChart() {
     if (!annotatedChartImg || !annotatedChartImg.src) {
       alert('No chart screenshot available to download.');
@@ -442,10 +451,10 @@ const DashboardUI = (() => {
       const priceY = (priceYPercent / 100) * canvas.height;
 
       const pair = currentAnalysis?.trading_pair || 'USD/COP (OTC)';
-      const isCopOrSimilar = pair.includes('COP') || pair.includes('ARS') || pair.includes('INR');
-      const resVal = currentAnalysis?.resistance_level || (isCopOrSimilar ? '3185.20' : '1.30306');
-      const supVal = currentAnalysis?.support_level || (isCopOrSimilar ? '3181.90' : '1.29200');
-      const priceVal = currentAnalysis?.current_price || (isCopOrSimilar ? '3184.77' : '1.29336');
+      const pairDefaults = getPairPriceDefaults(pair);
+      const resVal = currentAnalysis?.resistance_level || pairDefaults.res;
+      const supVal = currentAnalysis?.support_level || pairDefaults.sup;
+      const priceVal = currentAnalysis?.current_price || pairDefaults.price;
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
       // 1. Resistance Line (dashed pink)
@@ -620,10 +629,10 @@ const DashboardUI = (() => {
     resultTimeframe.textContent = analysis.timeframe || '1M';
 
     // Support and Resistance Levels
-    const isCopOrSimilar = pairName.includes('COP') || pairName.includes('ARS') || pairName.includes('INR');
-    const supportVal = analysis.support_level || (isCopOrSimilar ? '3181.90' : '1.29200');
-    const resistanceVal = analysis.resistance_level || (isCopOrSimilar ? '3185.20' : '1.30306');
-    const priceVal = analysis.current_price || (isCopOrSimilar ? '3184.77' : '1.29336');
+    const pairDefaults = getPairPriceDefaults(pairName);
+    const supportVal = analysis.support_level || pairDefaults.sup;
+    const resistanceVal = analysis.resistance_level || pairDefaults.res;
+    const priceVal = analysis.current_price || pairDefaults.price;
 
     if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
     if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;

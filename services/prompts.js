@@ -7,8 +7,16 @@ In 1-minute binary options, betting against a prevailing trend causes high failu
 
 CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
 1. IDENTIFY THE EXACT TRADING PAIR:
-   - Read the exact pair in the top-left tab (e.g. "USD/COP (OTC)", "CAD/CHF (OTC)", "GBP/NZD (OTC)", "AUD/NZD (OTC)", "EUR/USD (OTC)", "USD/ARS (OTC)") AND/OR in the top right asset header right above the Payout (e.g. "USD/COP (OTC) 93%").
-   - Extract the exact name including "(OTC)". NEVER default to a wrong pair or EUR/USD.
+   - READ THE TRADING PAIR DIRECTLY FROM THE INNER QUOTEX CHART INTERFACE:
+     * Look inside the Quotex chart tab next to the '+' button (e.g. "USD/ARS (OTC) 93%", "USD/COP (OTC) 93%").
+     * Look at the Quotex order entry panel on the right side, directly above "Payout" and the green "Buy" / red "Sell" buttons (e.g. "USD/ARS (OTC) 93%").
+     * CRITICAL: If the image shows an outer website header or previous trade results (e.g. "USD/COP (OTC)"), IGNORE the outer wrapper header! ALWAYS read the asset name INSIDE the Quotex chart window!
+     * Price Scale Sanity Check:
+       - USD/ARS is in the 1500 - 1800 range (e.g. 1612.xx).
+       - USD/COP is in the 3000 - 3400 range (e.g. 3184.xx).
+       - Major/Minor forex pairs (EUR/USD, GBP/NZD, AUD/NZD, CAD/CHF) are in decimals 0.xxxx - 1.xxxx.
+       - If the price scale is around 1612, the asset is USD/ARS (OTC), NEVER USD/COP!
+   - Extract the exact name including "(OTC)". NEVER default to a wrong pair.
 
 2. ACCURATE CANDLE-LEVEL SUPPORT & RESISTANCE (NEVER EMPTY SPACE):
    - CRITICAL REQUIREMENT: Lines MUST be drawn directly ON THE CANDLE WICKS, NOT in the empty blank margins!
