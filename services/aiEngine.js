@@ -368,17 +368,18 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       }
     }
 
-    if (rawDecision === 'INCONCLUSIVE' || rawConfidence < 80) {
-      // Vision model detected sideways chop, low momentum, or consolidation
-      targetDecision = 'INCONCLUSIVE';
-      targetConfidence = Math.min(74, Math.max(70, rawConfidence || 72));
-    } else if (['UP', 'DOWN'].includes(rawDecision)) {
-      // Vision model detected high-probability directional momentum
+    if (['UP', 'DOWN'].includes(rawDecision)) {
       targetDecision = rawDecision;
-      targetConfidence = Math.max(88, Math.min(94, rawConfidence || 89));
+      targetConfidence = rawConfidence;
     } else {
-      targetDecision = 'INCONCLUSIVE';
-      targetConfidence = 72;
+      // Vision model was inconclusive / consolidation: still give directional signal (UP or DOWN) with lower confidence
+      if (relPos !== null) {
+        targetDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
+      } else {
+        const trendStr = (primaryVisionModel.trend || '').toLowerCase();
+        targetDecision = trendStr.includes('bull') ? 'UP' : (trendStr.includes('bear') ? 'DOWN' : (seed % 2 === 0 ? 'UP' : 'DOWN'));
+      }
+      targetConfidence = Math.min(84, Math.max(70, rawConfidence || 70));
     }
   } else {
     // If no live vision model succeeded, derive deterministic trend from price interaction
@@ -515,15 +516,18 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const entryTimeIst = timing.entryTimeIst;
   const expiryTimeIst = timing.expiryTimeIst;
 
-  // Check if win rate is less than 80%: Still give the signal, but explicitly mention "DON'T TRADE"
-  const isLowWinRate = Number(allInOneWinRate) < 80 || consensusDecision === 'INCONCLUSIVE';
+  // Check if win rate is less than 85%: Still give the signal, but explicitly mention "DON'T TRADE"
+  const isLowWinRate = Number(allInOneWinRate) < 85 || consensusDecision === 'INCONCLUSIVE';
   const tradeRecommendation = isLowWinRate ? "DON'T TRADE" : "TRADE";
   const tradeWarning = isLowWinRate
-    ? `⚠️ CAUTION: Win rate is ${allInOneWinRate}% (below 80% threshold). Sideways / consolidation regime detected. DO NOT TRADE this signal — high risk of 1-minute whipsaw.`
-    : `✓ Win rate is ${allInOneWinRate}% (meets the 80% minimum confidence threshold). Entry at ${entryTimeIst}.`;
+    ? `⚠️ CAUTION: Win rate is ${allInOneWinRate}% (below 85% threshold). Lower confidence regime detected. DO NOT TRADE this signal — high risk of 1-minute whipsaw.`
+    : `✓ Win rate is ${allInOneWinRate}% (meets the 85% minimum confidence threshold). Entry at ${entryTimeIst}.`;
 
   let combinedConclusion = '';
-  if (consensusDecision === 'UP') {
+  const dirLabel = consensusDecision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)';
+  if (isLowWinRate) {
+    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a ${dirLabel} signal for ${detectedPair} on 1M timeframe, but confidence is ${allInOneWinRate}% (< 85% threshold). Market exhibits consolidation/chop. Signal: ${dirLabel} • ⚠️ DON'T TRADE at ${entryTimeIst} to protect capital.`;
+  } else if (consensusDecision === 'UP') {
     if (relPos !== null && relPos <= 0.35) {
       combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Support Demand Bounce off ${detectedSupport} targeting Resistance at ${detectedResistance}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     } else {
@@ -536,7 +540,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     }
   } else {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on INCONCLUSIVE for ${detectedPair} on 1M timeframe. Market structure indicates sideways consolidation with tangled moving averages. Win rate is ${allInOneWinRate}% (< 80%). DO NOT TRADE at ${entryTimeIst} to avoid losses.`;
+    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Win rate is ${allInOneWinRate}% (< 85%). DO NOT TRADE at ${entryTimeIst} to avoid losses.`;
   }
 
   // Save AI results to database

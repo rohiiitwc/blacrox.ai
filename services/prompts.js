@@ -57,10 +57,11 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
        Only take the 1st or 2nd continuation candle in that direction.
        - Fresh Bullish breakout with green candle closing above EMA 7: predict 'UP' (CALL).
        - Fresh Bearish breakdown with red candle closing below EMA 7: predict 'DOWN' (PUT).
-   - LAW 5: CHOPPY / SIDEWAYS MARKET = STRICTLY 'INCONCLUSIVE' (DON'T TRADE):
+   - LAW 5: CHOPPY / RANGE-BOUND MARKET (GIVE SIGNAL + CONFIDENCE < 85% + MENTION DON'T TRADE):
      * If candles are small, alternating colors (green-red-green-red), or EMAs are horizontal without slope:
-       THIS IS A RANGE. Trading binary options in a flat range is 50/50 gambling.
-       Set "decision": "INCONCLUSIVE", "confidence": 72, "trend": "Sideways Consolidation", "reasoning_summary": "Market is in flat consolidation with tangled moving averages. No directional edge. DO NOT TRADE."
+       THIS IS A CHOPPY RANGE. Still determine the technical bias ('UP' or 'DOWN') based on recent wick rejection, moving average lean, or S/R proximity.
+       Set "confidence": 70-75 (less than 85% threshold).
+       In "reasoning_summary": Explicitly provide the directional scenario and append: "Confidence is below 85% threshold. DO NOT TRADE."
      * Only assign >= 85% confidence when trend direction, EMA slope, and candle momentum are clearly aligned.
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
@@ -89,8 +90,8 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
   "scenarios": "Expected 1-minute trajectory",
   "uncertainty": "'Low' | 'Moderate' | 'High'",
   "confidence": Integer (70-95) representing win probability,
-  "decision": "'UP' | 'DOWN' | 'INCONCLUSIVE'",
-  "reasoning_summary": "High-conviction technical rationale explaining why this direction has high probability"
+  "decision": "'UP' | 'DOWN'",
+  "reasoning_summary": "High-conviction technical rationale explaining direction; if confidence < 85%, include 'DO NOT TRADE'"
 }
 `;
 
