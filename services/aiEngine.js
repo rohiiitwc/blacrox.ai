@@ -72,13 +72,13 @@ function computeIstTradeTiming(visibleTimeStr, serverTimestamp = Date.now()) {
 
 // Harmonized educational technical simulation ensuring strict signal alignment
 function generateEducationalSimulation(provider, providerLabel, targetDecision = 'UP', seedNum = 1, context = {}) {
-  const pair = context.pair || 'GBP/NZD (OTC)';
+  const pair = context.pair || 'USD/COP (OTC)';
   const isOtc = pair.toUpperCase().includes('OTC');
   const marketType = context.marketType || (isOtc ? 'OTC' : 'Live');
   const timeframe = context.timeframe || '1M';
-  const supportLevel = context.supportLevel || '1.86367';
-  const resistanceLevel = context.resistanceLevel || '1.88073';
-  const currentPrice = context.currentPrice || '1.87774';
+  const supportLevel = context.supportLevel || '3181.50';
+  const resistanceLevel = context.resistanceLevel || '3186.00';
+  const currentPrice = context.currentPrice || '3182.42';
   
   let pattern = '';
   let ema = '';
@@ -184,17 +184,19 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 
   const successfulModels = [gemini, chatgpt, grok].filter(m => m.status === 'SUCCESS');
 
-  // 1. Detect trading pair accurately (Priority: Real detection != EUR/USD -> Any real detection -> pairHint -> fallback)
-  let detectedPair = 'GBP/NZD (OTC)';
-  const modelWithSpecificPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown' && m.pair !== 'EUR/USD');
-  if (modelWithSpecificPair) {
-    detectedPair = modelWithSpecificPair.pair;
+  // 1. Detect trading pair accurately (Priority: pairHint -> specific model detection -> any model detection -> fallback)
+  let detectedPair = 'USD/COP (OTC)';
+  if (pairHint && pairHint.trim() !== '') {
+    detectedPair = pairHint.trim();
   } else {
-    const modelWithAnyPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown');
-    if (modelWithAnyPair) {
-      detectedPair = modelWithAnyPair.pair;
-    } else if (pairHint && pairHint.trim() !== '') {
-      detectedPair = pairHint.trim();
+    const modelWithSpecificPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown' && m.pair !== 'EUR/USD');
+    if (modelWithSpecificPair) {
+      detectedPair = modelWithSpecificPair.pair;
+    } else {
+      const modelWithAnyPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown');
+      if (modelWithAnyPair) {
+        detectedPair = modelWithAnyPair.pair;
+      }
     }
   }
 
@@ -206,10 +208,13 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   // 2. Extract Support and Resistance levels from the chart
   const modelWithSr = successfulModels.find(m => m.support_level && m.resistance_level)
     || successfulModels.find(m => m.sr_observations && m.sr_observations !== 'No clear S/R lines');
+  const modelWithPrice = successfulModels.find(m => m.current_price && m.current_price !== '' && m.current_price !== 'Unknown');
+  const modelWithSupport = successfulModels.find(m => m.support_level && m.support_level !== '' && m.support_level !== 'Unknown');
+  const modelWithResistance = successfulModels.find(m => m.resistance_level && m.resistance_level !== '' && m.resistance_level !== 'Unknown');
 
-  const detectedSupport = (modelWithSr && modelWithSr.support_level) ? modelWithSr.support_level : '1.86367';
-  const detectedResistance = (modelWithSr && modelWithSr.resistance_level) ? modelWithSr.resistance_level : '1.88073';
-  const detectedPrice = (modelWithSr && modelWithSr.current_price) ? modelWithSr.current_price : '1.87774';
+  const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || '3182.42';
+  const detectedSupport = modelWithSupport?.support_level || (modelWithSr?.support_level) || '3181.50';
+  const detectedResistance = modelWithResistance?.resistance_level || (modelWithSr?.resistance_level) || '3186.00';
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
   // Extract or dynamically compute vertical coordinate percentages (from top of chart screenshot)

@@ -7,8 +7,8 @@ In 1-minute binary options, betting against a prevailing trend causes high failu
 
 CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
 1. IDENTIFY THE EXACT TRADING PAIR:
-   - Read the exact pair in the top-left tab (e.g., "GBP/NZD (OTC)", "AUD/NZD (OTC)", "EUR/USD (OTC)", "CAD/CHF (OTC)", "USD/ARS (OTC)") or the right asset panel.
-   - Extract the full name including "(OTC)" if marked. NEVER assume or default to "EUR/USD".
+   - Read the exact pair in the top-left tab (e.g. "USD/COP (OTC)", "CAD/CHF (OTC)", "GBP/NZD (OTC)", "AUD/NZD (OTC)", "EUR/USD (OTC)", "USD/ARS (OTC)") AND/OR in the top right asset header right above the Payout (e.g. "USD/COP (OTC) 93%").
+   - Extract the exact name including "(OTC)". NEVER default to a wrong pair or EUR/USD.
 
 2. SYSTEMATIC TREND & MOMENTUM SUPREMACY (CRUCIAL):
    - Check the Moving Averages / Alligator Indicator (Green, Red, Blue lines):
@@ -30,20 +30,15 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
      * If small doji / spinning top inside chop -> set confidence lower (< 80%).
 
 4. ACCURATE PRICE LEVEL & COORDINATE EXTRACTION:
-   - Quotex screenshot vertical layout:
-     * Top header/toolbar: ~0% to 15% Y.
-     * Candlestick chart price area: ~16% to 77% Y.
-     * Bottom indicator panel (RSI/MACD): ~78% to 92% Y.
-     * Bottom taskbar: ~93% to 100% Y.
-   - Extract:
-     * chart_high_price: The upper price shown on the right scale or recent swing high peak (e.g. '1.30400' or '1.88073').
-     * chart_low_price: The lower price shown on the right scale or recent swing low trough (e.g. '1.28600' or '1.86367').
-     * resistance_level: The ceiling price number (e.g. '1.30306' or '1.88073').
-     * support_level: The floor price number (e.g. '1.29200' or '1.86367').
-     * current_price: The exact price of the active candle from the white dashed price line / right scale tag (e.g. '1.29336' or '1.87774').
-     * resistance_y_percent: Estimated vertical percentage (0-100) from top of image where the resistance line sits (typically between 18 and 38).
-     * support_y_percent: Estimated vertical percentage (0-100) from top of image where the support line sits (typically between 55 and 76).
-     * current_price_y_percent: Estimated vertical percentage (0-100) where the active candle sits (typically between 25 and 72).
+   - In Quotex charts:
+     * The active price is clearly shown in the right price scale inside the highlighted blue/white box (e.g. '3182.42', '1.29336', '0.62242').
+     * Extract the EXACT current_price as shown on that label.
+     * Resistance level: The key upper swing high ceiling (e.g. '3186.00', '1.30306').
+     * Support level: The key lower swing low floor (e.g. '3181.50', '1.29200').
+     * Ensure resistance_level > current_price (or near top swing) and support_level < current_price (or near bottom swing).
+     * resistance_y_percent: Vertical coordinate percentage (0-100) from top of image where the resistance line sits (typically between 20 and 38).
+     * support_y_percent: Vertical coordinate percentage (0-100) from top of image where the support line sits (typically between 55 and 76).
+     * current_price_y_percent: Vertical coordinate percentage (0-100) where the active candle sits (typically between 30 and 74).
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {

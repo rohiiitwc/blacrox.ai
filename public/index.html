@@ -80,7 +80,10 @@
               <span style="font-size: 0.75rem; color: var(--text-muted);">Quotex Asset:</span>
               <select id="selectPairOverride" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: 6px; cursor: pointer;">
                 <option value="">⚡ Auto-Detect (Reads screenshot)</option>
+                <option value="USD/COP (OTC)">USD/COP (OTC)</option>
+                <option value="CAD/CHF (OTC)">CAD/CHF (OTC)</option>
                 <option value="GBP/NZD (OTC)">GBP/NZD (OTC)</option>
+                <option value="AUD/NZD (OTC)">AUD/NZD (OTC)</option>
                 <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
                 <option value="USD/INR (OTC)">USD/INR (OTC)</option>
                 <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
@@ -88,6 +91,7 @@
                 <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
                 <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
                 <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
+                <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
                 <option value="EUR/USD">EUR/USD (Live)</option>
                 <option value="GBP/USD">GBP/USD (Live)</option>
                 <option value="BTC/USD">BTC/USD (Crypto)</option>
@@ -205,29 +209,36 @@
                     <img id="annotatedChartImg" class="chart-screenshot-base" src="" alt="Quotex 1M Chart Analyzed by AI">
 
                     <div class="chart-overlay-canvas" id="chartOverlayContainer">
-                      <!-- Resistance Line (Thin dashed pink line with sleek floating text like Prime Setu) -->
+                      <!-- Resistance Line (Thin dashed pink line with sleek floating text & price) -->
                       <div class="sr-drawn-line resistance-line" id="overlayResistanceLine" style="top: 25%;">
-                        <span class="sr-clean-label res-clean-label" id="overlayResText">RESISTANCE<span id="overlayResistanceVal" style="display:none;"></span></span>
-                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale" style="display:none;"></span>
+                        <span class="sr-clean-label res-clean-label" id="overlayResText">
+                          RESISTANCE <span id="overlayResistanceVal">3186.00</span>
+                        </span>
+                        <span class="sr-scale-price res-scale-price" id="overlayResistanceScale">3186.00</span>
                       </div>
 
-                      <!-- Support Line (Thin dashed green line with sleek floating text like Prime Setu) -->
+                      <!-- Support Line (Thin dashed green line with sleek floating text & price) -->
                       <div class="sr-drawn-line support-line" id="overlaySupportLine" style="top: 70%;">
-                        <span class="sr-clean-label sup-clean-label" id="overlaySupText">SUPPORT<span id="overlaySupportVal" style="display:none;"></span></span>
-                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale" style="display:none;"></span>
+                        <span class="sr-clean-label sup-clean-label" id="overlaySupText">
+                          SUPPORT <span id="overlaySupportVal">3181.50</span>
+                        </span>
+                        <span class="sr-scale-price sup-scale-price" id="overlaySupportScale">3181.50</span>
                       </div>
 
-                      <!-- Entry Guideline & Scale Badge (Matches Prime Setu) -->
+                      <!-- Entry Guideline & Scale Badge -->
                       <div class="sr-drawn-line entry-line" id="overlayEntryLine" style="top: 55%;">
-                        <span class="sr-clean-label entry-clean-label" id="overlayEntryVal" style="display:none;"></span>
-                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale">1.29336</span>
+                        <span class="sr-clean-label entry-clean-label" id="overlayEntryVal">
+                          ENTRY <span id="overlayEntryValText">3182.42</span>
+                        </span>
+                        <span class="sr-scale-price entry-scale-price" id="overlayEntryScale">3182.42</span>
                       </div>
 
-                      <!-- Interactive Candle Entry Pointer (Matches user picture) -->
+                      <!-- Interactive Candle Entry Pointer with unmissable Entry Time -->
                       <div class="candle-signal-pin" id="candleSignalPin" style="top: 52%;">
-                        <div class="signal-action-bubble" id="candleActionBubble">BUY ▲</div>
-                        <div class="signal-entry-callout" id="candleEntryCallout">ENTRY <span id="candleEntryPrice">1.29336</span></div>
-                        <div class="signal-entry-subtag" id="candleEntrySubtag">▲ ENTRY</div>
+                        <div class="signal-action-bubble" id="candleActionBubble">SELL ▼</div>
+                        <div class="signal-entry-callout" id="candleEntryCallout">ENTRY <span id="candleEntryPrice">3182.42</span></div>
+                        <div class="signal-entry-timing" id="candleEntryTiming">⏰ <span id="candleEntryTimeText">13:12:00 IST</span></div>
+                        <div class="signal-entry-subtag" id="candleEntrySubtag">▼ ENTRY</div>
                       </div>
                     </div>
                   </div>

@@ -440,10 +440,11 @@ const DashboardUI = (() => {
       const supY = (supYPercent / 100) * canvas.height;
       const priceY = (priceYPercent / 100) * canvas.height;
 
-      const resVal = currentAnalysis?.resistance_level || '1.88073';
-      const supVal = currentAnalysis?.support_level || '1.86367';
-      const priceVal = currentAnalysis?.current_price || '1.87774';
-      const pair = currentAnalysis?.trading_pair || 'GBP/NZD (OTC)';
+      const resVal = currentAnalysis?.resistance_level || '3186.00';
+      const supVal = currentAnalysis?.support_level || '3181.50';
+      const priceVal = currentAnalysis?.current_price || '3182.42';
+      const pair = currentAnalysis?.trading_pair || 'USD/COP (OTC)';
+      const entryTime = currentAnalysis?.entry_time_ist || '';
 
       // 1. Resistance Line (dashed pink)
       ctx.save();
@@ -457,7 +458,8 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, resY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, resY - 6, 'RESISTANCE', '#ff5b79');
+      drawCleanLabel(ctx, 80, resY - 6, `RESISTANCE ${resVal}`, '#ff5b79');
+      drawScalePrice(ctx, canvas.width - 90, resY + 4, resVal, '#ff5b79', '#ffffff');
 
       // 2. Support Line (dashed green)
       ctx.save();
@@ -471,11 +473,12 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, supY);
       ctx.stroke();
       ctx.restore();
-      drawCleanLabel(ctx, 24, supY - 6, 'SUPPORT', '#00e676');
+      drawCleanLabel(ctx, 80, supY - 6, `SUPPORT ${supVal}`, '#00e676');
+      drawScalePrice(ctx, canvas.width - 90, supY + 4, supVal, '#00e676', '#022c15');
 
       // 3. Entry Scale Tag & Guideline (dashed cyan)
       ctx.save();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
       ctx.lineWidth = 1;
       ctx.setLineDash([6, 5]);
       ctx.beginPath();
@@ -483,13 +486,13 @@ const DashboardUI = (() => {
       ctx.lineTo(canvas.width, priceY);
       ctx.stroke();
       ctx.restore();
-      drawScalePrice(ctx, canvas.width - 70, priceY + 4, priceVal, '#38bdf8', '#030712');
+      drawScalePrice(ctx, canvas.width - 90, priceY + 4, priceVal, '#38bdf8', '#030712');
 
       // 4. Candle Pin & Action
-      const pinX = canvas.width * 0.8;
+      const pinX = canvas.width * 0.75;
       const actionText = isUp ? 'BUY ▲' : 'SELL ▼';
-      drawPill(ctx, pinX, priceY - 32, actionText, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
-      drawCleanLabel(ctx, pinX, priceY + 16, isUp ? '▲ ENTRY' : '▼ ENTRY', '#facc15');
+      drawPill(ctx, pinX, priceY - 36, `${actionText} ${entryTime}`, isUp ? '#00e676' : '#ff5b79', isUp ? '#022c15' : '#ffffff');
+      drawCleanLabel(ctx, pinX, priceY + 16, `${isUp ? '▲' : '▼'} ENTRY ${priceVal}`, '#facc15');
 
       // Top HUD Watermark
       drawPill(ctx, 20, 24, `BLACROX.AI • ${pair} • 1M CANDLE`, '#0f172a', '#38bdf8');
@@ -525,10 +528,11 @@ const DashboardUI = (() => {
     if (overlayResistanceScale) overlayResistanceScale.textContent = resistanceVal;
     if (overlaySupportVal) overlaySupportVal.textContent = supportVal;
     if (overlaySupportScale) overlaySupportScale.textContent = supportVal;
-    if (overlayEntryVal) overlayEntryVal.textContent = priceVal;
+    const overlayEntryValText = document.getElementById('overlayEntryValText');
+    if (overlayEntryValText) overlayEntryValText.textContent = priceVal;
     if (overlayEntryScale) overlayEntryScale.textContent = priceVal;
 
-    // Interactive candle pin (Prime Setu style)
+    // Interactive candle pin (Prime Setu style) with unmissable Entry Time
     if (candleSignalPin) {
       candleSignalPin.style.top = `${Math.max(12, priceY - 4)}%`;
     }
@@ -540,8 +544,13 @@ const DashboardUI = (() => {
       candleEntryCallout.className = isUp ? 'signal-entry-callout' : 'signal-entry-callout sell';
     }
     if (candleEntryPrice) candleEntryPrice.textContent = priceVal;
+    const candleEntryTimeText = document.getElementById('candleEntryTimeText');
+    if (candleEntryTimeText) {
+      candleEntryTimeText.textContent = entryTimeIst || '--:--:-- IST';
+    }
     if (candleEntrySubtag) {
       candleEntrySubtag.textContent = isUp ? '▲ ENTRY' : '▼ ENTRY';
+      candleEntrySubtag.style.color = isUp ? '#facc15' : '#f97316';
     }
 
     // Top HUD Pills (Prime Setu style)
@@ -558,7 +567,7 @@ const DashboardUI = (() => {
     }
 
     // Signal Brief Specs
-    if (briefPair) briefPair.textContent = analysis.trading_pair || 'GBP/NZD (OTC)';
+    if (briefPair) briefPair.textContent = analysis.trading_pair || 'USD/COP (OTC)';
     if (briefDirection) {
       briefDirection.textContent = isUp ? 'CALL' : 'PUT';
       briefDirection.style.color = isUp ? '#00e676' : '#ff5b79';
@@ -595,7 +604,7 @@ const DashboardUI = (() => {
     resultView.style.display = 'block';
 
     // Pair and Market info
-    const pairName = analysis.trading_pair || 'GBP/NZD (OTC)';
+    const pairName = analysis.trading_pair || 'USD/COP (OTC)';
     resultPair.textContent = pairName;
     if (detectedPairPreview) detectedPairPreview.textContent = pairName;
     if (selectPairOverride && analysis.trading_pair) {
@@ -609,9 +618,9 @@ const DashboardUI = (() => {
     resultTimeframe.textContent = analysis.timeframe || '1M';
 
     // Support and Resistance Levels
-    const supportVal = analysis.support_level || '1.86367';
-    const resistanceVal = analysis.resistance_level || '1.88073';
-    const priceVal = analysis.current_price || '1.87774';
+    const supportVal = analysis.support_level || '3181.50';
+    const resistanceVal = analysis.resistance_level || '3186.00';
+    const priceVal = analysis.current_price || '3182.42';
 
     if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
     if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;

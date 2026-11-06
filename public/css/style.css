@@ -1563,30 +1563,34 @@ table.data-table tr:hover td {
 
 .sr-clean-label {
   position: absolute;
-  left: 14px;
+  left: 80px;
   bottom: 3px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 2px 8px;
+  background: rgba(10, 15, 29, 0.88);
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   pointer-events: none;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.95), 0 0 2px #000;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .res-clean-label {
   color: #ff5b79;
-  text-shadow: 0 0 6px rgba(255, 91, 121, 0.8), 0 1px 4px #000;
+  border: 1px solid rgba(255, 91, 121, 0.6);
+  box-shadow: 0 0 8px rgba(255, 91, 121, 0.35);
 }
 
 .sup-clean-label {
   color: #00e676;
-  text-shadow: 0 0 6px rgba(0, 230, 118, 0.8), 0 1px 4px #000;
+  border: 1px solid rgba(0, 230, 118, 0.6);
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.35);
 }
 
 .entry-clean-label {
@@ -1606,9 +1610,18 @@ table.data-table tr:hover td {
   z-index: 6;
 }
 
-.res-scale-price,
+.res-scale-price {
+  background: #ff5b79;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 91, 121, 0.7);
+  display: inline-block;
+}
+
 .sup-scale-price {
-  display: none !important;
+  background: #00e676;
+  color: #022c15;
+  box-shadow: 0 0 8px rgba(0, 230, 118, 0.7);
+  display: inline-block;
 }
 
 .entry-scale-price {
@@ -1621,7 +1634,7 @@ table.data-table tr:hover td {
 /* Candle Signal Pin (Prime Setu BUY/SELL badge at candle) */
 .candle-signal-pin {
   position: absolute;
-  right: 18%; /* positioned right over the recent 1M candle */
+  right: 23%; /* precisely aligned over active Quotex 1M candle, clear of right trading controls */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1663,6 +1676,20 @@ table.data-table tr:hover td {
 .signal-entry-callout.sell {
   color: #ff5b79;
   border-color: rgba(255, 91, 121, 0.4);
+}
+
+.signal-entry-timing {
+  font-size: 9.5px;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+  color: #38bdf8;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  white-space: nowrap;
 }
 
 .signal-entry-subtag {
