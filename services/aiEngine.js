@@ -76,9 +76,23 @@ function generateEducationalSimulation(provider, providerLabel, targetDecision =
   const isOtc = pair.toUpperCase().includes('OTC');
   const marketType = context.marketType || (isOtc ? 'OTC' : 'Live');
   const timeframe = context.timeframe || '1M';
-  const supportLevel = context.supportLevel || '3181.50';
-  const resistanceLevel = context.resistanceLevel || '3186.00';
-  const currentPrice = context.currentPrice || '3182.42';
+  
+  let defaultPrice = '1.29336';
+  let defaultSupport = '1.29200';
+  let defaultResistance = '1.30306';
+  if (pair.includes('COP') || pair.includes('ARS') || pair.includes('INR')) {
+    defaultPrice = '3184.77';
+    defaultSupport = '3181.90';
+    defaultResistance = '3185.20';
+  } else if (pair.includes('AVA')) {
+    defaultPrice = '10.88300';
+    defaultSupport = '10.88300';
+    defaultResistance = '10.96391';
+  }
+
+  const supportLevel = context.supportLevel || defaultSupport;
+  const resistanceLevel = context.resistanceLevel || defaultResistance;
+  const currentPrice = context.currentPrice || defaultPrice;
   
   let pattern = '';
   let ema = '';
@@ -212,12 +226,26 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const modelWithSupport = successfulModels.find(m => m.support_level && m.support_level !== '' && m.support_level !== 'Unknown');
   const modelWithResistance = successfulModels.find(m => m.resistance_level && m.resistance_level !== '' && m.resistance_level !== 'Unknown');
 
-  const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || '3182.42';
-  const detectedSupport = modelWithSupport?.support_level || (modelWithSr?.support_level) || '3181.50';
-  const detectedResistance = modelWithResistance?.resistance_level || (modelWithSr?.resistance_level) || '3186.00';
+  // Dynamic pair-specific default fallbacks
+  let fallbackPrice = '1.29336';
+  let fallbackSupport = '1.29200';
+  let fallbackResistance = '1.30306';
+  if (detectedPair.includes('COP') || detectedPair.includes('ARS') || detectedPair.includes('INR')) {
+    fallbackPrice = '3184.77';
+    fallbackSupport = '3181.90';
+    fallbackResistance = '3185.20';
+  } else if (detectedPair.includes('AVA')) {
+    fallbackPrice = '10.88300';
+    fallbackSupport = '10.88300';
+    fallbackResistance = '10.96391';
+  }
+
+  const detectedPrice = modelWithPrice?.current_price || (modelWithSr?.current_price) || fallbackPrice;
+  const detectedSupport = modelWithSupport?.support_level || (modelWithSr?.support_level) || fallbackSupport;
+  const detectedResistance = modelWithResistance?.resistance_level || (modelWithSr?.resistance_level) || fallbackResistance;
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
-  // Extract or dynamically compute vertical coordinate percentages (from top of chart screenshot)
+  // Extract vertical coordinate percentages directly from AI vision (placed directly ON candle wicks, NOT empty space)
   const modelWithY = successfulModels.find(m => m.support_y_percent != null && m.resistance_y_percent != null)
     || successfulModels.find(m => m.current_price_y_percent != null);
 
@@ -225,50 +253,21 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let supY = modelWithY?.support_y_percent != null ? Number(modelWithY.support_y_percent) : null;
   let priceY = modelWithY?.current_price_y_percent != null ? Number(modelWithY.current_price_y_percent) : null;
 
+  // Respect AI vision coordinates on candles (kept between 20% and 82% to prevent lines from drawing in blank header/footer space)
+  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(20, Math.min(65, resY)) : 38;
+  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(45, Math.min(82, supY)) : 72;
+  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(20, Math.min(82, priceY)) : 52;
+
+  // Logical guarantee: Resistance line is positioned higher up on the screen than Support
+  if (detectedResY >= detectedSupY) {
+    detectedResY = Math.max(20, detectedSupY - 14);
+  }
+
+  // 3. Determine unified directional signal (Models must not give different signals)
   const rVal = parseFloat(detectedResistance);
   const sVal = parseFloat(detectedSupport);
   const pVal = parseFloat(detectedPrice);
 
-  const modelWithScales = successfulModels.find(m => m.chart_high_price && m.chart_low_price);
-  const scaleHigh = parseFloat(modelWithScales?.chart_high_price) || (rVal > sVal ? rVal : NaN);
-  const scaleLow = parseFloat(modelWithScales?.chart_low_price) || (sVal < rVal ? sVal : NaN);
-
-  if (!isNaN(scaleHigh) && !isNaN(scaleLow) && scaleHigh > scaleLow) {
-    // In Quotex screenshots, the candlestick chart spans from ~16% (below top toolbar) to ~77% (above RSI pane)
-    const chartTopY = 16;
-    const chartBottomY = 77;
-    const chartSpan = chartBottomY - chartTopY;
-    const mapPriceToY = (val) => {
-      const ratio = (scaleHigh - val) / (scaleHigh - scaleLow);
-      const clamped = Math.max(0.02, Math.min(0.98, ratio));
-      return Math.round(chartTopY + (clamped * chartSpan));
-    };
-
-    if (!isNaN(pVal)) {
-      const mathPriceY = mapPriceToY(pVal);
-      if (priceY == null || Math.abs(priceY - mathPriceY) > 15) {
-        priceY = mathPriceY;
-      }
-    }
-    if (!isNaN(rVal)) {
-      const mathResY = mapPriceToY(rVal);
-      if (resY == null || Math.abs(resY - mathResY) > 15) {
-        resY = mathResY;
-      }
-    }
-    if (!isNaN(sVal)) {
-      const mathSupY = mapPriceToY(sVal);
-      if (supY == null || Math.abs(supY - mathSupY) > 15) {
-        supY = mathSupY;
-      }
-    }
-  }
-
-  let detectedResY = Math.max(16, Math.min(48, resY || 24));
-  let detectedSupY = Math.max(54, Math.min(78, supY || 70));
-  let detectedPriceY = Math.max(18, Math.min(74, priceY || 56));
-
-  // 3. Determine unified directional signal (Models must not give different signals)
   let targetDecision = 'UP';
   const liveDecisions = successfulModels
     .filter(r => r.decision && ['UP', 'DOWN'].includes(r.decision))

@@ -441,10 +441,11 @@ const DashboardUI = (() => {
       const supY = (supYPercent / 100) * canvas.height;
       const priceY = (priceYPercent / 100) * canvas.height;
 
-      const resVal = currentAnalysis?.resistance_level || '3186.00';
-      const supVal = currentAnalysis?.support_level || '3181.50';
-      const priceVal = currentAnalysis?.current_price || '3182.42';
       const pair = currentAnalysis?.trading_pair || 'USD/COP (OTC)';
+      const isCopOrSimilar = pair.includes('COP') || pair.includes('ARS') || pair.includes('INR');
+      const resVal = currentAnalysis?.resistance_level || (isCopOrSimilar ? '3185.20' : '1.30306');
+      const supVal = currentAnalysis?.support_level || (isCopOrSimilar ? '3181.90' : '1.29200');
+      const priceVal = currentAnalysis?.current_price || (isCopOrSimilar ? '3184.77' : '1.29336');
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
       // 1. Resistance Line (dashed pink)
@@ -515,9 +516,9 @@ const DashboardUI = (() => {
       annotatedChartImg.src = imgSrc;
     }
 
-    const resY = analysis.resistance_y_percent || 25;
-    const supY = analysis.support_y_percent || 70;
-    const priceY = analysis.current_price_y_percent || 55;
+    const resY = analysis.resistance_y_percent || 38;
+    const supY = analysis.support_y_percent || 72;
+    const priceY = analysis.current_price_y_percent || 52;
 
     // Position lines
     if (overlayResistanceLine) overlayResistanceLine.style.top = `${resY}%`;
@@ -619,9 +620,10 @@ const DashboardUI = (() => {
     resultTimeframe.textContent = analysis.timeframe || '1M';
 
     // Support and Resistance Levels
-    const supportVal = analysis.support_level || '3181.50';
-    const resistanceVal = analysis.resistance_level || '3186.00';
-    const priceVal = analysis.current_price || '3182.42';
+    const isCopOrSimilar = pairName.includes('COP') || pairName.includes('ARS') || pairName.includes('INR');
+    const supportVal = analysis.support_level || (isCopOrSimilar ? '3181.90' : '1.29200');
+    const resistanceVal = analysis.resistance_level || (isCopOrSimilar ? '3185.20' : '1.30306');
+    const priceVal = analysis.current_price || (isCopOrSimilar ? '3184.77' : '1.29336');
 
     if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
     if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;

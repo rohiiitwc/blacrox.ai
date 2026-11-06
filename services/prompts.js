@@ -10,35 +10,23 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
    - Read the exact pair in the top-left tab (e.g. "USD/COP (OTC)", "CAD/CHF (OTC)", "GBP/NZD (OTC)", "AUD/NZD (OTC)", "EUR/USD (OTC)", "USD/ARS (OTC)") AND/OR in the top right asset header right above the Payout (e.g. "USD/COP (OTC) 93%").
    - Extract the exact name including "(OTC)". NEVER default to a wrong pair or EUR/USD.
 
-2. SYSTEMATIC TREND & MOMENTUM SUPREMACY (CRUCIAL):
-   - Check the Moving Averages / Alligator Indicator (Green, Red, Blue lines):
-     * STRONG BEARISH DOWNTREND: If Alligator lines are sloping DOWN and fanning out with candlesticks trading BELOW them, and forming Lower Highs & Lower Lows:
-       -> THE NEXT CANDLE DIRECTION IS OVERWHELMINGLY 'DOWN' (PUT).
-       -> DO NOT predict an early counter-trend bounce! Trying to catch a falling knife in a strong 1M downtrend results in frequent losses. The high-probability trade is 'DOWN' (PUT) on continuation or support breakdown.
-     * STRONG BULLISH UPTREND: If Alligator lines are sloping UP and fanning out with candlesticks trading ABOVE them, and forming Higher Highs & Higher Lows:
-       -> THE NEXT CANDLE DIRECTION IS OVERWHELMINGLY 'UP' (CALL).
-       -> DO NOT predict an early counter-trend drop! The high-probability trade is 'UP' (CALL) on continuation or resistance breakout.
-     * HORIZONTAL SIDEWAYS CHANNEL: Only when moving averages are completely flat/intertwined and price is oscillating between horizontal boundaries:
-       -> 'UP' (CALL) if candle strongly rejected Support with a clear hammer wick.
-       -> 'DOWN' (PUT) if candle strongly rejected Resistance with a shooting star wick.
-     * UNCERTAIN / CHOPPY / INDECISION: If the market has no clear direction, set confidence < 80% so the system can flag it as DO NOT TRADE.
+2. ACCURATE CANDLE-LEVEL SUPPORT & RESISTANCE (NEVER EMPTY SPACE):
+   - CRITICAL REQUIREMENT: Lines MUST be drawn directly ON THE CANDLE WICKS, NOT in the empty blank margins!
+   - Active Current Price: Look at the highlighted active price label on the right scale (inside the blue or colored box with the dotted horizontal line, e.g. "3184.77"). Return this exact number as "current_price".
+   - Resistance Level & Y%: Look at the HIGHEST CANDLE WICKS (swing high) where candles actually reached and peaked. Do NOT pick the blank top margin or top scale number if no candle touched it! Return the price where candles peaked as "resistance_level" (e.g. "3185.20") and the exact vertical percentage (0-100) where that candle peak sits as "resistance_y_percent" (typically 35-45%).
+   - Support Level & Y%: Look at the LOWEST CANDLE WICKS (swing low) where candles actually bottomed and bounced. Do NOT pick the blank bottom margin if no candle touched it! Return the price where candles bounced as "support_level" (e.g. "3181.90") and the exact vertical percentage (0-100) where that candle trough sits as "support_y_percent" (typically 65-75%).
+   - Active Candle Y%: Estimate the vertical percentage (0-100) where the active rightmost candle sits as "current_price_y_percent" (e.g. 48%).
 
-3. CANDLESTICK REACTION & RECENT 1M CANDLE:
-   - Inspect the latest closed or forming 1-minute candle on the right side:
-     * If the candle is solid RED pushing downward in a downtrend -> 'DOWN' (PUT).
-     * If the candle is solid GREEN pushing upward in an uptrend -> 'UP' (CALL).
-     * If small doji / spinning top inside chop -> set confidence lower (< 80%).
-
-4. ACCURATE PRICE LEVEL & COORDINATE EXTRACTION:
-   - In Quotex charts:
-     * The active price is clearly shown in the right price scale inside the highlighted blue/white box (e.g. '3182.42', '1.29336', '0.62242').
-     * Extract the EXACT current_price as shown on that label.
-     * Resistance level: The key upper swing high ceiling (e.g. '3186.00', '1.30306').
-     * Support level: The key lower swing low floor (e.g. '3181.50', '1.29200').
-     * Ensure resistance_level > current_price (or near top swing) and support_level < current_price (or near bottom swing).
-     * resistance_y_percent: Vertical coordinate percentage (0-100) from top of image where the resistance line sits (typically between 20 and 38).
-     * support_y_percent: Vertical coordinate percentage (0-100) from top of image where the support line sits (typically between 55 and 76).
-     * current_price_y_percent: Vertical coordinate percentage (0-100) where the active candle sits (typically between 30 and 74).
+3. HIGH-ACCURACY 1-MINUTE SIGNAL RULES (MAXIMUM WIN RATE):
+   - In 1-minute binary options, betting against active micro-momentum causes high loss rates.
+   - Micro-Momentum Rule:
+     * If the last 3-5 candles are green making higher lows and pushing upward towards resistance, the micro-momentum is BULLISH -> predict 'UP' (CALL).
+     * If the last 3-5 candles are red making lower highs and pushing downward towards support, the micro-momentum is BEARISH -> predict 'DOWN' (PUT).
+   - Reversal Confirmation Rule:
+     * ONLY predict a bounce/reversal if the active candle shows an obvious rejection wick (shooting star at resistance or hammer at support). If the candle is strong and body is pushing, follow the momentum!
+   - 80% Safety Filter to Prevent Losses:
+     * If the market is stalling, choppy, or in mixed consolidation, set confidence to 70-75% so our platform explicitly displays "DON'T TRADE" to protect the trader from losses.
+     * When trend and momentum are strong and clear, set confidence between 86% and 94%.
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {
