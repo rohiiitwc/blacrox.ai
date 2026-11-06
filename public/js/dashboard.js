@@ -144,9 +144,7 @@ const DashboardUI = (() => {
 
     const formData = new FormData();
     formData.append('screenshot', selectedFile);
-    if (selectPairOverride && selectPairOverride.value) {
-      formData.append('pair', selectPairOverride.value);
-    }
+    formData.append('pair', '');
 
     try {
       // Execute the 5-second technical scan animation AND backend AI upload concurrently
@@ -609,11 +607,7 @@ const DashboardUI = (() => {
     // Pair and Market info
     const pairName = analysis.trading_pair || 'USD/COP (OTC)';
     resultPair.textContent = pairName;
-    if (detectedPairPreview) detectedPairPreview.textContent = pairName;
-    if (selectPairOverride && analysis.trading_pair) {
-      const matchOpt = Array.from(selectPairOverride.options).find(o => o.value === analysis.trading_pair);
-      if (matchOpt) selectPairOverride.value = analysis.trading_pair;
-    }
+    if (detectedPairPreview) detectedPairPreview.textContent = `⚡ ${pairName}`;
 
     const isOtc = (analysis.market_type || '').toUpperCase().includes('OTC') || pairName.toUpperCase().includes('OTC');
     resultMarketBadge.textContent = isOtc ? 'OTC MARKET' : 'LIVE MARKET';

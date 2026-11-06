@@ -70,31 +70,20 @@
             <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" style="display: none;">
           </div>
 
-          <!-- Asset Pair Detection & Selector Bar -->
-          <div class="asset-selector-bar" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          <!-- Asset Pair Detection Bar (100% Auto-Detect from Screenshot) -->
+          <div class="asset-selector-bar" style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 14px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm);">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Detected Pair:</span>
-              <span class="badge-otc" id="detectedPairPreview" style="font-size: 0.8rem; padding: 3px 8px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa;">Auto-Detect from Chart</span>
+              <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">Pair Detection:</span>
+              <span class="badge-otc" id="detectedPairPreview" style="font-size: 0.82rem; padding: 4px 10px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.45); color: #60a5fa; font-weight: 700;">
+                ⚡ 100% Auto-Detect (Reads screenshot)
+              </span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.75rem; color: var(--text-muted);">Quotex Asset:</span>
-              <select id="selectPairOverride" style="padding: 4px 10px; font-size: 0.8rem; background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-highlight); border-radius: 6px; cursor: pointer;">
-                <option value="">⚡ Auto-Detect (Reads screenshot)</option>
-                <option value="USD/COP (OTC)">USD/COP (OTC)</option>
-                <option value="CAD/CHF (OTC)">CAD/CHF (OTC)</option>
-                <option value="GBP/NZD (OTC)">GBP/NZD (OTC)</option>
-                <option value="AUD/NZD (OTC)">AUD/NZD (OTC)</option>
-                <option value="EUR/USD (OTC)">EUR/USD (OTC)</option>
-                <option value="USD/INR (OTC)">USD/INR (OTC)</option>
-                <option value="AUD/CAD (OTC)">AUD/CAD (OTC)</option>
-                <option value="USD/BRL (OTC)">USD/BRL (OTC)</option>
-                <option value="EUR/JPY (OTC)">EUR/JPY (OTC)</option>
-                <option value="GBP/USD (OTC)">GBP/USD (OTC)</option>
-                <option value="USD/PKR (OTC)">USD/PKR (OTC)</option>
-                <option value="USD/ARS (OTC)">USD/ARS (OTC)</option>
-                <option value="EUR/USD">EUR/USD (Live)</option>
-                <option value="GBP/USD">GBP/USD (Live)</option>
-                <option value="BTC/USD">BTC/USD (Crypto)</option>
+              <span style="font-size: 0.78rem; color: #00e676; font-weight: 700; background: rgba(0, 230, 118, 0.12); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(0, 230, 118, 0.3);">
+                ✓ Vision Engine Ready
+              </span>
+              <select id="selectPairOverride" style="display: none;">
+                <option value="" selected>⚡ Auto-Detect (Reads screenshot)</option>
               </select>
             </div>
           </div>

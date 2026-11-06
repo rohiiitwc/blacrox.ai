@@ -206,20 +206,17 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 
   const successfulModels = [gemini, chatgpt, grok].filter(m => m.status === 'SUCCESS');
 
-  // 1. Detect trading pair accurately (Priority: pairHint -> specific model detection -> any model detection -> fallback)
-  let detectedPair = 'USD/COP (OTC)';
-  if (pairHint && pairHint.trim() !== '') {
+  // 1. Detect trading pair accurately (100% Auto-Detect directly from Screenshot Vision)
+  let detectedPair = 'USD/NGN (OTC)';
+  const modelWithSpecificPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown' && m.pair !== 'EUR/USD');
+  const modelWithAnyPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown');
+
+  if (modelWithSpecificPair) {
+    detectedPair = modelWithSpecificPair.pair;
+  } else if (modelWithAnyPair) {
+    detectedPair = modelWithAnyPair.pair;
+  } else if (pairHint && pairHint.trim() !== '') {
     detectedPair = pairHint.trim();
-  } else {
-    const modelWithSpecificPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown' && m.pair !== 'EUR/USD');
-    if (modelWithSpecificPair) {
-      detectedPair = modelWithSpecificPair.pair;
-    } else {
-      const modelWithAnyPair = successfulModels.find(m => m.pair && m.pair !== 'Unknown');
-      if (modelWithAnyPair) {
-        detectedPair = modelWithAnyPair.pair;
-      }
-    }
   }
 
   // Normalize OTC flag
