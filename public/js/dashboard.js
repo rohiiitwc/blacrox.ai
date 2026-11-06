@@ -236,7 +236,7 @@ const DashboardUI = (() => {
     const toast = document.getElementById('tradeCompletionNotice');
     const toastText = document.getElementById('tradeCompletionNoticeText');
     if (toast && toastText) {
-      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Analysis saved permanently to your history. Drop your next chart screenshot below!`;
+      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Screenshot automatically deleted. Drop your next chart screenshot below!`;
       toast.style.display = 'flex';
     }
   }
@@ -276,17 +276,20 @@ const DashboardUI = (() => {
 
       if (secondsLeft > 0) {
         if (tradeCountdownText) {
-          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until candle close (Expiry: ${expiryTimeIst}) — Signal & Chart Saved in History`;
+          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until expiry (at ${expiryTimeIst}) — Screenshot will auto-delete upon completion`;
         }
         if (previewAutoDeleteNotice) {
-          previewAutoDeleteNotice.textContent = `⏱️ Trade Active: ${secondsLeft}s left (Expiry: ${expiryTimeIst})`;
+          previewAutoDeleteNotice.textContent = `⏱️ Auto-deleting in ${secondsLeft}s (trade completion)`;
         }
         if (headerTradeStatusBadge) {
           headerTradeStatusBadge.textContent = `⏳ Trade: ${secondsLeft}s left (Expiry ${expiryTimeIst})`;
         }
       } else {
-        // Trade is complete! Stop countdown and preserve chart permanently
+        // Trade is complete! Stop countdown and auto-delete the upload preview
         stopTradeExpiryCountdown();
+
+        // Automatically delete / clear the screenshot preview so trader can drop next chart
+        resetUpload();
 
         if (tradeCountdownBox) {
           tradeCountdownBox.style.background = 'rgba(16, 185, 129, 0.15)';
@@ -294,14 +297,10 @@ const DashboardUI = (() => {
           tradeCountdownBox.style.color = '#34d399';
         }
         if (tradeCountdownText) {
-          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Signal and chart permanently saved in Analysis History. Ready for next chart.`;
+          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Screenshot automatically deleted. Ready for next chart.`;
         }
         if (previewAutoDeleteNotice) {
-          previewAutoDeleteNotice.style.display = 'inline-flex';
-          previewAutoDeleteNotice.textContent = '✅ Trade Completed · Preserved in History';
-          previewAutoDeleteNotice.style.background = 'rgba(16, 185, 129, 0.15)';
-          previewAutoDeleteNotice.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-          previewAutoDeleteNotice.style.color = '#34d399';
+          previewAutoDeleteNotice.style.display = 'none';
         }
         if (headerTradeStatusBadge) {
           headerTradeStatusBadge.textContent = `✅ Trade Completed (${expiryTimeIst})`;
