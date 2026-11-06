@@ -25,6 +25,13 @@ try {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    try {
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+    } catch (e) {
+      uploadDir = '/tmp';
+    }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -35,8 +42,19 @@ const storage = multer.diskStorage({
   }
 });
 
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/pjpeg', 'image/x-png'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedTypes.includes(file.mimetype) || ['.png', '.jpg', '.jpeg'].includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Unsupported file format. Please upload a PNG, JPG, or JPEG image.'));
+  }
+};
+
 const upload = multer({
   storage,
+  fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
@@ -116,10 +134,24 @@ router.post('/submit', requireAuth, (req, res, next) => {
 
       const savedEval = db.prepare('SELECT * FROM evaluations WHERE id = ?').get(result.lastInsertRowid);
 
+      // Auto-delete the initial screenshot after completion of trade (per user requirement)
+      if (analysis.initial_screenshot) {
+        const initialPath = path.join(uploadDir, analysis.initial_screenshot);
+        if (fs.existsSync(initialPath)) {
+          try { fs.unlinkSync(initialPath); } catch (e) {}
+        }
+      }
+      if (completedScreenshotFilename) {
+        const completedPath = path.join(uploadDir, completedScreenshotFilename);
+        if (fs.existsSync(completedPath)) {
+          try { fs.unlinkSync(completedPath); } catch (e) {}
+        }
+      }
+
       return res.json({
         success: true,
         message: 'Completed candle evaluated successfully.',
-        evaluation: savedEval
+        evaluation: savedEval || { id: result.lastInsertRowid, analysis_id: analysisId, evaluation_result: evaluationResult }
       });
     } catch (dbErr) {
       console.error('Evaluation submit error:', dbErr);
@@ -131,21 +163,28 @@ router.post('/submit', requireAuth, (req, res, next) => {
   });
 });
 
-// GET /api/evaluation/stats - User's personal statistical track record
-router.get('/stats', requireAuth, (req, res) => {
-  const userId = req.user.id;
+// GET /api/evaluation/stats - User's personal statistical track record (or global stats if unauthenticated)
+router.get('/stats', (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return requireAuth(req, res, () => {
+      try {
+        const stats = calculateHistoricalStats(req.user.id);
+        return res.json({ success: true, stats });
+      } catch (err) {
+        console.error('Stats fetch error:', err);
+        return res.status(500).json({ success: false, message: 'Failed to calculate historical statistics.' });
+      }
+    });
+  }
+
+  // Graceful fallback for unauthenticated visits to stats tab
   try {
-    const stats = calculateHistoricalStats(userId);
-    return res.json({
-      success: true,
-      stats
-    });
+    const stats = calculateHistoricalStats(null);
+    return res.json({ success: true, stats });
   } catch (err) {
-    console.error('Stats fetch error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to calculate historical statistics.'
-    });
+    console.error('Global stats error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to calculate statistics.' });
   }
 });
 

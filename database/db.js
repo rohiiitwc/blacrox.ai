@@ -30,7 +30,7 @@ let db;
 try {
   const Database = require('better-sqlite3');
   db = new Database(dbPath);
-  try { db.pragma('journal_mode = WAL'); } catch (e) {}
+  try { db.pragma(isVercel ? 'journal_mode = MEMORY' : 'journal_mode = WAL'); } catch (e) {}
   try { db.pragma('foreign_keys = ON'); } catch (e) {}
 } catch (err) {
   console.warn('Failed to open SQLite database at path, falling back to in-memory:', err.message);
@@ -65,6 +65,9 @@ function createFallbackDb() {
           if (sql.includes('FROM users') && sql.includes('WHERE email = ?')) {
             return tables.users.find(u => (u.email || '').toLowerCase() === (params[0] || '').toLowerCase()) || null;
           }
+          if (sql.includes('FROM users') && sql.includes('WHERE reset_token = ?')) {
+            return tables.users.find(u => u.reset_token === params[0]) || null;
+          }
           if (sql.includes('FROM analyses') && sql.includes('WHERE id = ?')) {
             return tables.analyses.find(a => a.id === params[0]) || null;
           }
@@ -86,6 +89,12 @@ function createFallbackDb() {
           if (sql.includes('FROM ai_results') && sql.includes('WHERE analysis_id = ?')) {
             return tables.ai_results.filter(r => r.analysis_id === params[0]);
           }
+          if (sql.includes('FROM evaluations')) {
+            if (params.length > 0 && typeof params[0] === 'number') {
+              return tables.evaluations.filter(e => e.user_id === params[0]);
+            }
+            return tables.evaluations;
+          }
           return [];
         },
         run: (...params) => {
@@ -93,6 +102,9 @@ function createFallbackDb() {
             const id = autoIds.users++;
             tables.users.push({ id, full_name: params[0], email: params[1], password_hash: params[2], created_at: params[3] });
             return { lastInsertRowid: id, changes: 1 };
+          }
+          if (sql.includes('UPDATE users')) {
+            return { lastInsertRowid: 1, changes: 1 };
           }
           if (sql.includes('INSERT INTO analyses')) {
             const id = autoIds.analyses++;

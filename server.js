@@ -34,28 +34,43 @@ try {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadDir));
 
-// API Routes
-app.get('/api', (req, res) => {
-  res.json({
-    status: 'online',
-    platform: 'Blacrox.AI API',
-    version: '1.0.0',
-    mode: isVercel ? 'serverless' : 'node'
-  });
+// Vercel Serverless Function Path Normalization
+app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'];
+  if (matchedPath && (req.url === '/api' || req.url === '/api/index' || req.url === '/api/index.js')) {
+    req.url = matchedPath;
+  }
+  next();
 });
 
-app.get('/api/health', (req, res) => {
+// API Status & Health Endpoints
+const healthHandler = (req, res) => {
   res.json({
     status: 'healthy',
+    platform: 'Blacrox.AI API',
+    version: '1.0.0',
+    mode: isVercel ? 'serverless' : 'node',
     timestamp: Date.now(),
     uptime: Math.floor(process.uptime())
   });
-});
+};
 
+app.get('/api', healthHandler);
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+
+// Dual-mount routes (with /api prefix and without) for seamless Vercel rewrites & standalone compatibility
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/analysis', analysisRoutes);
+app.use('/analysis', analysisRoutes);
+
 app.use('/api/evaluation', evaluationRoutes);
+app.use('/evaluation', evaluationRoutes);
+
 app.use('/api/system', systemRoutes);
+app.use('/system', systemRoutes);
 
 // SPA fallback for non-API GET routes (compatible with Express 5)
 app.use((req, res, next) => {
