@@ -148,18 +148,18 @@ const DashboardUI = (() => {
 
     startScanAnimation();
 
-    const minDelayPromise = new Promise(resolve => setTimeout(resolve, 3500));
+    const minScanDelay = new Promise(resolve => setTimeout(resolve, 5000));
 
     try {
-      // Execute upload with client timeout protection (max 9 seconds)
+      // Safe network timeout: 25 seconds (eliminates false timeouts)
       const uploadPromise = Promise.race([
         API.uploadScreenshot(formData),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AI analysis timed out. Retrying automatic analysis...')), 9000)
+          setTimeout(() => reject(new Error('AI analysis timed out. Please check your network connection and try again.')), 25000)
         )
       ]);
 
-      const [uploadRes] = await Promise.all([uploadPromise, minDelayPromise]);
+      const [uploadRes] = await Promise.all([uploadPromise, minScanDelay]);
 
       finishScanAnimation();
 
@@ -191,6 +191,53 @@ const DashboardUI = (() => {
 
   let currentUploadedDataUrl = '';
 
+  // Client-side image compression for high-speed upload (< 200KB)
+  function compressImageForUpload(file, maxDimension = 1280, quality = 0.85) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const originalDataUrl = e.target.result;
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              resolve({ file: compressedFile, dataUrl: originalDataUrl });
+            } else {
+              resolve({ file, dataUrl: originalDataUrl });
+            }
+          }, 'image/jpeg', quality);
+        };
+        img.onerror = () => resolve({ file, dataUrl: originalDataUrl });
+        img.src = originalDataUrl;
+      };
+      reader.onerror = () => resolve({ file, dataUrl: '' });
+      reader.readAsDataURL(file);
+    });
+  }
+
   function handleFileSelected(file) {
     if (!file) return;
 
@@ -206,22 +253,21 @@ const DashboardUI = (() => {
       return;
     }
 
-    selectedFile = file;
     previewFilename.textContent = file.name;
+    btnStartAnalysis.disabled = true;
+    btnStartAnalysis.textContent = '⚡ Auto-Analyzing Chart...';
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      currentUploadedDataUrl = e.target.result;
-      previewImage.src = e.target.result;
+    // Compress client-side for lightning-fast upload (< 200KB)
+    compressImageForUpload(file).then(({ file: optimizedFile, dataUrl }) => {
+      selectedFile = optimizedFile;
+      currentUploadedDataUrl = dataUrl;
+      previewImage.src = dataUrl;
       previewContainer.style.display = 'block';
       dropzone.style.display = 'none';
-      btnStartAnalysis.disabled = true;
-      btnStartAnalysis.textContent = '⚡ Auto-Analyzing Chart...';
 
       // Automatically analyze as requested by user without clicking on run multi analysis
       executeAnalysis();
-    };
-    reader.readAsDataURL(file);
+    });
   }
 
   function resetUpload() {
@@ -360,9 +406,8 @@ const DashboardUI = (() => {
 
     activeScanTimer = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      // Countdown smoothly towards 0.1s while in progress
-      const remainingSec = Math.max(0.1, (targetMs - elapsed) / 1000).toFixed(1);
-      const percent = Math.min(96, (elapsed / targetMs) * 96);
+      const remainingSec = Math.max(0, (targetMs - elapsed) / 1000).toFixed(1);
+      const percent = Math.min(100, (elapsed / targetMs) * 100);
 
       countdownDigits.textContent = `${remainingSec}s`;
       countdownProgressFill.style.width = `${percent}%`;
@@ -377,6 +422,13 @@ const DashboardUI = (() => {
         countdownStatusTicker.textContent = '🎯 Synchronizing model signals into unified consensus...';
       } else {
         countdownStatusTicker.textContent = '📈 Finalizing 1-minute candle consensus & win rate...';
+      }
+
+      if (elapsed >= targetMs) {
+        stopScanAnimation();
+        countdownDigits.textContent = '0.0s';
+        countdownStatusTicker.textContent = '🚀 Signal Generated Successfully!';
+        countdownProgressFill.style.width = '100%';
       }
     }, 80);
   }

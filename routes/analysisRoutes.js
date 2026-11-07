@@ -115,12 +115,15 @@ router.post('/upload', requireAuth, (req, res, next) => {
         SELECT * FROM analyses WHERE id = ? AND user_id = ?
       `).get(analysisId, userId);
 
-      // Embed Base64 Image Data URL so client never suffers 404 broken images on serverless platforms
+      // Embed Base64 Image Data URL (max 400KB) so client never suffers 404 broken images while preventing response body bloat
       let imageDataUrl = '';
       try {
         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-          const imgBuffer = fs.readFileSync(req.file.path);
-          imageDataUrl = `data:${req.file.mimetype || 'image/png'};base64,${imgBuffer.toString('base64')}`;
+          const stats = fs.statSync(req.file.path);
+          if (stats.size < 400 * 1024) {
+            const imgBuffer = fs.readFileSync(req.file.path);
+            imageDataUrl = `data:${req.file.mimetype || 'image/jpeg'};base64,${imgBuffer.toString('base64')}`;
+          }
         }
       } catch (imgErr) {}
 
