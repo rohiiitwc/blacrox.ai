@@ -28,6 +28,7 @@ async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
+      signal: AbortSignal.timeout(4500),
       body: JSON.stringify({
         model: model,
         response_format: { type: 'json_object' },

@@ -28,6 +28,7 @@ async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
+      signal: AbortSignal.timeout(4500),
       body: JSON.stringify({
         model: model,
         messages: [

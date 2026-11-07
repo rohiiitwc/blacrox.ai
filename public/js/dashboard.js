@@ -146,20 +146,32 @@ const DashboardUI = (() => {
     formData.append('screenshot', selectedFile);
     formData.append('pair', '');
 
+    startScanAnimation();
+
+    const minDelayPromise = new Promise(resolve => setTimeout(resolve, 3500));
+
     try {
-      // Execute the 5-second technical scan animation AND backend AI upload concurrently
-      const [uploadRes] = await Promise.all([
+      // Execute upload with client timeout protection (max 9 seconds)
+      const uploadPromise = Promise.race([
         API.uploadScreenshot(formData),
-        start5SecondScanAnimation()
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('AI analysis timed out. Retrying automatic analysis...')), 9000)
+        )
       ]);
 
-      stopScanAnimation();
-      isAnalyzing = false;
-      btnStartAnalysis.disabled = false;
-      btnStartAnalysis.textContent = '⚡ Re-Analyze Chart (ChatGPT + Gemini + Grok)';
+      const [uploadRes] = await Promise.all([uploadPromise, minDelayPromise]);
 
-      if (uploadRes.success && uploadRes.analysis) {
-        renderAnalysis(uploadRes.analysis, uploadRes.ai_results || []);
+      finishScanAnimation();
+
+      if (uploadRes && uploadRes.success && uploadRes.analysis) {
+        setTimeout(() => {
+          renderAnalysis(uploadRes.analysis, uploadRes.ai_results || []);
+          isAnalyzing = false;
+          btnStartAnalysis.disabled = false;
+          btnStartAnalysis.textContent = '⚡ Re-Analyze Chart (ChatGPT + Gemini + Grok)';
+        }, 150);
+      } else {
+        throw new Error(uploadRes?.message || 'Could not extract analysis from screenshot. Please try again.');
       }
     } catch (err) {
       stopScanAnimation();
@@ -328,52 +340,60 @@ const DashboardUI = (() => {
     }
   }
 
-  // 5-Second Precision AI Scanner
-  function start5SecondScanAnimation() {
+  // Precision AI Scanner Visualizer
+  function startScanAnimation() {
     stopScanAnimation();
     scanCountdownContainer.style.display = 'block';
     processingDeck.style.display = 'grid';
     resultView.style.display = 'none';
 
     document.querySelectorAll('.ai-engine-status-card').forEach(c => c.classList.add('processing'));
-    document.getElementById('statusChatgpt').textContent = 'Scanning 1M chart...';
-    document.getElementById('statusGemini').textContent = 'Analyzing momentum...';
-    document.getElementById('statusGrok').textContent = 'Aligning consensus...';
+    const statusChatgpt = document.getElementById('statusChatgpt');
+    const statusGemini = document.getElementById('statusGemini');
+    const statusGrok = document.getElementById('statusGrok');
+    if (statusChatgpt) statusChatgpt.textContent = 'Scanning 1M chart...';
+    if (statusGemini) statusGemini.textContent = 'Analyzing momentum...';
+    if (statusGrok) statusGrok.textContent = 'Aligning consensus...';
 
-    const totalMs = 5000;
-    const intervalMs = 100;
-    let elapsedMs = 0;
+    const targetMs = 5000;
+    const startTime = Date.now();
 
-    return new Promise((resolve) => {
-      activeScanTimer = setInterval(() => {
-        elapsedMs += intervalMs;
-        const remainingSec = Math.max(0, (totalMs - elapsedMs) / 1000).toFixed(1);
-        const percent = Math.min(100, (elapsedMs / totalMs) * 100);
+    activeScanTimer = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      // Countdown smoothly towards 0.1s while in progress
+      const remainingSec = Math.max(0.1, (targetMs - elapsed) / 1000).toFixed(1);
+      const percent = Math.min(96, (elapsed / targetMs) * 96);
 
-        countdownDigits.textContent = `${remainingSec}s`;
-        countdownProgressFill.style.width = `${percent}%`;
+      countdownDigits.textContent = `${remainingSec}s`;
+      countdownProgressFill.style.width = `${percent}%`;
 
-        if (elapsedMs < 1200) {
-          countdownStatusTicker.textContent = '⚡ Scanning Quotex chart screenshot and extracting 1M timeframe...';
-        } else if (elapsedMs < 2400) {
-          countdownStatusTicker.textContent = '🤖 Calling OpenAI (GPT-4o), Gemini (2.5 Flash) and Grok concurrently...';
-        } else if (elapsedMs < 3600) {
-          countdownStatusTicker.textContent = '📊 Analyzing EMA 7 & 21 crossovers and Bollinger Band boundaries...';
-        } else if (elapsedMs < 4500) {
-          countdownStatusTicker.textContent = '🎯 Synchronizing model signals into unified consensus...';
-        } else {
-          countdownStatusTicker.textContent = '📈 Calculating All-in-One & individual model win percentages...';
-        }
+      if (elapsed < 1200) {
+        countdownStatusTicker.textContent = '⚡ Scanning Quotex chart screenshot and extracting 1M timeframe...';
+      } else if (elapsed < 2400) {
+        countdownStatusTicker.textContent = '🤖 Calling OpenAI (GPT-4o), Gemini (2.5 Flash) and Grok concurrently...';
+      } else if (elapsed < 3600) {
+        countdownStatusTicker.textContent = '📊 Analyzing EMA 7 & 21 crossovers and Bollinger Band boundaries...';
+      } else if (elapsed < 4800) {
+        countdownStatusTicker.textContent = '🎯 Synchronizing model signals into unified consensus...';
+      } else {
+        countdownStatusTicker.textContent = '📈 Finalizing 1-minute candle consensus & win rate...';
+      }
+    }, 80);
+  }
 
-        if (elapsedMs >= totalMs) {
-          stopScanAnimation();
-          countdownDigits.textContent = '0.0s';
-          countdownStatusTicker.textContent = '🚀 Signal Generated Successfully!';
-          countdownProgressFill.style.width = '100%';
-          resolve();
-        }
-      }, intervalMs);
-    });
+  function finishScanAnimation() {
+    stopScanAnimation();
+    countdownDigits.textContent = '0.0s';
+    countdownStatusTicker.textContent = '🚀 Signal Generated Successfully!';
+    countdownProgressFill.style.width = '100%';
+  }
+
+  function start5SecondScanAnimation() {
+    startScanAnimation();
+    return new Promise(resolve => setTimeout(() => {
+      finishScanAnimation();
+      resolve();
+    }, 5000));
   }
 
   function drawCleanLabel(ctx, x, y, text, color) {

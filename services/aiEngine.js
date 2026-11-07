@@ -185,11 +185,16 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 
   const startTime = Date.now();
 
-  // Run all 3 AI provider calls concurrently
+  const callWithTimeout = (promise, ms, name) => Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms))
+  ]);
+
+  // Run all 3 AI provider calls concurrently with strict timeout protection (max 4.5s)
   const [chatgptResult, geminiResult, grokResult] = await Promise.allSettled([
-    analyzeWithChatGPT(imagePath, mimeType),
-    analyzeWithGemini(imagePath, mimeType),
-    analyzeWithGrok(imagePath, mimeType)
+    callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 4500, 'ChatGPT'),
+    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 4500, 'Gemini'),
+    callWithTimeout(analyzeWithGrok(imagePath, mimeType), 4500, 'Grok')
   ]);
 
   const seed = analysisId;

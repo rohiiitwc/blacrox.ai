@@ -21,8 +21,8 @@ function getGeminiApiKey() {
 async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
   const apiKey = getGeminiApiKey();
-  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
-  const candidateModels = [primaryModel, 'gemini-3.1-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'];
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+  const candidateModels = Array.from(new Set([primaryModel, 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite', 'gemini-flash-latest']));
 
   if (!apiKey || apiKey.trim() === '' || apiKey.startsWith('AIzaSy-placeholder')) {
     return {
@@ -51,6 +51,7 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
           headers: {
             'Content-Type': 'application/json'
           },
+          signal: AbortSignal.timeout(4000),
           body: JSON.stringify({
             contents: [
               {
