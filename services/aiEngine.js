@@ -2,6 +2,7 @@ const { analyzeWithChatGPT } = require('./openaiService');
 const { analyzeWithGemini } = require('./geminiService');
 const { analyzeWithGrok } = require('./grokService');
 const { calculateHistoricalStats } = require('./evaluationService');
+const { calibratePriceLevels, getExpectedPriceRange } = require('./priceCalibrator');
 const db = require('../database/db');
 
 // Calculate Entry & Expiry Time in Indian Standard Time (IST - UTC+05:30)
@@ -77,30 +78,16 @@ function generateEducationalSimulation(provider, providerLabel, targetDecision =
   const marketType = context.marketType || (isOtc ? 'OTC' : 'Live');
   const timeframe = context.timeframe || '1M';
   
-  let defaultPrice = '1.29336';
-  let defaultSupport = '1.29200';
-  let defaultResistance = '1.30306';
-  if (pair.includes('COP')) {
-    defaultPrice = '3184.77';
-    defaultSupport = '3181.90';
-    defaultResistance = '3185.20';
-  } else if (pair.includes('ARS')) {
-    defaultPrice = '1612.61';
-    defaultSupport = '1611.90';
-    defaultResistance = '1615.20';
-  } else if (pair.includes('AVA')) {
-    defaultPrice = '10.88300';
-    defaultSupport = '10.88300';
-    defaultResistance = '10.96391';
-  } else if (pair.includes('INR')) {
-    defaultPrice = '87.42';
-    defaultSupport = '87.20';
-    defaultResistance = '87.65';
-  }
+  let supportLevel = context.supportLevel;
+  let resistanceLevel = context.resistanceLevel;
+  let currentPrice = context.currentPrice;
 
-  const supportLevel = context.supportLevel || defaultSupport;
-  const resistanceLevel = context.resistanceLevel || defaultResistance;
-  const currentPrice = context.currentPrice || defaultPrice;
+  if (!supportLevel || !resistanceLevel || !currentPrice) {
+    const calibrated = calibratePriceLevels(pair, null, null, null, null, null, null);
+    supportLevel = supportLevel || calibrated.support_level;
+    resistanceLevel = resistanceLevel || calibrated.resistance_level;
+    currentPrice = currentPrice || calibrated.current_price;
+  }
   
   let pattern = '';
   let ema = '';
@@ -190,11 +177,11 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms))
   ]);
 
-  // Run all 3 AI provider calls concurrently with strict timeout protection (max 4.5s)
+  // Run all 3 AI provider calls concurrently with strict timeout protection (Gemini given 10s for deep chart vision)
   const [chatgptResult, geminiResult, grokResult] = await Promise.allSettled([
-    callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 4500, 'ChatGPT'),
-    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 4500, 'Gemini'),
-    callWithTimeout(analyzeWithGrok(imagePath, mimeType), 4500, 'Grok')
+    callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 6000, 'ChatGPT'),
+    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 10000, 'Gemini'),
+    callWithTimeout(analyzeWithGrok(imagePath, mimeType), 6000, 'Grok')
   ]);
 
   const seed = analysisId;
@@ -253,47 +240,13 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const modelWithSr = successfulModels.find(m => isValidPrice(m.support_level) && isValidPrice(m.resistance_level))
     || successfulModels.find(m => m.sr_observations && m.sr_observations !== 'No clear S/R lines');
 
-  // Dynamic pair-specific default fallbacks
-  let fallbackPrice = '1.29336';
-  let fallbackSupport = '1.29200';
-  let fallbackResistance = '1.30306';
-  if (detectedPair.includes('COP')) {
-    fallbackPrice = '3184.77';
-    fallbackSupport = '3181.90';
-    fallbackResistance = '3185.20';
-  } else if (detectedPair.includes('ARS')) {
-    fallbackPrice = '1612.61';
-    fallbackSupport = '1611.90';
-    fallbackResistance = '1615.20';
-  } else if (detectedPair.includes('AVA')) {
-    fallbackPrice = '10.88300';
-    fallbackSupport = '10.88300';
-    fallbackResistance = '10.96391';
-  } else if (detectedPair.includes('INR')) {
-    fallbackPrice = '87.42';
-    fallbackSupport = '87.20';
-    fallbackResistance = '87.65';
-  } else if (detectedPair.includes('NZD')) {
-    fallbackPrice = '0.60450';
-    fallbackSupport = '0.60415';
-    fallbackResistance = '0.60485';
-  } else if (detectedPair.includes('NGN')) {
-    fallbackPrice = '1320.47';
-    fallbackSupport = '1315.63';
-    fallbackResistance = '1321.35';
-  } else if (detectedPair.includes('BRL')) {
-    fallbackPrice = '5.8480';
-    fallbackSupport = '5.8450';
-    fallbackResistance = '5.8520';
-  } else if (detectedPair.includes('PKR')) {
-    fallbackPrice = '279.05';
-    fallbackSupport = '278.60';
-    fallbackResistance = '279.40';
-  }
+  const modelWithChartExtremes = successfulModels.find(m => isValidPrice(m.chart_high_price) && isValidPrice(m.chart_low_price));
+  const rawChartHigh = modelWithChartExtremes?.chart_high_price || null;
+  const rawChartLow = modelWithChartExtremes?.chart_low_price || null;
 
-  const detectedPrice = (modelWithPrice && modelWithPrice.current_price) || (modelWithSr && isValidPrice(modelWithSr.current_price) ? modelWithSr.current_price : fallbackPrice);
-  const detectedSupport = (modelWithSupport && modelWithSupport.support_level) || (modelWithSr && isValidPrice(modelWithSr.support_level) ? modelWithSr.support_level : fallbackSupport);
-  const detectedResistance = (modelWithResistance && modelWithResistance.resistance_level) || (modelWithSr && isValidPrice(modelWithSr.resistance_level) ? modelWithSr.resistance_level : fallbackResistance);
+  const rawPrice = (modelWithPrice && modelWithPrice.current_price) || (modelWithSr && isValidPrice(modelWithSr.current_price) ? modelWithSr.current_price : null);
+  const rawSupport = (modelWithSupport && modelWithSupport.support_level) || (modelWithSr && isValidPrice(modelWithSr.support_level) ? modelWithSr.support_level : null);
+  const rawResistance = (modelWithResistance && modelWithResistance.resistance_level) || (modelWithSr && isValidPrice(modelWithSr.resistance_level) ? modelWithSr.resistance_level : null);
   const detectedSrObs = (modelWithSr && modelWithSr.sr_observations) ? modelWithSr.sr_observations : '';
 
   // Extract horizontal bounds and vertical coordinates directly from AI vision (placed directly ON candle wicks, NOT empty space)
@@ -314,19 +267,25 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let supY = modelWithY?.support_y_percent != null ? Number(modelWithY.support_y_percent) : null;
   let priceY = modelWithY?.current_price_y_percent != null ? Number(modelWithY.current_price_y_percent) : null;
 
-  // Real candle wicks are typically between 15% (below top tabs) and 90% (above bottom time axis)
-  let detectedResY = (resY != null && !isNaN(resY)) ? Math.max(15, Math.min(85, resY)) : 28;
-  let detectedSupY = (supY != null && !isNaN(supY)) ? Math.max(25, Math.min(90, supY)) : 72;
-  let detectedPriceY = (priceY != null && !isNaN(priceY)) ? Math.max(16, Math.min(88, priceY)) : 50;
+  // Calibrate Support, Resistance, and Price with mathematical integrity (Resistance > Current Price > Support)
+  const calibrated = calibratePriceLevels(
+    detectedPair,
+    rawResistance,
+    rawSupport,
+    rawPrice,
+    resY,
+    supY,
+    priceY,
+    rawChartHigh,
+    rawChartLow
+  );
 
-  // Logical guarantee: Resistance line is strictly higher up on the screen (lower Y%) than Support
-  if (detectedResY >= detectedSupY) {
-    if (detectedSupY > 35) {
-      detectedResY = Math.max(16, detectedSupY - 20);
-    } else {
-      detectedSupY = Math.min(88, detectedResY + 20);
-    }
-  }
+  const detectedPrice = calibrated.current_price;
+  const detectedSupport = calibrated.support_level;
+  const detectedResistance = calibrated.resistance_level;
+  const detectedResY = calibrated.resistance_y_percent;
+  const detectedSupY = calibrated.support_y_percent;
+  const detectedPriceY = calibrated.current_price_y_percent;
 
   // 3. Determine unified directional signal with institutional accuracy
   const rVal = parseFloat(detectedResistance);

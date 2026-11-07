@@ -491,15 +491,20 @@ const DashboardUI = (() => {
 
   function getPairPriceDefaults(p = '') {
     const upper = String(p).toUpperCase();
+    if (upper.includes('AVA')) return { res: '11.410', sup: '11.360', price: '11.385' };
+    if (upper.includes('DZD')) return { res: '255.608', sup: '255.054', price: '255.150' };
+    if (upper.includes('AED')) return { res: '1.29680', sup: '1.29520', price: '1.29600' };
     if (upper.includes('NGN')) return { res: '1321.35', sup: '1315.63', price: '1320.47' };
     if (upper.includes('NZD')) return { res: '0.60485', sup: '0.60415', price: '0.60450' };
     if (upper.includes('COP')) return { res: '3185.20', sup: '3181.90', price: '3184.77' };
     if (upper.includes('ARS')) return { res: '1615.20', sup: '1611.90', price: '1612.61' };
-    if (upper.includes('AVA')) return { res: '10.96391', sup: '10.88300', price: '10.88300' };
     if (upper.includes('INR')) return { res: '87.65', sup: '87.20', price: '87.42' };
     if (upper.includes('BRL')) return { res: '5.8520', sup: '5.8450', price: '5.8480' };
     if (upper.includes('PKR')) return { res: '279.40', sup: '278.60', price: '279.05' };
     if (upper.includes('JPY')) return { res: '154.20', sup: '153.50', price: '153.85' };
+    if (upper.includes('BTC')) return { res: '76500.00', sup: '75800.00', price: '76150.00' };
+    if (upper.includes('ETH')) return { res: '2850.00', sup: '2780.00', price: '2815.00' };
+    if (upper.includes('SOL')) return { res: '188.50', sup: '182.20', price: '185.35' };
     if (upper.includes('EUR')) return { res: '1.08650', sup: '1.08150', price: '1.08380' };
     if (upper.includes('GBP')) return { res: '1.29850', sup: '1.29250', price: '1.29520' };
     return { res: '1.30306', sup: '1.29200', price: '1.29336' };
@@ -556,9 +561,16 @@ const DashboardUI = (() => {
 
       const pair = currentAnalysis?.trading_pair || 'USD/COP (OTC)';
       const pairDefaults = getPairPriceDefaults(pair);
-      const resVal = currentAnalysis?.resistance_level || pairDefaults.res;
-      const supVal = currentAnalysis?.support_level || pairDefaults.sup;
-      const priceVal = currentAnalysis?.current_price || pairDefaults.price;
+      let resVal = currentAnalysis?.resistance_level || pairDefaults.res;
+      let supVal = currentAnalysis?.support_level || pairDefaults.sup;
+      let priceVal = currentAnalysis?.current_price || pairDefaults.price;
+      const rNum = parseFloat(resVal);
+      const sNum = parseFloat(supVal);
+      if (!isNaN(rNum) && !isNaN(sNum) && rNum < sNum) {
+        const temp = resVal;
+        resVal = supVal;
+        supVal = temp;
+      }
       const entryTime = currentAnalysis?.entry_time_ist || '';
 
       // Inside candlestick chart bounds (staying strictly clear of sidebars)
@@ -624,6 +636,14 @@ const DashboardUI = (() => {
           annotatedChartImg.src = analysis.image_data_url;
         }
       };
+    }
+
+    const rCheck = parseFloat(resistanceVal);
+    const sCheck = parseFloat(supportVal);
+    if (!isNaN(rCheck) && !isNaN(sCheck) && rCheck < sCheck) {
+      const temp = resistanceVal;
+      resistanceVal = supportVal;
+      supportVal = temp;
     }
 
     const rawResY = Number(analysis.resistance_y_percent);
@@ -793,9 +813,17 @@ const DashboardUI = (() => {
     const pairDefaults = getPairPriceDefaults(pairName);
     const isValidVal = (v) => Boolean(v && typeof v === 'string' && v.trim() !== '' && v !== 'Unknown' && v !== 'N/A' && !v.includes('N/A') && /\d/.test(v));
 
-    const supportVal = isValidVal(analysis.support_level) ? analysis.support_level : pairDefaults.sup;
-    const resistanceVal = isValidVal(analysis.resistance_level) ? analysis.resistance_level : pairDefaults.res;
-    const priceVal = isValidVal(analysis.current_price) ? analysis.current_price : pairDefaults.price;
+    let supportVal = isValidVal(analysis.support_level) ? analysis.support_level : pairDefaults.sup;
+    let resistanceVal = isValidVal(analysis.resistance_level) ? analysis.resistance_level : pairDefaults.res;
+    let priceVal = isValidVal(analysis.current_price) ? analysis.current_price : pairDefaults.price;
+
+    const rNum = parseFloat(resistanceVal);
+    const sNum = parseFloat(supportVal);
+    if (!isNaN(rNum) && !isNaN(sNum) && rNum < sNum) {
+      const temp = resistanceVal;
+      resistanceVal = supportVal;
+      supportVal = temp;
+    }
 
     if (resultSupportLevel) resultSupportLevel.textContent = supportVal;
     if (resultResistanceLevel) resultResistanceLevel.textContent = resistanceVal;

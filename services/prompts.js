@@ -8,14 +8,14 @@ In 1-minute binary options, betting against an active trend or trading in sidewa
 CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
 1. IDENTIFY THE EXACT TRADING PAIR:
    - READ THE TRADING PAIR DIRECTLY FROM THE INNER QUOTEX CHART INTERFACE:
-     * Look inside the Quotex chart tab next to the '+' button (e.g. "USD/ARS (OTC) 93%", "NZD/USD (OTC) 92%", "USD/COP (OTC) 93%").
+     * Look inside the Quotex chart tab next to the '+' button (e.g. "USD/ARS (OTC) 93%", "NZD/USD (OTC) 92%", "USD/COP (OTC) 93%", "Avalanche (OTC) 93%").
      * Look at the Quotex order entry panel on the right side, directly above "Payout" and the green "Buy" / red "Sell" buttons.
-     * CRITICAL: If the image shows an outer website header or previous trade results (e.g. "USD/COP (OTC)"), IGNORE the outer wrapper header! ALWAYS read the asset name INSIDE the Quotex chart window!
-     * Price Scale Sanity Check:
-       - USD/ARS is in the 1500 - 1800 range (e.g. 1612.xx).
-       - USD/COP is in the 3000 - 3400 range (e.g. 3184.xx).
-       - USD/NGN is in the 1300 - 1400 range (e.g. 1320.xx).
-       - Major/Minor forex pairs (EUR/USD, GBP/NZD, NZD/USD, AUD/NZD, CAD/CHF) are in decimals 0.xxxx - 1.xxxx.
+     * CRITICAL: Do NOT confuse previous trade history entries (under "Trades" or "Closed" in the right panel) with the CURRENT active trading pair! Look at the ACTIVE chart tab name!
+     * If the image shows an outer website wrapper header or previous trade results, IGNORE them! ALWAYS read the active asset name inside the Quotex chart window.
+     * Common Asset Classes:
+       - Crypto OTC: Avalanche (AVA / AVAX), Bitcoin (BTC), Ethereum (ETH), Solana (SOL).
+       - Latin America / Asia OTC: USD/ARS (1500-1800), USD/COP (3000-3400), USD/NGN (1300-1400), USD/INR (80-95), USD/PKR (270-290), USD/DZD (250-260).
+       - Major/Minor Forex: EUR/USD, GBP/USD, USD/AED, GBP/NZD, NZD/USD, AUD/NZD, CAD/CHF (0.50000 - 1.50000).
    - Extract the exact name including "(OTC)". NEVER default to a wrong pair.
 
 2. PERFECT CANDLE-LEVEL SUPPORT & RESISTANCE (PINPOINT ACCURACY ON CANDLESTICKS):
@@ -24,16 +24,28 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
      * "chart_left_x_percent": Detect where candles start horizontally (immediately after the left Quotex toolbar/icons, typically 7.5% - 9.5%).
      * "chart_right_x_percent": Detect where candles end horizontally (before the Quotex order panel / right price scale, typically 70.0% - 90.0%).
      * Lines must NEVER touch or cross into the left navigation icons or the right Buy/Sell trading panel!
+   - STRICT PRICE SCALE & DECIMAL POINT ACCURACY (MANDATORY):
+     * NEVER DROP OR OMIT DECIMAL POINTS!
+     * Carefully read the numbers on the right vertical price axis. You MUST return the exact decimal point:
+       - If scale shows 11.390, return "11.390" (NEVER "11390").
+       - If scale shows 0.60450, return "0.60450" (NEVER "60450").
+       - If scale shows 1.29520, return "1.29520" (NEVER "129520").
+       - If scale shows 255.608, return "255.608" (NEVER "255608").
+       - If scale shows 1320.47, return "1320.47" (NEVER "132047").
+     * MATHEMATICAL INTEGRITY MANDATE:
+       - chart_high_price >= resistance_level > current_price > support_level >= chart_low_price
+       - Resistance Price MUST be strictly GREATER than Support Price: Resistance > Support.
+       - Resistance Line on chart is visually HIGHER (lower Y% value) than Support Line (higher Y% value): resistance_y_percent < support_y_percent.
    - RESISTANCE LEVEL & Y%:
      * Locate the prominent swing high peaks / upper candle wicks where buyers failed and price reversed downward.
-     * Extract the exact resistance price number from the price scale (e.g. "1321.35", "3185.20", "1.30306").
-     * Calculate "resistance_y_percent": The exact vertical percentage (0-100% from top of image) so that the horizontal line passes directly across those highest candle wicks.
+     * Extract the exact resistance price number from the price scale with full decimal precision.
+     * Calculate "resistance_y_percent": The exact vertical percentage (0-100% from top of image, typically 15-35%) so that the horizontal line passes directly across those highest candle wicks.
    - SUPPORT LEVEL & Y%:
      * Locate the prominent swing low troughs / lower candle wicks where sellers failed and price bounced upward.
-     * Extract the exact support price number from the price scale (e.g. "1315.63", "3181.90", "1.29200").
-     * Calculate "support_y_percent": The exact vertical percentage (0-100% from top of image) so that the horizontal line passes directly across those lowest candle wicks.
+     * Extract the exact support price number from the price scale with full decimal precision.
+     * Calculate "support_y_percent": The exact vertical percentage (0-100% from top of image, typically 65-85%) so that the horizontal line passes directly across those lowest candle wicks.
    - ACTIVE CANDLE CURRENT PRICE & Y%:
-     * Look at the active rightmost candle and the active price marker on the right scale (e.g. "1320.47").
+     * Look at the active rightmost candle and the active price marker on the right scale (e.g. "1320.47", "11.385", "1.29600").
      * Return "current_price" and "current_price_y_percent" matching the active candle position.
 
 3. INSTITUTIONAL 1-MINUTE SNIPER TRADING LAWS (TARGET: > 85% WIN RATE):
