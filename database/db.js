@@ -31,7 +31,7 @@ try {
   const Database = require('better-sqlite3');
   db = new Database(dbPath);
   try { db.pragma(isVercel ? 'journal_mode = MEMORY' : 'journal_mode = WAL'); } catch (e) {}
-  try { db.pragma('foreign_keys = ON'); } catch (e) {}
+  try { db.pragma(isVercel ? 'foreign_keys = OFF' : 'foreign_keys = ON'); } catch (e) {}
 } catch (err) {
   console.warn('Failed to open SQLite database at path, falling back to in-memory:', err.message);
   try {
@@ -185,18 +185,35 @@ function createFallbackDb() {
             }
             return { lastInsertRowid: 1, changes: 1 };
           }
-          if (sql.includes('INSERT INTO analyses')) {
-            const id = autoIds.analyses++;
-            tables.analyses.push({
-              id,
-              user_id: params[0],
-              initial_screenshot: params[1],
-              initial_screenshot_orig_name: params[2],
-              upload_timestamp: params[3],
-              server_time: params[4],
-              status: 'PROCESSING'
-            });
-            saveStore();
+          if (sql.includes('INSERT INTO analyses') || sql.includes('INSERT OR IGNORE INTO analyses')) {
+            const hasExplicitId = sql.includes('(id,') || sql.includes('(id ');
+            const id = hasExplicitId ? params[0] : autoIds.analyses++;
+            const existing = tables.analyses.find(a => a.id === id);
+            if (!existing) {
+              if (hasExplicitId) {
+                tables.analyses.push({
+                  id,
+                  user_id: params[1],
+                  initial_screenshot: '',
+                  trading_pair: params[2] || 'Unknown',
+                  consensus_decision: params[3] || 'UP',
+                  status: 'COMPLETED',
+                  upload_timestamp: params[4] || new Date().toISOString(),
+                  server_time: params[5] || Date.now()
+                });
+              } else {
+                tables.analyses.push({
+                  id,
+                  user_id: params[0],
+                  initial_screenshot: params[1],
+                  initial_screenshot_orig_name: params[2],
+                  upload_timestamp: params[3],
+                  server_time: params[4],
+                  status: 'PROCESSING'
+                });
+              }
+              saveStore();
+            }
             return { lastInsertRowid: id, changes: 1 };
           }
           if (sql.includes('UPDATE analyses')) {

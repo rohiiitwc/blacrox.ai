@@ -63,3 +63,4 @@ test('Never returns identical Resistance and Support', () => {
   assert(r > p, `Expected r (${r}) > p (${p})`);
   assert(p > s, `Expected p (${p}) > s (${s})`);
 });
+

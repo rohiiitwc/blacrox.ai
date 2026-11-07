@@ -63,7 +63,7 @@ function calculateHistoricalStats(userId = null) {
       a.trading_pair, a.market_type, a.timeframe, a.agreement_score, a.agreement_type,
       a.consensus_confidence
     FROM evaluations e
-    JOIN analyses a ON e.analysis_id = a.id
+    LEFT JOIN analyses a ON e.analysis_id = a.id
   `;
   const params = [];
 

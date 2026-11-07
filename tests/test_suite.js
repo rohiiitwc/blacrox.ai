@@ -7,6 +7,11 @@ const app = require('../server');
 const db = require('../database/db');
 const { JWT_SECRET } = require('../middleware/auth');
 const { evaluateCandleOutcome } = require('../services/evaluationService');
+const { calibratePriceLevels, getExpectedPriceRange } = require('../services/priceCalibrator');
+const { extractAndParseJson } = require('../services/parseHelper');
+const { analyzeWithChatGPT } = require('../services/openaiService');
+const { analyzeWithGrok } = require('../services/grokService');
+const { analyzeWithGemini, getGeminiApiKey } = require('../services/geminiService');
 
 const PORT = 3001; // Separate port for testing
 let server;
@@ -320,8 +325,68 @@ async function runTests() {
     assert.ok(concurrentResults.every(r => r.timestamp > 0));
     console.log('  ✓ Server responded to simultaneous requests with zero errors');
 
+    // 16. PRICE CALIBRATOR & MATHEMATICAL INTEGRITY TEST
+    console.log('Test 16: Price Calibration & Decimal Invariant Validation...');
+    const calAva = calibratePriceLevels('Avalanche (OTC)', '11410', '11310', '11350', 20, 80, 50, '11450', '11280');
+    assert.ok(parseFloat(calAva.resistance_level) > parseFloat(calAva.current_price), 'Resistance must exceed Current Price');
+    assert.ok(parseFloat(calAva.current_price) > parseFloat(calAva.support_level), 'Current Price must exceed Support');
+    assert.strictEqual(calAva.decimals, 3, 'Avalanche requires 3 scale decimals');
+
+    const calInvert = calibratePriceLevels('EUR/USD', '1.08100', '1.08900', '1.08500', 80, 20, 50);
+    assert.ok(parseFloat(calInvert.resistance_level) > parseFloat(calInvert.support_level), 'Inverted prices must be auto-swapped');
+    assert.ok(calInvert.resistance_y_percent < calInvert.support_y_percent, 'Resistance Y% must be visually above Support Y%');
+
+    const calDzd = calibratePriceLevels('USD/DZD (OTC)', '255.608', '255.054', '255.150', 18, 78, 48);
+    assert.strictEqual(calDzd.decimals, 3, 'DZD requires 3 decimals');
+    assert.ok(parseFloat(calDzd.resistance_level) > parseFloat(calDzd.support_level));
+    console.log('  ✓ Price calibration & decimal invariants verified across assets');
+
+    // 17. JSON PARSER RESILIENCE TEST
+    console.log('Test 17: JSON Parser Helper Robustness...');
+    const parsed1 = extractAndParseJson('```json\n{"pair":"USD/COP (OTC)","decision":"UP"}\n```');
+    assert.strictEqual(parsed1.decision, 'UP');
+    assert.strictEqual(parsed1.pair, 'USD/COP (OTC)');
+
+    const parsed2 = extractAndParseJson('Model output note: {"decision":"DOWN","confidence":88} extra text');
+    assert.strictEqual(parsed2.decision, 'DOWN');
+    assert.strictEqual(parsed2.confidence, 88);
+
+    const parsed3 = extractAndParseJson('Not valid JSON');
+    assert.deepStrictEqual(parsed3, {});
+    console.log('  ✓ JSON parser successfully handled all markdown and edge cases');
+
+    // 18. PROVIDER SERVICES SCHEMA & KEY EXPORT INTEGRITY TEST
+    console.log('Test 18: Provider Services Schema & Key Export Integrity...');
+    const geminiKey = getGeminiApiKey();
+    assert.ok(typeof geminiKey === 'string' && geminiKey.length > 10, 'Gemini API key must be non-empty string');
+
+    const gptMock = await analyzeWithChatGPT(sampleImage);
+    assert.strictEqual(gptMock.provider, 'chatgpt');
+    assert.ok(['SUCCESS', 'ERROR'].includes(gptMock.status), 'ChatGPT must return consistent status');
+
+    const grokMock = await analyzeWithGrok(sampleImage);
+    assert.strictEqual(grokMock.provider, 'grok');
+    assert.ok(['SUCCESS', 'ERROR'].includes(grokMock.status), 'Grok must return consistent status');
+    console.log('  ✓ AI providers export standardized schemas with robust key handling');
+
+    // 19. STATIC ASSETS & DOM ELEMENT INTEGRITY TEST
+    console.log('Test 19: Static Assets & DOM Element Integrity...');
+    const indexHtml = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+    const scripts = [...indexHtml.matchAll(/<script\s+src=["']([^"']+)["']/g)].map(m => m[1]);
+    for (const s of scripts) {
+      const p = path.join(__dirname, '../public', s.startsWith('/') ? s : '/' + s);
+      assert.ok(fs.existsSync(p), `Linked script must exist: ${s}`);
+    }
+
+    const cssLinks = [...indexHtml.matchAll(/<link\s+[^>]*href=["']([^"']+)["']/g)].map(m => m[1]);
+    for (const c of cssLinks) {
+      const p = path.join(__dirname, '../public', c.startsWith('/') ? c : '/' + c);
+      assert.ok(fs.existsSync(p), `Linked stylesheet must exist: ${c}`);
+    }
+    console.log('  ✓ All linked assets and scripts verified');
+
     console.log('\n=======================================================');
-    console.log('✅ ALL TEST SUITE CHECKS PASSED SUCCESSFULLY (15/15)');
+    console.log('✅ ALL TEST SUITE CHECKS PASSED SUCCESSFULLY (19/19)');
     console.log('=======================================================\n');
   } catch (err) {
     console.error('\n❌ TEST SUITE FAILURE:', err);

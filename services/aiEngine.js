@@ -600,7 +600,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       agreementScore,
       agreementType,
       combinedConclusion,
-      isLowWinRate ? 'Win rate is below 80%. Strictly DO NOT TRADE.' : 'Educational paper-trading simulation. Real-money trading is not executed or advised.',
+      isLowWinRate ? 'Win rate is below 85%. Strictly DO NOT TRADE.' : 'Educational paper-trading simulation. Real-money trading is not executed or advised.',
       analysisId
     );
   });

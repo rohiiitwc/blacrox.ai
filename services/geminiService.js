@@ -143,6 +143,7 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
 }
 
 module.exports = {
-  analyzeWithGemini
+  analyzeWithGemini,
+  getGeminiApiKey
 };
 

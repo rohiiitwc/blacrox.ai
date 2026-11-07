@@ -11,8 +11,9 @@ async function analyzeWithGrok(imagePath, mimeType = 'image/jpeg') {
     return {
       provider: 'grok',
       provider_label: 'Grok (xAI)',
+      status: 'ERROR',
       is_mock: true,
-      error: 'GROK_API_KEY not configured in .env',
+      error_message: 'GROK_API_KEY not configured in .env',
       time_ms: Date.now() - startTime
     };
   }

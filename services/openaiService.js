@@ -11,8 +11,9 @@ async function analyzeWithChatGPT(imagePath, mimeType = 'image/jpeg') {
     return {
       provider: 'chatgpt',
       provider_label: 'ChatGPT (OpenAI)',
+      status: 'ERROR',
       is_mock: true,
-      error: 'OPENAI_API_KEY not configured in .env',
+      error_message: 'OPENAI_API_KEY not configured in .env',
       time_ms: Date.now() - startTime
     };
   }
