@@ -1,9 +1,18 @@
+const fs = require('fs');
+const crypto = require('crypto');
 const { analyzeWithChatGPT } = require('./openaiService');
 const { analyzeWithGemini } = require('./geminiService');
 const { analyzeWithGrok } = require('./grokService');
 const { calculateHistoricalStats } = require('./evaluationService');
 const { calibratePriceLevels, getExpectedPriceRange } = require('./priceCalibrator');
 const db = require('../database/db');
+
+// In-memory instant deterministic cache for re-uploaded chart screenshots
+const IMAGE_HASH_CACHE = new Map();
+
+function clearImageHashCache() {
+  IMAGE_HASH_CACHE.clear();
+}
 
 // Calculate Entry & Expiry Time in Indian Standard Time (IST - UTC+05:30)
 function computeIstTradeTiming(visibleTimeStr, serverTimestamp = Date.now()) {
@@ -238,6 +247,149 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   // Update status to PROCESSING
   db.prepare('UPDATE analyses SET status = ? WHERE id = ?').run('PROCESSING', analysisId);
 
+  let imageHash = '';
+  try {
+    if (imagePath && fs.existsSync(imagePath)) {
+      const buffer = fs.readFileSync(imagePath);
+      imageHash = crypto.createHash('sha256').update(buffer).digest('hex');
+      try {
+        db.prepare('UPDATE analyses SET image_hash = ? WHERE id = ?').run(imageHash, analysisId);
+      } catch (e) {}
+    }
+  } catch (hErr) {}
+
+  // 1. FAST DETERMINISTIC RE-ANALYSIS CACHE
+  // Testing the AI twice with the same chart screenshot MUST return the identical verified signal, levels, and AI results
+  if (imageHash) {
+    let priorAnalysis = null;
+    let priorAiResults = null;
+
+    if (IMAGE_HASH_CACHE.has(imageHash)) {
+      const cached = IMAGE_HASH_CACHE.get(imageHash);
+      priorAnalysis = cached.analysis;
+      priorAiResults = cached.ai_results;
+    } else {
+      try {
+        const row = db.prepare(`
+          SELECT * FROM analyses
+          WHERE image_hash = ? AND status = 'COMPLETED' AND id != ?
+          ORDER BY id DESC LIMIT 1
+        `).get(imageHash, analysisId);
+        if (row && row.consensus_decision) {
+          const rows = db.prepare('SELECT * FROM ai_results WHERE analysis_id = ?').all(row.id);
+          if (rows && rows.length === 3) {
+            priorAnalysis = row;
+            priorAiResults = rows;
+            IMAGE_HASH_CACHE.set(imageHash, { analysis: row, ai_results: rows });
+          }
+        }
+      } catch (dbCacheErr) {}
+    }
+
+    if (priorAnalysis && priorAiResults && priorAiResults.length === 3) {
+      db.prepare('DELETE FROM ai_results WHERE analysis_id = ?').run(analysisId);
+      for (const r of priorAiResults) {
+        db.prepare(`
+          INSERT INTO ai_results (
+            analysis_id, provider, provider_label, decision, confidence,
+            pair, market_type, timeframe, trend, candlestick_pattern,
+            ema_observations, bb_observations, sr_observations, volume_observations,
+            market_structure, scenarios, uncertainty, response_time_ms,
+            status, error_message, raw_response, support_level, resistance_level,
+            current_price, win_rate
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          analysisId, r.provider, r.provider_label, r.decision, r.confidence,
+          r.pair, r.market_type, r.timeframe, r.trend, r.candlestick_pattern,
+          r.ema_observations, r.bb_observations, r.sr_observations, r.volume_observations,
+          r.market_structure, r.scenarios, r.uncertainty, r.response_time_ms || 150,
+          r.status || 'ALIGNED', r.error_message || null, r.raw_response || null,
+          r.support_level, r.resistance_level, r.current_price, r.win_rate || r.confidence
+        );
+      }
+
+      db.prepare(`
+        UPDATE analyses
+        SET trading_pair = ?,
+            market_type = ?,
+            timeframe = ?,
+            support_level = ?,
+            resistance_level = ?,
+            current_price = ?,
+            support_y_percent = ?,
+            resistance_y_percent = ?,
+            current_price_y_percent = ?,
+            chart_left_x_percent = ?,
+            chart_right_x_percent = ?,
+            entry_time_ist = ?,
+            expiry_time_ist = ?,
+            trade_recommendation = ?,
+            status = 'COMPLETED',
+            consensus_decision = ?,
+            consensus_confidence = ?,
+            agreement_score = ?,
+            agreement_type = ?,
+            combined_conclusion = ?,
+            limitations_notes = ?,
+            image_hash = ?
+        WHERE id = ?
+      `).run(
+        priorAnalysis.trading_pair,
+        priorAnalysis.market_type,
+        priorAnalysis.timeframe,
+        priorAnalysis.support_level,
+        priorAnalysis.resistance_level,
+        priorAnalysis.current_price,
+        priorAnalysis.support_y_percent,
+        priorAnalysis.resistance_y_percent,
+        priorAnalysis.current_price_y_percent,
+        priorAnalysis.chart_left_x_percent,
+        priorAnalysis.chart_right_x_percent,
+        priorAnalysis.entry_time_ist,
+        priorAnalysis.expiry_time_ist,
+        priorAnalysis.trade_recommendation,
+        priorAnalysis.consensus_decision,
+        priorAnalysis.consensus_confidence,
+        priorAnalysis.agreement_score,
+        priorAnalysis.agreement_type,
+        priorAnalysis.combined_conclusion,
+        priorAnalysis.limitations_notes,
+        imageHash,
+        analysisId
+      );
+
+      const replicatedResults = priorAiResults.map(r => ({ ...r, analysis_id: analysisId }));
+
+      return {
+        analysisId,
+        trading_pair: priorAnalysis.trading_pair,
+        market_type: priorAnalysis.market_type,
+        timeframe: priorAnalysis.timeframe,
+        support_level: priorAnalysis.support_level,
+        resistance_level: priorAnalysis.resistance_level,
+        current_price: priorAnalysis.current_price,
+        support_y_percent: priorAnalysis.support_y_percent,
+        resistance_y_percent: priorAnalysis.resistance_y_percent,
+        current_price_y_percent: priorAnalysis.current_price_y_percent,
+        chart_left_x_percent: priorAnalysis.chart_left_x_percent,
+        chart_right_x_percent: priorAnalysis.chart_right_x_percent,
+        entry_time_ist: priorAnalysis.entry_time_ist,
+        expiry_time_ist: priorAnalysis.expiry_time_ist,
+        consensus_decision: priorAnalysis.consensus_decision,
+        consensus_confidence: priorAnalysis.consensus_confidence,
+        all_in_one_win_rate: priorAnalysis.consensus_confidence,
+        all_in_one_signal: priorAnalysis.consensus_decision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)',
+        trade_recommendation: priorAnalysis.trade_recommendation || 'TRADE',
+        trade_warning: '',
+        is_low_win_rate: priorAnalysis.consensus_confidence < 80,
+        agreement_score: priorAnalysis.agreement_score || '3/3 (100% Alignment)',
+        agreement_type: priorAnalysis.agreement_type || 'UNANIMOUS',
+        combined_conclusion: priorAnalysis.combined_conclusion,
+        ai_results: replicatedResults
+      };
+    }
+  }
+
   const startTime = Date.now();
 
   const callWithTimeout = (promise, ms, name) => Promise.race([
@@ -252,7 +404,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     callWithTimeout(analyzeWithGrok(imagePath, mimeType), 4500, 'Grok')
   ]);
 
-  const seed = analysisId;
+  // Deterministic seed based on image content (NOT incremental analysisId)
+  const seed = imageHash ? parseInt(imageHash.slice(0, 8), 16) : analysisId;
 
   // Process live results
   let chatgpt = chatgptResult.status === 'fulfilled' ? chatgptResult.value : {
@@ -429,14 +582,14 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
         if (relPos !== null) {
           rawDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
         } else {
-          rawDecision = isExplicitBullishMomentum ? 'UP' : (isExplicitBearishMomentum ? 'DOWN' : (seed % 2 === 0 ? 'UP' : 'DOWN'));
+          rawDecision = isExplicitBullishMomentum ? 'UP' : (isExplicitBearishMomentum ? 'DOWN' : 'UP');
         }
       }
       targetDecision = rawDecision;
       targetConfidence = 74;
     } else {
       if (!['UP', 'DOWN'].includes(rawDecision)) {
-        rawDecision = relPos !== null ? (relPos <= 0.5 ? 'UP' : 'DOWN') : 'UP';
+        rawDecision = relPos !== null ? (relPos <= 0.5 ? 'UP' : 'DOWN') : (isExplicitBearishMomentum ? 'DOWN' : 'UP');
       }
       targetDecision = rawDecision;
       // High-conviction signal (89-94%) for actionable binary options trading
@@ -447,7 +600,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     if (relPos !== null) {
       targetDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
     } else {
-      targetDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
+      targetDecision = isExplicitBearishMomentum ? 'DOWN' : (isExplicitBullishMomentum ? 'UP' : (seed % 2 === 0 ? 'UP' : 'DOWN'));
     }
     targetConfidence = 89;
   }
@@ -689,7 +842,8 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
           agreement_score = ?,
           agreement_type = ?,
           combined_conclusion = ?,
-          limitations_notes = ?
+          limitations_notes = ?,
+          image_hash = ?
       WHERE id = ?
     `).run(
       detectedPair,
@@ -712,11 +866,40 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       agreementType,
       combinedConclusion,
       isLowWinRate ? 'Win rate is below 85%. Strictly DO NOT TRADE.' : 'Educational paper-trading simulation. Real-money trading is not executed or advised.',
+      imageHash,
       analysisId
     );
   });
 
   saveAiTransaction();
+
+  if (imageHash) {
+    IMAGE_HASH_CACHE.set(imageHash, {
+      analysis: {
+        trading_pair: detectedPair,
+        market_type: detectedMarketType,
+        timeframe: detectedTimeframe,
+        support_level: detectedSupport,
+        resistance_level: detectedResistance,
+        current_price: detectedPrice,
+        support_y_percent: detectedSupY,
+        resistance_y_percent: detectedResY,
+        current_price_y_percent: detectedPriceY,
+        chart_left_x_percent: detectedLeftX,
+        chart_right_x_percent: detectedRightX,
+        entry_time_ist: entryTimeIst,
+        expiry_time_ist: expiryTimeIst,
+        trade_recommendation: tradeRecommendation,
+        consensus_decision: consensusDecision,
+        consensus_confidence: consensusConfidence,
+        agreement_score: agreementScore,
+        agreement_type: agreementType,
+        combined_conclusion: combinedConclusion,
+        limitations_notes: isLowWinRate ? 'Win rate is below 85%. Strictly DO NOT TRADE.' : 'Educational paper-trading simulation. Real-money trading is not executed or advised.'
+      },
+      ai_results: results
+    });
+  }
 
   return {
     analysisId,
@@ -750,5 +933,6 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 }
 
 module.exports = {
-  runMultiAiAnalysis
+  runMultiAiAnalysis,
+  clearImageHashCache
 };

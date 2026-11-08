@@ -107,6 +107,16 @@ function createFallbackDb() {
             }
             return a || null;
           }
+          if (sql.includes('FROM analyses') && sql.includes('image_hash = ?')) {
+            loadStore();
+            const hash = params[0];
+            const excludeId = params[1] !== undefined ? params[1] : null;
+            return tables.analyses.slice().reverse().find(item => 
+              item.image_hash === hash && 
+              item.status === 'COMPLETED' && 
+              (excludeId === null || Number(item.id) !== Number(excludeId))
+            ) || null;
+          }
           if (sql.includes('FROM evaluations') && sql.includes('WHERE id = ?')) {
             loadStore();
             return tables.evaluations.find(e => Number(e.id) === Number(params[0]) || String(e.id) === String(params[0])) || null;
@@ -352,6 +362,7 @@ function initSchema() {
         trading_pair TEXT DEFAULT 'Unknown',
         market_type TEXT DEFAULT 'Unknown',
         timeframe TEXT DEFAULT '1M',
+        image_hash TEXT DEFAULT '',
         support_level TEXT DEFAULT '',
         resistance_level TEXT DEFAULT '',
         current_price TEXT DEFAULT '',
@@ -431,6 +442,8 @@ function initSchema() {
     try { db.exec("ALTER TABLE analyses ADD COLUMN current_price_y_percent REAL DEFAULT 50;"); } catch (e) {}
     try { db.exec("ALTER TABLE analyses ADD COLUMN chart_left_x_percent REAL DEFAULT 8.5;"); } catch (e) {}
     try { db.exec("ALTER TABLE analyses ADD COLUMN chart_right_x_percent REAL DEFAULT 84.0;"); } catch (e) {}
+    try { db.exec("ALTER TABLE analyses ADD COLUMN image_hash TEXT DEFAULT '';"); } catch (e) {}
+    try { db.exec("CREATE INDEX IF NOT EXISTS idx_analyses_image_hash ON analyses(image_hash);"); } catch (e) {}
 
     try { db.exec("ALTER TABLE ai_results ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
     try { db.exec("ALTER TABLE ai_results ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}

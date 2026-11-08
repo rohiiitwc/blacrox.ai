@@ -5,6 +5,7 @@ const fs = require('fs');
 const db = require('../database/db');
 const { requireAuth } = require('../middleware/auth');
 const { evaluateCandleOutcome, calculateHistoricalStats } = require('../services/evaluationService');
+const { clearImageHashCache } = require('../services/aiEngine');
 
 const router = express.Router();
 
@@ -244,6 +245,9 @@ router.get('/global-stats', (req, res) => {
 router.post('/refresh-ai', requireAuth, (req, res) => {
   try {
     const userId = req.user.id;
+    if (typeof clearImageHashCache === 'function') {
+      clearImageHashCache();
+    }
     const stats = calculateHistoricalStats(userId);
     return res.json({
       success: true,
