@@ -741,17 +741,21 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   const entryTimeIst = timing.entryTimeIst;
   const expiryTimeIst = timing.expiryTimeIst;
 
-  // Check if win rate is less than 85%: Still give the signal, but mention caution
-  const isLowWinRate = Number(allInOneWinRate) < 85 || consensusDecision === 'INCONCLUSIVE';
-  const tradeRecommendation = isLowWinRate ? "DON'T TRADE" : "TRADE";
-  const tradeWarning = isLowWinRate
-    ? `⚠️ CAUTION: Win rate is ${allInOneWinRate}% (below 85% threshold). Lower volatility regime detected. Trade with extra caution.`
+  // Check if ANY AI model has confidence or win rate below 85%: Still generate signal, but advise NOT TO ENTER TRADE
+  const lowConfidenceModels = results.filter(r => (Number(r.confidence) < 85 || Number(r.win_rate) < 85));
+  const hasLowConfidence = lowConfidenceModels.length > 0 || Number(allInOneWinRate) < 85 || consensusDecision === 'INCONCLUSIVE';
+  const isLowWinRate = hasLowConfidence;
+  const tradeRecommendation = hasLowConfidence ? "DON'T ENTER TRADE" : "TRADE";
+  const lowModelNames = lowConfidenceModels.map(m => m.provider_label || m.provider).join(', ');
+
+  const dirLabel = consensusDecision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)';
+  const tradeWarning = hasLowConfidence
+    ? `⚠️ DO NOT ENTER TRADE: Confidence below 85% detected on ${lowModelNames || 'market'}. Signal ${dirLabel} generated for observation only.`
     : `✓ Win rate is ${allInOneWinRate}% (meets the 85% minimum confidence threshold). Entry at ${entryTimeIst}.`;
 
   let combinedConclusion = '';
-  const dirLabel = consensusDecision === 'UP' ? 'CALL (UP)' : 'PUT (DOWN)';
-  if (isLowWinRate) {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Signal: ${dirLabel} • ⚠️ Note: Market exhibits low-volatility consolidation (${allInOneWinRate}% win rate). Trade with caution at ${entryTimeIst}.`;
+  if (hasLowConfidence) {
+    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. ⚠️ ADVISORY: Confidence is below 85% (${lowConfidenceModels.map(m => `${m.provider_label}: ${m.confidence}%`).join(', ') || `${allInOneWinRate}%`}). DO NOT ENTER THE TRADE. Signal ${dirLabel} is generated for observation and technical tracking only.`;
   } else if (consensusDecision === 'UP') {
     if (relPos !== null && relPos <= 0.35) {
       combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Support Demand Bounce off ${detectedSupport} targeting Resistance at ${detectedResistance}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
@@ -765,7 +769,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     }
   } else {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Win rate is ${allInOneWinRate}% (< 85%). DO NOT TRADE at ${entryTimeIst} to avoid losses.`;
+    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Confidence is below 85%. DO NOT ENTER THE TRADE at ${entryTimeIst}. Signal is for technical observation only.`;
   }
 
   // Save AI results to database with individual win_rate column
