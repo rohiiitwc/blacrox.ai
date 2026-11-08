@@ -64,3 +64,20 @@ test('Never returns identical Resistance and Support', () => {
   assert(p > s, `Expected p (${p}) > s (${s})`);
 });
 
+test('Preserves exact Quotex chart S/R on tight channels (USD/COP)', () => {
+  const res = calibratePriceLevels('USD/COP (OTC)', '3185.20', '3184.40', '3184.97', 25, 75, 50);
+  assert(res.resistance_level === '3185.20', `Expected 3185.20, got ${res.resistance_level}`);
+  assert(res.support_level === '3184.40', `Expected 3184.40, got ${res.support_level}`);
+  assert(res.current_price === '3184.97', `Expected 3184.97, got ${res.current_price}`);
+  assert(res.decimals === 2, `Expected 2 decimals, got ${res.decimals}`);
+});
+
+test('Preserves sub-1.0 Quotex OTC prices (USD/BRL OTC)', () => {
+  const res = calibratePriceLevels('USD/BRL (OTC)', '0.19043', '0.18800', '0.18834', 25, 75, 50);
+  assert(res.resistance_level === '0.19043', `Expected 0.19043, got ${res.resistance_level}`);
+  assert(res.support_level === '0.18800', `Expected 0.18800, got ${res.support_level}`);
+  assert(res.current_price === '0.18834', `Expected 0.18834, got ${res.current_price}`);
+  assert(res.decimals === 5, `Expected 5 decimals, got ${res.decimals}`);
+});
+
+

@@ -499,7 +499,7 @@ const DashboardUI = (() => {
     if (upper.includes('COP')) return { res: '3185.20', sup: '3181.90', price: '3184.77' };
     if (upper.includes('ARS')) return { res: '1615.20', sup: '1611.90', price: '1612.61' };
     if (upper.includes('INR')) return { res: '87.65', sup: '87.20', price: '87.42' };
-    if (upper.includes('BRL')) return { res: '5.8520', sup: '5.8450', price: '5.8480' };
+    if (upper.includes('BRL')) return { res: '0.19045', sup: '0.18750', price: '0.18920' };
     if (upper.includes('PKR')) return { res: '279.40', sup: '278.60', price: '279.05' };
     if (upper.includes('JPY')) return { res: '154.20', sup: '153.50', price: '153.85' };
     if (upper.includes('BTC')) return { res: '76500.00', sup: '75800.00', price: '76150.00' };
@@ -941,7 +941,7 @@ const DashboardUI = (() => {
     const gemini = aiResults.find(r => r.provider === 'gemini') || {};
     const grok = aiResults.find(r => r.provider === 'grok') || {};
 
-    const srLabel = `${pairName} • AI S/R Zones Active`;
+    const srLabel = `${pairName} • S: ${supportVal} | R: ${resistanceVal}`;
     if (chatgptPairSr) chatgptPairSr.textContent = srLabel;
     if (geminiPairSr) geminiPairSr.textContent = srLabel;
     if (grokPairSr) grokPairSr.textContent = srLabel;

@@ -356,6 +356,16 @@ async function runTests() {
     const calDzd = calibratePriceLevels('USD/DZD (OTC)', '255.608', '255.054', '255.150', 18, 78, 48);
     assert.strictEqual(calDzd.decimals, 3, 'DZD requires 3 decimals');
     assert.ok(parseFloat(calDzd.resistance_level) > parseFloat(calDzd.support_level));
+
+    const calCop = calibratePriceLevels('USD/COP (OTC)', '3185.20', '3184.40', '3184.97', 25, 75, 50);
+    assert.strictEqual(calCop.resistance_level, '3185.20', 'Must preserve exact Quotex resistance on tight channels');
+    assert.strictEqual(calCop.support_level, '3184.40', 'Must preserve exact Quotex support on tight channels');
+    assert.strictEqual(calCop.current_price, '3184.97', 'Must preserve exact Quotex price');
+
+    const calBrl = calibratePriceLevels('USD/BRL (OTC)', '0.19043', '0.18800', '0.18834', 25, 75, 50);
+    assert.strictEqual(calBrl.resistance_level, '0.19043', 'Must preserve exact Quotex sub-1.0 OTC resistance');
+    assert.strictEqual(calBrl.support_level, '0.18800', 'Must preserve exact Quotex sub-1.0 OTC support');
+    assert.strictEqual(calBrl.current_price, '0.18834', 'Must preserve exact Quotex sub-1.0 OTC price');
     console.log('  ✓ Price calibration & decimal invariants verified across assets');
 
     // 17. JSON PARSER RESILIENCE TEST

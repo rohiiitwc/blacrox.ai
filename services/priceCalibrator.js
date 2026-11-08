@@ -12,7 +12,7 @@ function getExpectedPriceRange(pair = '') {
   if (/ARS/i.test(p)) return { min: 1000, max: 3000, decimals: 2, defaultPrice: 1612.61 };
   if (/NGN/i.test(p)) return { min: 1000, max: 2000, decimals: 2, defaultPrice: 1320.47 };
   if (/INR/i.test(p)) return { min: 60, max: 120, decimals: 2, defaultPrice: 87.42 };
-  if (/BRL/i.test(p)) return { min: 3, max: 10, decimals: 4, defaultPrice: 5.8480 };
+  if (/BRL/i.test(p)) return { min: 0.10, max: 10, decimals: 5, defaultPrice: 0.18920 };
   if (/PKR/i.test(p)) return { min: 200, max: 400, decimals: 2, defaultPrice: 279.05 };
   if (/JPY/i.test(p)) return { min: 110, max: 200, decimals: 2, defaultPrice: 153.85 };
   if (/BTC/i.test(p)) return { min: 30000, max: 150000, decimals: 2, defaultPrice: 76500.00 };
@@ -58,9 +58,10 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
     pVal = expected.defaultPrice;
   }
 
-  // Detect and fix decimal stripping (e.g. 11390 for 11.390, or 129520 for 1.29520)
-  const fixMagnitude = (val, ref) => {
+  // Detect and fix decimal stripping (only if raw string lacked a dot '.')
+  const fixMagnitude = (val, rawStr, ref) => {
     if (isNaN(val) || val <= 0 || isNaN(ref) || ref <= 0) return val;
+    if (rawStr != null && String(rawStr).includes('.')) return val;
     let v = val;
     while (v > ref * 5 && v >= 10) {
       v = v / 10;
@@ -71,10 +72,23 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
     return v;
   };
 
-  rVal = fixMagnitude(rVal, pVal);
-  sVal = fixMagnitude(sVal, pVal);
-  hVal = fixMagnitude(hVal, pVal);
-  lVal = fixMagnitude(lVal, pVal);
+  rVal = fixMagnitude(rVal, rawRes, pVal);
+  sVal = fixMagnitude(sVal, rawSup, pVal);
+  hVal = fixMagnitude(hVal, chartHigh, pVal);
+  lVal = fixMagnitude(lVal, chartLow, pVal);
+
+  // Determine decimal precision to preserve scale precision
+  const detectedDecimals = Math.max(
+    getDecimals(rawPrice),
+    getDecimals(rawRes),
+    getDecimals(rawSup),
+    getDecimals(chartHigh),
+    getDecimals(chartLow)
+  );
+  const decimals = detectedDecimals > 0 ? detectedDecimals : expected.decimals;
+
+  const tickUnit = Math.pow(10, -Math.min(decimals, 5));
+  const fallbackSpread = Math.max(pVal * 0.001, tickUnit * 10);
 
   // If High/Low are provided and valid, verify bounds
   if (!isNaN(hVal) && !isNaN(lVal) && hVal > lVal) {
@@ -82,43 +96,9 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
     if (isNaN(sVal) || sVal <= 0) sVal = lVal;
   }
 
-  // Dynamic channel spread delta based on price scale (0.12% to 0.35%)
-  const minSpread = Math.max(pVal * 0.0015, Math.pow(10, -expected.decimals) * 20);
-
-  // Fallback if rVal or sVal are completely invalid
-  if (isNaN(rVal) || rVal <= 0) rVal = pVal + minSpread;
-  if (isNaN(sVal) || sVal <= 0) sVal = Math.max(0.00001, pVal - minSpread);
-
-  // Guarantee: Resistance > Support (swap if inverted)
-  if (rVal < sVal) {
-    const temp = rVal;
-    rVal = sVal;
-    sVal = temp;
-  }
-
-  // If Resistance == Support or gap is too narrow
-  if (rVal - sVal < minSpread) {
-    rVal = pVal + minSpread;
-    sVal = Math.max(0.00001, pVal - minSpread);
-  }
-
-  // Guarantee: Resistance > Current Price > Support
-  if (rVal <= pVal) {
-    rVal = pVal + minSpread;
-  }
-  if (sVal >= pVal) {
-    sVal = Math.max(0.00001, pVal - minSpread);
-  }
-
-  // Determine decimal precision to preserve scale precision
-  const decimals = Math.max(
-    expected.decimals,
-    getDecimals(rawPrice),
-    getDecimals(rawRes),
-    getDecimals(rawSup),
-    getDecimals(chartHigh),
-    getDecimals(chartLow)
-  );
+  // Fallback if rVal or sVal are completely invalid / missing
+  if (isNaN(rVal) || rVal <= 0) rVal = pVal + fallbackSpread;
+  if (isNaN(sVal) || sVal <= 0) sVal = Math.max(tickUnit, pVal - fallbackSpread);
 
   // Calibrate vertical Y% coordinates (0% = top, 100% = bottom)
   let finalResY = Number(resY);
@@ -127,13 +107,54 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
 
   if (isNaN(finalResY) || finalResY < 12 || finalResY > 80) finalResY = 25.0;
   if (isNaN(finalSupY) || finalSupY < 20 || finalSupY > 90) finalSupY = 75.0;
+
+  // Guarantee: Resistance > Support (swap if inverted by AI detection)
+  if (rVal < sVal) {
+    const temp = rVal;
+    rVal = sVal;
+    sVal = temp;
+    const tempY = finalResY;
+    finalResY = finalSupY;
+    finalSupY = tempY;
+  }
+
+  // If Resistance == Support (identical levels detected), enforce minimal tick separation
+  if (Math.abs(rVal - sVal) < (tickUnit * 0.5)) {
+    rVal = pVal + fallbackSpread;
+    sVal = Math.max(tickUnit, pVal - fallbackSpread);
+  }
+
+  // Ensure Resistance is above current price; if breakout or equal, maintain minimal separation
+  if (rVal <= pVal) {
+    if (!isNaN(hVal) && hVal > pVal) {
+      rVal = hVal;
+    } else {
+      rVal = pVal + (tickUnit * 2);
+    }
+  }
+
+  // Ensure Support is below current price; if breakdown or equal, maintain minimal separation
+  if (sVal >= pVal) {
+    if (!isNaN(lVal) && lVal < pVal && lVal > 0) {
+      sVal = lVal;
+    } else {
+      sVal = Math.max(tickUnit, pVal - (tickUnit * 2));
+    }
+  }
+
+  // Resistance Y% must be visually higher (smaller Y%) than Support Y%
   if (finalResY >= finalSupY) {
     finalResY = Math.max(15.0, finalSupY - 30.0);
   }
 
   if (isNaN(finalPriceY) || finalPriceY < finalResY || finalPriceY > finalSupY) {
-    const relRatio = (rVal - pVal) / (rVal - sVal);
-    finalPriceY = finalResY + (relRatio * (finalSupY - finalResY));
+    const range = rVal - sVal;
+    if (range > 0) {
+      const relRatio = (rVal - pVal) / range;
+      finalPriceY = finalResY + (relRatio * (finalSupY - finalResY));
+    } else {
+      finalPriceY = (finalResY + finalSupY) / 2;
+    }
     finalPriceY = Math.max(finalResY + 2.0, Math.min(finalSupY - 2.0, finalPriceY));
   }
 
@@ -152,4 +173,3 @@ module.exports = {
   getExpectedPriceRange,
   calibratePriceLevels
 };
-
