@@ -160,6 +160,13 @@ const API = (() => {
       return request(`/api/analysis/${id}`);
     },
 
+    async syncAnalyses(analyses) {
+      return request('/api/analysis/sync', {
+        method: 'POST',
+        body: JSON.stringify({ analyses })
+      });
+    },
+
     // Evaluation
     async submitEvaluation(formData) {
       return request('/api/evaluation/submit', {

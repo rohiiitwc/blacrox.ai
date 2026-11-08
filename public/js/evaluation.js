@@ -137,6 +137,9 @@ const EvaluationUI = (() => {
       try {
         const res = await API.submitEvaluation(formData);
         if (res.success && res.evaluation) {
+          if (window.HistoryUI && HistoryUI.updateLocalEvaluation) {
+            HistoryUI.updateLocalEvaluation(analysisId, res.evaluation);
+          }
           renderEvaluationResult(res.evaluation);
         }
       } catch (err) {

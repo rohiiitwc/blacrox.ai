@@ -174,6 +174,12 @@ const DashboardUI = (() => {
       finishScanAnimation();
 
       if (uploadRes && uploadRes.success && uploadRes.analysis) {
+        if (window.HistoryUI && HistoryUI.saveLocalAnalysis) {
+          HistoryUI.saveLocalAnalysis({
+            ...uploadRes.analysis,
+            image_data_url: uploadRes.analysis.image_data_url || currentUploadedDataUrl
+          }, uploadRes.ai_results || []);
+        }
         setTimeout(() => {
           renderAnalysis(uploadRes.analysis, uploadRes.ai_results || []);
           isAnalyzing = false;
@@ -307,7 +313,7 @@ const DashboardUI = (() => {
     const toast = document.getElementById('tradeCompletionNotice');
     const toastText = document.getElementById('tradeCompletionNoticeText');
     if (toast && toastText) {
-      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Screenshot automatically deleted. Drop your next chart screenshot below!`;
+      toastText.textContent = `✅ 1-Minute Trade Completed (${expiryTimeIst})! Analysis saved permanently to History. Drop your next chart screenshot below!`;
       toast.style.display = 'flex';
     }
   }
@@ -347,19 +353,19 @@ const DashboardUI = (() => {
 
       if (secondsLeft > 0) {
         if (tradeCountdownText) {
-          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until expiry (at ${expiryTimeIst}) — Screenshot will auto-delete upon completion`;
+          tradeCountdownText.textContent = `⏱️ Trade Running: ${secondsLeft}s until expiry (at ${expiryTimeIst}) — Saved permanently to History`;
         }
         if (previewAutoDeleteNotice) {
-          previewAutoDeleteNotice.textContent = `⏱️ Auto-deleting in ${secondsLeft}s (trade completion)`;
+          previewAutoDeleteNotice.textContent = `⏱️ Trade Active: ${secondsLeft}s left (Saved to History)`;
         }
         if (headerTradeStatusBadge) {
           headerTradeStatusBadge.textContent = `⏳ Trade: ${secondsLeft}s left (Expiry ${expiryTimeIst})`;
         }
       } else {
-        // Trade is complete! Stop countdown and auto-delete the upload preview
+        // Trade is complete! Stop countdown and clear the upload preview for next chart
         stopTradeExpiryCountdown();
 
-        // Automatically delete / clear the screenshot preview so trader can drop next chart
+        // Clear active upload preview so trader can drop next chart
         resetUpload();
 
         if (tradeCountdownBox) {
@@ -368,7 +374,7 @@ const DashboardUI = (() => {
           tradeCountdownBox.style.color = '#34d399';
         }
         if (tradeCountdownText) {
-          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Screenshot automatically deleted. Ready for next chart.`;
+          tradeCountdownText.innerHTML = `✅ <strong>1-Minute Trade Completed at ${expiryTimeIst}!</strong> Analysis saved permanently to your History. Ready for next chart.`;
         }
         if (previewAutoDeleteNotice) {
           previewAutoDeleteNotice.style.display = 'none';

@@ -132,7 +132,7 @@ function createFallbackDb() {
             }
             if (sql.includes('LEFT JOIN evaluations')) {
               matched = matched.map(a => {
-                const evalRec = tables.evaluations.find(e => e.analysis_id === a.id);
+                const evalRec = tables.evaluations.find(e => Number(e.analysis_id) === Number(a.id));
                 return {
                   ...a,
                   evaluation_id: evalRec ? evalRec.id : null,

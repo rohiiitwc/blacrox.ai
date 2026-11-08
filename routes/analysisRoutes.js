@@ -169,6 +169,50 @@ router.post('/upload', requireAuth, (req, res, next) => {
   });
 });
 
+// POST /api/analysis/sync - Bidirectional synchronization to protect user history from serverless container resets
+router.post('/sync', requireAuth, (req, res) => {
+  const userId = req.user.id;
+  const { analyses } = req.body;
+  if (!Array.isArray(analyses) || analyses.length === 0) {
+    return res.json({ success: true, synced: 0 });
+  }
+
+  let synced = 0;
+  try {
+    for (const a of analyses) {
+      if (!a || !a.id) continue;
+      const existing = db.prepare('SELECT id FROM analyses WHERE id = ?').get(a.id);
+      if (!existing) {
+        db.prepare(`
+          INSERT OR IGNORE INTO analyses (
+            id, user_id, initial_screenshot, initial_screenshot_orig_name,
+            upload_timestamp, server_time, status, trading_pair, market_type,
+            timeframe, support_level, resistance_level, current_price,
+            entry_time_ist, expiry_time_ist, consensus_decision,
+            consensus_confidence, agreement_score, agreement_type,
+            combined_conclusion, trade_recommendation, trade_warning,
+            is_low_win_rate, all_in_one_win_rate
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          a.id, userId, a.initial_screenshot || '', a.initial_screenshot_orig_name || '',
+          a.upload_timestamp || new Date().toISOString(), a.server_time || Date.now(),
+          a.status || 'COMPLETED', a.trading_pair || 'Unknown', a.market_type || 'OTC',
+          a.timeframe || '1M', a.support_level || '', a.resistance_level || '', a.current_price || '',
+          a.entry_time_ist || '', a.expiry_time_ist || '', a.consensus_decision || 'UP',
+          a.consensus_confidence || 88, a.agreement_score || '3/3', a.agreement_type || 'UNANIMOUS',
+          a.combined_conclusion || '', a.trade_recommendation || 'TRADE', a.trade_warning || '',
+          a.is_low_win_rate ? 1 : 0, a.all_in_one_win_rate || 88
+        );
+        synced++;
+      }
+    }
+    return res.json({ success: true, synced });
+  } catch (err) {
+    console.warn('Sync error:', err.message);
+    return res.json({ success: false, synced });
+  }
+});
+
 // GET /api/analysis/history - User's isolated analysis history
 router.get('/history', requireAuth, (req, res) => {
   const userId = req.user.id;
