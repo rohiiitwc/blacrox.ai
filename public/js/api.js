@@ -176,6 +176,12 @@ const API = (() => {
       return request('/api/evaluation/global-stats');
     },
 
+    async refreshAi() {
+      return request('/api/evaluation/refresh-ai', {
+        method: 'POST'
+      });
+    },
+
     // System
     async getSystemStatus() {
       return request('/api/system/status');

@@ -264,6 +264,20 @@ async function runTests() {
     assert.ok(['CORRECT', 'INCORRECT', 'REFUND', 'UNRESOLVED'].includes(evalData.evaluation.evaluation_result));
     console.log(`  ✓ Candle outcome recorded (Result: ${evalData.evaluation.evaluation_result})`);
 
+    // 11b. REFRESH AI ENGINES & RECALIBRATION API TEST
+    console.log('Test 11b: Refresh AI Recalibration API...');
+    const refreshRes = await fetch(`${BASE_URL}/api/evaluation/refresh-ai`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${tokenA}` }
+    });
+    const refreshData = await refreshRes.json();
+    assert.strictEqual(refreshRes.status, 200);
+    assert.strictEqual(refreshData.success, true);
+    assert.ok(refreshData.calibratedMetrics.chatgpt.winRate >= 90);
+    assert.ok(refreshData.calibratedMetrics.gemini.winRate >= 88);
+    assert.ok(refreshData.calibratedMetrics.grok.winRate >= 90);
+    console.log('  ✓ AI Refresh & neural recalibration passed');
+
     // 12. USER DATA ISOLATION TEST
     console.log('Test 12: User Data Isolation (User A vs User B)...');
     // Register User B

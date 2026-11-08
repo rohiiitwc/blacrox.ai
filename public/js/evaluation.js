@@ -28,18 +28,48 @@ const EvaluationUI = (() => {
     evalResultBanner.style.display = 'block';
     const res = evalData.evaluation_result;
 
+    const btnRefreshAiAfterLoss = document.getElementById('btnRefreshAiAfterLoss');
+
     if (res === 'CORRECT') {
       evalResultBanner.className = 'evaluation-result-banner eval-correct';
       evalResultTitle.textContent = '🎉 SIMULATED OUTCOME: CORRECT';
+      if (btnRefreshAiAfterLoss) {
+        btnRefreshAiAfterLoss.style.display = 'inline-flex';
+        btnRefreshAiAfterLoss.textContent = '🔄 Refresh AI & Analyze Next Chart';
+        btnRefreshAiAfterLoss.style.background = 'rgba(59, 130, 246, 0.2)';
+        btnRefreshAiAfterLoss.style.color = '#60a5fa';
+        btnRefreshAiAfterLoss.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+      }
     } else if (res === 'INCORRECT') {
       evalResultBanner.className = 'evaluation-result-banner eval-incorrect';
       evalResultTitle.textContent = '❌ SIMULATED OUTCOME: INCORRECT';
+      if (btnRefreshAiAfterLoss) {
+        btnRefreshAiAfterLoss.style.display = 'inline-flex';
+        btnRefreshAiAfterLoss.textContent = '🔄 Refresh AI & Start Fresh (Recalibrate for Next Trade)';
+        btnRefreshAiAfterLoss.style.background = '#f59e0b';
+        btnRefreshAiAfterLoss.style.color = '#000';
+        btnRefreshAiAfterLoss.style.border = 'none';
+      }
     } else if (res === 'REFUND') {
       evalResultBanner.className = 'evaluation-result-banner eval-refund';
       evalResultTitle.textContent = '🔄 SIMULATED OUTCOME: DOJI / REFUND (Neutral)';
+      if (btnRefreshAiAfterLoss) {
+        btnRefreshAiAfterLoss.style.display = 'inline-flex';
+        btnRefreshAiAfterLoss.textContent = '🔄 Refresh AI & Try Next Trade';
+        btnRefreshAiAfterLoss.style.background = 'rgba(59, 130, 246, 0.2)';
+        btnRefreshAiAfterLoss.style.color = '#60a5fa';
+        btnRefreshAiAfterLoss.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+      }
     } else {
       evalResultBanner.className = 'evaluation-result-banner';
       evalResultTitle.textContent = '⚠️ SIMULATED OUTCOME: UNRESOLVED';
+      if (btnRefreshAiAfterLoss) {
+        btnRefreshAiAfterLoss.style.display = 'inline-flex';
+        btnRefreshAiAfterLoss.textContent = '🔄 Refresh AI & Reset';
+        btnRefreshAiAfterLoss.style.background = 'rgba(255, 255, 255, 0.1)';
+        btnRefreshAiAfterLoss.style.color = '#e2e8f0';
+        btnRefreshAiAfterLoss.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+      }
     }
 
     evalResultNotes.textContent = evalData.evaluation_notes || 'Evaluation registered.';

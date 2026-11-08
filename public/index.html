@@ -163,6 +163,7 @@
                 <span class="badge-timeframe" id="headerEntryTimeBadge" style="background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); color: #34d399; font-weight: 700; font-size: 0.85rem;">🕒 Entry: --:--:-- IST</span>
                 <span class="badge-timeframe" id="headerTradeStatusBadge" style="display: none; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; font-size: 0.85rem;">⏳ Trade: In Progress</span>
                 <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
+                <button type="button" class="btn btn-secondary" id="btnHeroRefreshAi" style="padding: 4px 10px; font-size: 0.8rem; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">🔄 Refresh AI</button>
               </div>
             </div>
 
@@ -422,9 +423,14 @@
 
             <!-- 3-Model Individual Comparison Cards -->
             <div style="margin-top: 1.5rem;">
-              <h3 style="font-size: 0.95rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
-                INDIVIDUAL AI SIGNALS & WIN PERCENTAGES (UNIFIED CONSENSUS)
-              </h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                <h3 style="font-size: 0.95rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin: 0;">
+                  INDIVIDUAL AI SIGNALS & WIN PERCENTAGES (UNIFIED CONSENSUS)
+                </h3>
+                <button type="button" class="btn btn-secondary" id="btnRefreshAiCards" style="padding: 4px 12px; font-size: 0.78rem; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                  🔄 Refresh AI (Reset & Start Again)
+                </button>
+              </div>
               <div class="models-comparison-grid">
                 <!-- ChatGPT -->
                 <div class="model-card">
@@ -569,6 +575,9 @@
             <div class="evaluation-result-banner" id="evalResultBanner">
               <h4 id="evalResultTitle" style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px;"></h4>
               <p id="evalResultNotes" style="font-size: 0.9rem;"></p>
+              <button type="button" class="btn btn-warning" id="btnRefreshAiAfterLoss" style="display: none; margin-top: 12px; padding: 10px 18px; font-weight: 800; font-size: 0.88rem; background: #f59e0b; color: #000; border: none; border-radius: 6px; cursor: pointer; align-items: center; gap: 8px;">
+                🔄 Refresh AI & Start Fresh (Recalibrate for Next Trade)
+              </button>
             </div>
           </div>
         </div>

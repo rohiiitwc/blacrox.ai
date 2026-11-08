@@ -65,6 +65,10 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
        Set "confidence": 70-74 (strictly less than 85% threshold).
        In "reasoning_summary": Explicitly provide the directional scenario and append: "Confidence is below 85% threshold. DO NOT TRADE."
      * Only assign >= 85% confidence when trend direction, EMA slope, and candle momentum clearly align.
+   - LAW 5: ACTIVE CANDLE COLOR & MOMENTUM CONTINUITY:
+     * Examine the 2-3 most recent completed candles and the current active candle:
+       - If recent candles are consecutively RED and pushing lower with EMA 7 pointed down: Sellers dominate order flow. The default high-probability trade is 'DOWN' (PUT). NEVER predict CALL into a series of red momentum candles without an explicit hammer!
+       - If recent candles are consecutively GREEN and pushing higher with EMA 7 pointed up: Buyers dominate order flow. The default high-probability trade is 'UP' (CALL). NEVER predict PUT into a series of green momentum candles without an explicit shooting star!
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {

@@ -245,10 +245,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms))
   ]);
 
-  // Run all 3 AI provider calls concurrently with strict timeout protection (Gemini given 10s for deep chart vision)
+  // Run all 3 AI provider calls concurrently with resilient timeout protection (Gemini given 24s for deep chart vision)
   const [chatgptResult, geminiResult, grokResult] = await Promise.allSettled([
     callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 6000, 'ChatGPT'),
-    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 10000, 'Gemini'),
+    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 24000, 'Gemini'),
     callWithTimeout(analyzeWithGrok(imagePath, mimeType), 6000, 'Grok')
   ]);
 
@@ -412,6 +412,15 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       }
     }
 
+    // STRICT MOMENTUM CONFLUENCE: Never allow counter-trend fading into strong unexhausted momentum
+    if (isExplicitBearishMomentum && !hasDemandBounceWick && rawDecision === 'UP') {
+      rawDecision = 'DOWN';
+      rawConfidence = Math.max(88, rawConfidence);
+    } else if (isExplicitBullishMomentum && !hasSupplyRejectWick && rawDecision === 'DOWN') {
+      rawDecision = 'UP';
+      rawConfidence = Math.max(88, rawConfidence);
+    }
+
     if (isChop || rawConfidence < 85 || !['UP', 'DOWN'].includes(rawDecision)) {
       // In sideways chop or low-conviction range: determine technical lean but strictly cap confidence < 85%
       if (!['UP', 'DOWN'].includes(rawDecision)) {
@@ -429,22 +438,13 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       targetConfidence = Math.min(94, Math.max(88, rawConfidence));
     }
   } else {
-    // If no live vision model succeeded, derive deterministic trend from price interaction
+    // If no live vision model succeeded: strictly flag as low confidence / DO NOT TRADE to prevent blind losses
     if (relPos !== null) {
-      if (relPos <= 0.35) {
-        targetDecision = 'UP'; // Demand zone
-        targetConfidence = 89;
-      } else if (relPos >= 0.65) {
-        targetDecision = 'DOWN'; // Supply zone
-        targetConfidence = 89;
-      } else {
-        targetDecision = relPos > 0.5 ? 'UP' : 'DOWN';
-        targetConfidence = 88;
-      }
+      targetDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
     } else {
       targetDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
-      targetConfidence = 88;
     }
+    targetConfidence = 74; // Below 85% threshold -> flags DO NOT TRADE
   }
 
   // 4. Build unified shared context for all models
