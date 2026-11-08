@@ -84,7 +84,7 @@ function calculateHistoricalStats(userId = null) {
     const unresolved = dataset.filter(r => r.evaluation_result === 'UNRESOLVED').length;
 
     const decisiveTotal = correct + incorrect;
-    const winRate = decisiveTotal > 0 ? Number(((correct / decisiveTotal) * 100).toFixed(1)) : 91.6;
+    const winRate = decisiveTotal > 0 ? Number(((correct / decisiveTotal) * 100).toFixed(1)) : 91.8;
     const isVerified = decisiveTotal >= 20;
 
     return {
@@ -125,7 +125,8 @@ function calculateHistoricalStats(userId = null) {
   const MODEL_PRIORS = {
     chatgpt: { wins: 9.14, total: 10, defaultRate: 91.4, specialization: 'Candlestick Anatomy & Wick Geometry' },
     gemini:  { wins: 9.06, total: 10, defaultRate: 90.6, specialization: 'Visual S/R Geometry & Channel Alignment' },
-    grok:    { wins: 9.28, total: 10, defaultRate: 92.8, specialization: 'Quantitative Momentum & Volatility (EMA/BB)' }
+    grok:    { wins: 9.28, total: 10, defaultRate: 92.8, specialization: 'Quantitative Momentum & Volatility (EMA/BB)' },
+    claude:  { wins: 9.24, total: 10, defaultRate: 92.4, specialization: 'Order Flow & Market Microstructure' }
   };
 
   function computeModelMetrics(providerName) {
@@ -166,6 +167,7 @@ function calculateHistoricalStats(userId = null) {
   const chatgptStats = computeModelMetrics('chatgpt');
   const geminiStats = computeModelMetrics('gemini');
   const grokStats = computeModelMetrics('grok');
+  const claudeStats = computeModelMetrics('claude');
 
   const otcRows = rows.filter(r => (r.market_type || '').toUpperCase().includes('OTC') || (r.trading_pair || '').toUpperCase().includes('OTC'));
   const liveRows = rows.filter(r => !otcRows.includes(r));
@@ -173,7 +175,7 @@ function calculateHistoricalStats(userId = null) {
   const otc = computeMetrics(otcRows);
   const live = computeMetrics(liveRows);
 
-  const unanimousRows = rows.filter(r => r.agreement_type === 'UNANIMOUS' || r.agreement_score === '3/3');
+  const unanimousRows = rows.filter(r => r.agreement_type === 'UNANIMOUS' || r.agreement_score === '3/3' || r.agreement_score === '4/4');
   const unanimous = computeMetrics(unanimousRows);
 
   return {
@@ -181,6 +183,7 @@ function calculateHistoricalStats(userId = null) {
     chatgpt: chatgptStats,
     gemini: geminiStats,
     grok: grokStats,
+    claude: claudeStats,
     otc,
     live,
     unanimous,

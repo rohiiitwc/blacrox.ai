@@ -12,6 +12,7 @@ const { extractAndParseJson } = require('../services/parseHelper');
 const { analyzeWithChatGPT } = require('../services/openaiService');
 const { analyzeWithGrok } = require('../services/grokService');
 const { analyzeWithGemini, getGeminiApiKey } = require('../services/geminiService');
+const { analyzeWithClaude, getClaudeApiKey } = require('../services/claudeService');
 
 const PORT = 3001; // Separate port for testing
 let server;
@@ -204,12 +205,13 @@ async function runTests() {
     analysisIdA = uploadData.analysis.id;
 
     assert.ok(['UP', 'DOWN', 'INCONCLUSIVE'].includes(uploadData.analysis.consensus_decision));
-    assert.ok(uploadData.ai_results.length === 3, 'Must contain all 3 AI providers: ChatGPT, Gemini, Grok');
+    assert.ok(uploadData.ai_results.length === 4, 'Must contain all 4 AI providers: ChatGPT, Gemini, Grok, Claude');
 
     const providers = uploadData.ai_results.map(r => r.provider);
     assert.ok(providers.includes('chatgpt'), 'Must include ChatGPT');
     assert.ok(providers.includes('gemini'), 'Must include Gemini');
     assert.ok(providers.includes('grok'), 'Must include Grok');
+    assert.ok(providers.includes('claude'), 'Must include Claude');
 
     // Verify All-in-One signal, Individual win rates, and signal alignment
     assert.ok(uploadData.analysis.all_in_one_win_rate >= 70, 'Must have All-in-One win rate');
@@ -276,6 +278,7 @@ async function runTests() {
     assert.ok(refreshData.calibratedMetrics.chatgpt.winRate >= 90);
     assert.ok(refreshData.calibratedMetrics.gemini.winRate >= 88);
     assert.ok(refreshData.calibratedMetrics.grok.winRate >= 90);
+    assert.ok(refreshData.calibratedMetrics.claude.winRate >= 90);
     console.log('  ✓ AI Refresh & neural recalibration passed');
 
     // 12. USER DATA ISOLATION TEST
@@ -394,6 +397,13 @@ async function runTests() {
     const grokMock = await analyzeWithGrok(sampleImage);
     assert.strictEqual(grokMock.provider, 'grok');
     assert.ok(['SUCCESS', 'ERROR'].includes(grokMock.status), 'Grok must return consistent status');
+
+    const claudeKey = getClaudeApiKey();
+    assert.ok(typeof claudeKey === 'string' && claudeKey.length > 10, 'Claude API key must be non-empty string');
+
+    const claudeMock = await analyzeWithClaude(sampleImage);
+    assert.strictEqual(claudeMock.provider, 'claude');
+    assert.ok(['SUCCESS', 'ERROR'].includes(claudeMock.status), 'Claude must return consistent status');
     console.log('  ✓ AI providers export standardized schemas with robust key handling');
 
     // 19. STATIC ASSETS & DOM ELEMENT INTEGRITY TEST

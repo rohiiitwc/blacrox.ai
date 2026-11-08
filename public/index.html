@@ -51,7 +51,7 @@
       <button class="nav-tab" id="navSystem" title="Multi-AI System Status & API Infrastructure">
         <span class="nav-tab-icon-box">⚙️</span>
         <span class="nav-tab-label">System &amp; AI Status</span>
-        <span class="nav-tab-badge badge-system"><span class="beacon-dot"></span>3/3 AI</span>
+        <span class="nav-tab-badge badge-system"><span class="beacon-dot"></span>4/4 AI</span>
       </button>
     </div>
   </nav>
@@ -118,7 +118,7 @@
                   ⏱️ Auto-deleting after trade completion...
                 </span>
                 <button id="btnRemoveImage" class="btn btn-danger" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">🗑️ Remove</button>
-                <button id="btnStartAnalysis" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem;" disabled>⚡ Auto-Analyzing (ChatGPT + Gemini + Grok)</button>
+                <button id="btnStartAnalysis" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.85rem;" disabled>⚡ Auto-Analyzing (ChatGPT + Gemini + Grok + Claude)</button>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@
           </div>
           <div class="countdown-digits" id="countdownDigits">5.0s</div>
           <div class="countdown-status-ticker" id="countdownStatusTicker">
-            Scanning Quotex chart & synchronizing neural signals across ChatGPT, Gemini & Grok...
+            Scanning Quotex chart & synchronizing neural signals across ChatGPT, Gemini, Grok & Claude...
           </div>
           <div class="countdown-progress-bar">
             <div class="countdown-progress-fill" id="countdownProgressFill"></div>
@@ -163,6 +163,14 @@
             </div>
             <p style="font-size: 0.8rem; color: var(--text-secondary);">Grok-2-Vision quantitative market structure</p>
           </div>
+
+          <div class="ai-engine-status-card" id="cardClaudeStatus">
+            <div class="ai-engine-header">
+              <span class="ai-engine-name">Claude (Anthropic)</span>
+              <span class="ai-engine-pill" id="statusClaude">Standing by</span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Claude 3.5 Sonnet order flow & volume confirmation</p>
+          </div>
         </div>
 
         <!-- Primary Analysis Result View -->
@@ -180,7 +188,7 @@
                 <span class="dont-trade-pill" id="dontTradePill" style="display: none;">🚫 DON'T TRADE</span>
                 <span class="badge-timeframe" id="headerEntryTimeBadge" style="background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); color: #34d399; font-weight: 700; font-size: 0.85rem;">🕒 Entry: --:--:-- IST</span>
                 <span class="badge-timeframe" id="headerTradeStatusBadge" style="display: none; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; font-weight: 700; font-size: 0.85rem;">⏳ Trade: In Progress</span>
-                <span id="resultAgreementPill" class="agreement-pill unanimous">3/3 Models Aligned (100% Consensus)</span>
+                <span id="resultAgreementPill" class="agreement-pill unanimous">4/4 Models Aligned (100% Consensus)</span>
                 <button type="button" class="btn btn-secondary" id="btnHeroRefreshAi" style="padding: 4px 10px; font-size: 0.8rem; font-weight: 700; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.35); color: #60a5fa; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">🔄 Refresh AI</button>
               </div>
             </div>
@@ -503,6 +511,24 @@
                   <p style="font-size: 0.85rem; color: var(--text-secondary);" id="grokSummary">Lower Bollinger band bounce into upward volatility expansion.</p>
                   <div style="font-size: 0.75rem; color: #34d399; margin-top: 6px; font-weight: 600;" id="grokEntryTime">🕒 Entry: --:--:-- IST</div>
                 </div>
+
+                <!-- Claude -->
+                <div class="model-card">
+                  <div class="model-card-header">
+                    <span class="model-name">Claude (Anthropic)</span>
+                    <span class="model-decision-tag tag-up" id="claudeDecisionTag">▲ CALL (UP)</span>
+                  </div>
+                  <div style="font-size: 0.75rem; color: #60a5fa; margin-bottom: 6px; font-family: monospace;" id="claudePairSr">GBP/NZD (OTC) • S: 1.86367 | R: 1.88073</div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div>
+                      <span class="model-winrate-badge" id="claudeWinRateBadge">Win Rate: 92.4%</span>
+                      <span class="model-card-dont-trade" id="claudeDontTradeTag" style="display: none;">🚫 DON'T TRADE</span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Confidence: <strong id="claudeConfidence">92%</strong></span>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary);" id="claudeSummary">Institutional order flow confirms volume absorption with strong multi-candle continuation.</p>
+                  <div style="font-size: 0.75rem; color: #34d399; margin-top: 6px; font-weight: 600;" id="claudeEntryTime">🕒 Entry: --:--:-- IST</div>
+                </div>
               </div>
             </div>
           </div>
@@ -710,6 +736,10 @@
           <div class="indicator-item">
             <div class="indicator-title">xAI Grok (Grok-2-Vision)</div>
             <div class="indicator-val" id="sysGrokStatus">Checking status...</div>
+          </div>
+          <div class="indicator-item">
+            <div class="indicator-title">Anthropic Claude (Claude 3.5 Sonnet Vision)</div>
+            <div class="indicator-val" id="sysClaudeStatus">Checking status...</div>
           </div>
           <div class="indicator-item">
             <div class="indicator-title">Server Uptime</div>

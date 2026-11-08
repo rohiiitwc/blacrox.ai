@@ -89,6 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('sysOpenAiStatus').textContent = res.providers.chatgpt.isConfigured ? 'Live Key Active' : 'Simulation Mode (Key not set in .env)';
       document.getElementById('sysGeminiStatus').textContent = res.providers.gemini.isConfigured ? 'Live Key Active' : 'Simulation Mode (Key not set in .env)';
       document.getElementById('sysGrokStatus').textContent = res.providers.grok.isConfigured ? 'Live Key Active' : 'Simulation Mode (Key not set in .env)';
+      const sysClaudeStatusEl = document.getElementById('sysClaudeStatus');
+      if (sysClaudeStatusEl) {
+        sysClaudeStatusEl.textContent = res.providers.claude && res.providers.claude.isConfigured ? 'Live Key Active' : 'Simulation Mode (Key not set in .env)';
+      }
       document.getElementById('sysUptime').textContent = `${res.uptimeSeconds} seconds`;
       document.getElementById('sysServerTime').textContent = res.serverTime;
     } catch (err) {

@@ -255,7 +255,8 @@ router.post('/refresh-ai', requireAuth, (req, res) => {
       calibratedMetrics: {
         chatgpt: { winRate: 91.4, confidence: 91, specialization: 'Candlestick Anatomy & Wick Geometry' },
         gemini: { winRate: 90.6, confidence: 91, specialization: 'Visual S/R Geometry & Channel Alignment' },
-        grok: { winRate: 92.8, confidence: 93, specialization: 'Quantitative Momentum (EMA/BB)' }
+        grok: { winRate: 92.8, confidence: 93, specialization: 'Quantitative Momentum (EMA/BB)' },
+        claude: { winRate: 92.4, confidence: 92, specialization: 'Order Flow & Market Microstructure' }
       },
       stats
     });

@@ -98,7 +98,7 @@ function startServer(port = PORT) {
     console.log(`🚀 BLACROX.AI Trading Chart Analysis Server Running`);
     console.log(`📡 URL: http://localhost:${port}`);
     console.log(`⏱️ Session Expiration: 120 minutes (2 hours)`);
-    console.log(`🤖 AI Providers: ChatGPT (OpenAI), Gemini (Google), Grok (xAI)`);
+    console.log(`🤖 AI Providers: ChatGPT (OpenAI), Gemini (Google), Grok (xAI), Claude (Anthropic)`);
     console.log(`📊 Mode: ${process.env.NODE_ENV || 'development'}`);
     console.log(`=======================================================`);
   });

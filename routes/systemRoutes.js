@@ -5,6 +5,7 @@ router.get('/status', (req, res) => {
   const hasOpenAiKey = !!process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.startsWith('sk-placeholder');
   const hasGeminiKey = !!process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.startsWith('AIzaSy-placeholder');
   const hasGrokKey = !!process.env.GROK_API_KEY && !process.env.GROK_API_KEY.startsWith('xai-placeholder');
+  const hasClaudeKey = !!process.env.CLAUDE_API_KEY && !process.env.CLAUDE_API_KEY.startsWith('sk-ant-placeholder');
 
   res.json({
     success: true,
@@ -21,7 +22,7 @@ router.get('/status', (req, res) => {
       },
       gemini: {
         provider: 'Google Gemini',
-        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        model: process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite',
         isConfigured: hasGeminiKey,
         mode: hasGeminiKey ? 'LIVE' : 'EDUCATIONAL_SIMULATION'
       },
@@ -30,6 +31,12 @@ router.get('/status', (req, res) => {
         model: process.env.GROK_MODEL || 'grok-2-vision-1212',
         isConfigured: hasGrokKey,
         mode: hasGrokKey ? 'LIVE' : 'EDUCATIONAL_SIMULATION'
+      },
+      claude: {
+        provider: 'Anthropic Claude',
+        model: process.env.CLAUDE_MODEL || 'claude-3-5-sonnet-20241022',
+        isConfigured: hasClaudeKey,
+        mode: hasClaudeKey ? 'LIVE' : 'EDUCATIONAL_SIMULATION'
       }
     },
     educationalNotice: 'Educational paper-trading simulator. No real money trades or guaranteed financial returns.'

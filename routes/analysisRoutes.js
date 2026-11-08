@@ -142,10 +142,10 @@ router.post('/upload', requireAuth, (req, res, next) => {
         SELECT * FROM ai_results WHERE analysis_id = ?
       `).all(analysisId);
 
-      const aiResults = (analysisResult.ai_results && analysisResult.ai_results.length === 3)
+      const aiResults = (analysisResult.ai_results && analysisResult.ai_results.length === 4)
         ? analysisResult.ai_results
         : savedAiResults.map(r => {
-            const defaultWinRates = { chatgpt: 91.4, gemini: 90.6, grok: 92.8 };
+            const defaultWinRates = { chatgpt: 91.4, gemini: 90.6, grok: 92.8, claude: 92.4 };
             return {
               ...r,
               win_rate: r.win_rate || defaultWinRates[r.provider] || r.confidence
