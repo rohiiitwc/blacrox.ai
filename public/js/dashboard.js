@@ -151,15 +151,25 @@ const DashboardUI = (() => {
     const minScanDelay = new Promise(resolve => setTimeout(resolve, 5000));
 
     try {
-      // Safe network timeout: 25 seconds (eliminates false timeouts)
-      const uploadPromise = Promise.race([
+      const callUploadWithTimeout = () => Promise.race([
         API.uploadScreenshot(formData),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('AI analysis timed out. Please check your network connection and try again.')), 25000)
+          setTimeout(() => reject(new Error('AI analysis timed out. Please check your network connection and try again.')), 40000)
         )
       ]);
 
-      const [uploadRes] = await Promise.all([uploadPromise, minScanDelay]);
+      let uploadRes;
+      try {
+        [uploadRes] = await Promise.all([callUploadWithTimeout(), minScanDelay]);
+      } catch (firstErr) {
+        // Automatic resilient retry if a temporary network packet drop or network lag occurred
+        if (firstErr && firstErr.message && (firstErr.message.includes('fetch') || firstErr.message.includes('network') || firstErr.message.includes('Failed to fetch') || firstErr.message.includes('timed out'))) {
+          console.warn('Network issue during upload, retrying automatically once...', firstErr);
+          [uploadRes] = await Promise.all([callUploadWithTimeout(), new Promise(r => setTimeout(r, 1000))]);
+        } else {
+          throw firstErr;
+        }
+      }
 
       finishScanAnimation();
 

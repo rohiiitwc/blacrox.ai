@@ -245,11 +245,11 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms))
   ]);
 
-  // Run all 3 AI provider calls concurrently with resilient timeout protection (Gemini given 24s for deep chart vision)
+  // Run all 3 AI provider calls concurrently with fast timeout protection (Gemini capped at 12s so user never times out)
   const [chatgptResult, geminiResult, grokResult] = await Promise.allSettled([
-    callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 6000, 'ChatGPT'),
-    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 24000, 'Gemini'),
-    callWithTimeout(analyzeWithGrok(imagePath, mimeType), 6000, 'Grok')
+    callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 4500, 'ChatGPT'),
+    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 12000, 'Gemini'),
+    callWithTimeout(analyzeWithGrok(imagePath, mimeType), 4500, 'Grok')
   ]);
 
   const seed = analysisId;
