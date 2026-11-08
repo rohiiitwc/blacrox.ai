@@ -126,21 +126,40 @@ router.post('/submit', requireAuth, (req, res, next) => {
         };
       }
 
-      // 2. Check if already evaluated
-      const existingEval = db.prepare('SELECT id FROM evaluations WHERE analysis_id = ?').get(analysisId);
+      // 2. Check if already evaluated (allow update / idempotency so retry succeeds)
+      const existingEval = db.prepare('SELECT * FROM evaluations WHERE analysis_id = ?').get(analysisId);
+      const { evaluationResult, notes } = evaluateCandleOutcome(analysis.consensus_decision, cleanColor);
+      const completedScreenshotFilename = req.file ? req.file.filename : (existingEval ? existingEval.completed_screenshot : null);
+      const evaluatedAt = new Date().toISOString();
+
       if (existingEval) {
-        return res.status(400).json({
-          success: false,
-          message: 'This analysis has already been evaluated.'
+        db.prepare(`
+          UPDATE evaluations SET
+            candle_color = ?,
+            original_decision = ?,
+            evaluation_result = ?,
+            evaluation_notes = ?,
+            completed_screenshot = COALESCE(?, completed_screenshot),
+            evaluated_at = ?
+          WHERE id = ?
+        `).run(
+          cleanColor,
+          analysis.consensus_decision,
+          evaluationResult,
+          notes,
+          completedScreenshotFilename,
+          evaluatedAt,
+          existingEval.id
+        );
+        const updatedEval = db.prepare('SELECT * FROM evaluations WHERE id = ?').get(existingEval.id);
+        return res.json({
+          success: true,
+          message: 'Candle outcome updated successfully.',
+          evaluation: updatedEval
         });
       }
 
-      // 3. Compute evaluation outcome based on educational rules
-      const { evaluationResult, notes } = evaluateCandleOutcome(analysis.consensus_decision, cleanColor);
-      const completedScreenshotFilename = req.file ? req.file.filename : null;
-      const evaluatedAt = new Date().toISOString();
-
-      // 4. Save evaluation record
+      // 3. Save new evaluation record
       const insertStmt = db.prepare(`
         INSERT INTO evaluations (
           analysis_id, user_id, completed_screenshot, candle_color,
