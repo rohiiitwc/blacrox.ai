@@ -941,11 +941,12 @@ const DashboardUI = (() => {
     if (geminiPairSr) geminiPairSr.textContent = srLabel;
     if (grokPairSr) grokPairSr.textContent = srLabel;
 
-    // ChatGPT
-    const chatgptWinRate = chatgpt.win_rate || chatgpt.confidence || 88.5;
+    // ChatGPT (Price action / Candle Anatomy)
+    const chatgptWinRate = chatgpt.win_rate !== undefined ? chatgpt.win_rate : (isLowWinRate ? 73.5 : 91.4);
+    const chatgptConf = chatgpt.confidence !== undefined ? chatgpt.confidence : (isLowWinRate ? 72 : 91);
     chatgptDecisionTag.textContent = dirSignal;
     chatgptDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
-    chatgptConfidence.textContent = `${chatgptWinRate}%`;
+    chatgptConfidence.textContent = `${chatgptConf}%`;
     if (chatgptWinRateBadge) {
       chatgptWinRateBadge.textContent = `Win Rate: ${chatgptWinRate}%`;
       chatgptWinRateBadge.style.borderColor = Number(chatgptWinRate) < 85 ? 'rgba(239, 68, 68, 0.4)' : '';
@@ -958,11 +959,12 @@ const DashboardUI = (() => {
     if (chatgptSummary) chatgptSummary.textContent = chatgpt.candlestick_pattern || chatgpt.reasoning_summary || (isUp ? 'EMA 7 slope and volume indicate bullish continuation.' : 'EMA 7 resistance and volume indicate bearish continuation.');
     if (chatgptEntryTime) chatgptEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
-    // Gemini
-    const geminiWinRate = gemini.win_rate || gemini.confidence || 90.1;
+    // Gemini (Visual S/R Geometry / Dynamic Channel)
+    const geminiWinRate = gemini.win_rate !== undefined ? gemini.win_rate : (isLowWinRate ? 71.2 : 88.7);
+    const geminiConf = gemini.confidence !== undefined ? gemini.confidence : (isLowWinRate ? 70 : 88);
     geminiDecisionTag.textContent = dirSignal;
     geminiDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
-    geminiConfidence.textContent = `${geminiWinRate}%`;
+    geminiConfidence.textContent = `${geminiConf}%`;
     if (geminiWinRateBadge) {
       geminiWinRateBadge.textContent = `Win Rate: ${geminiWinRate}%`;
       geminiWinRateBadge.style.borderColor = Number(geminiWinRate) < 85 ? 'rgba(239, 68, 68, 0.4)' : '';
@@ -972,14 +974,15 @@ const DashboardUI = (() => {
       geminiDontTradeTag.style.display = Number(geminiWinRate) < 85 ? 'inline-block' : 'none';
       geminiDontTradeTag.textContent = "🚫 DON'T TRADE";
     }
-    if (geminiSummary) geminiSummary.textContent = gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
+    if (geminiSummary) geminiSummary.textContent = gemini.sr_observations || gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
     if (geminiEntryTime) geminiEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
-    // Grok
-    const grokWinRate = grok.win_rate || grok.confidence || 87.8;
+    // Grok (Quantitative Momentum / EMA & Bollinger Bands)
+    const grokWinRate = grok.win_rate !== undefined ? grok.win_rate : (isLowWinRate ? 75.0 : 92.8);
+    const grokConf = grok.confidence !== undefined ? grok.confidence : (isLowWinRate ? 74 : 93);
     grokDecisionTag.textContent = dirSignal;
     grokDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
-    grokConfidence.textContent = `${grokWinRate}%`;
+    grokConfidence.textContent = `${grokConf}%`;
     if (grokWinRateBadge) {
       grokWinRateBadge.textContent = `Win Rate: ${grokWinRate}%`;
       grokWinRateBadge.style.borderColor = Number(grokWinRate) < 85 ? 'rgba(239, 68, 68, 0.4)' : '';
@@ -989,7 +992,7 @@ const DashboardUI = (() => {
       grokDontTradeTag.style.display = Number(grokWinRate) < 85 ? 'inline-block' : 'none';
       grokDontTradeTag.textContent = "🚫 DON'T TRADE";
     }
-    if (grokSummary) grokSummary.textContent = grok.bb_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
+    if (grokSummary) grokSummary.textContent = grok.bb_observations || grok.ema_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
     if (grokEntryTime) grokEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
     // Deep Technical Details

@@ -49,32 +49,22 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
      * Return "current_price" and "current_price_y_percent" matching the active candle position.
 
 3. INSTITUTIONAL 1-MINUTE SNIPER TRADING LAWS (TARGET: > 85% WIN RATE):
-   - LAW 1: SUPPORT ZONE IS FOR BUYING (CALL), NEVER SELLING (PUT):
-     * When price is sitting at or near the Support Floor (lowest price trough or green support line):
-       Sellers have run out of momentum and buyers are absorbing orders.
-       The high-probability move is a BULLISH BOUNCE -> predict 'UP' (CALL), confidence 89-93%.
-       NEVER predict PUT when price is at Support! Selling at the support floor causes 80% loss rates.
-   - LAW 2: RESISTANCE ZONE IS FOR SELLING (PUT), NEVER BUYING (CALL):
-     * When price is sitting at or near the Resistance Ceiling (highest price peak or red resistance line):
-       Buyers have run out of momentum and sellers are rejecting higher prices.
-       The high-probability move is a BEARISH REJECTION -> predict 'DOWN' (PUT), confidence 89-93%.
-       NEVER predict CALL when price is at Resistance! Buying at the resistance ceiling causes 80% loss rates.
-   - LAW 3: NEVER CHASE 4+ EXHAUSTED CANDLES (EXHAUSTION REVERSAL):
-     * If price has already moved 4 or 5 consecutive red candles in a row down to support:
-       The downmove is EXHAUSTED. The next candle is overwhelmingly favored to pull back GREEN. Predict 'UP' (CALL) or 'INCONCLUSIVE'. NEVER predict PUT!
-     * If price has already moved 4 or 5 consecutive green candles in a row up to resistance:
-       The upmove is EXHAUSTED. The next candle is overwhelmingly favored to pull back RED. Predict 'DOWN' (PUT) or 'INCONCLUSIVE'. NEVER predict CALL!
-   - LAW 4: FRESH EARLY MOMENTUM BREAKOUTS (MID-CHANNEL):
-     * If moving averages (EMA 7 green and EMA 21 red) just crossed and fanned with a steep slope:
-       Only take the 1st or 2nd continuation candle in that direction.
-       - Fresh Bullish breakout with green candle closing above EMA 7: predict 'UP' (CALL).
-       - Fresh Bearish breakdown with red candle closing below EMA 7: predict 'DOWN' (PUT).
-   - LAW 5: CHOPPY / RANGE-BOUND MARKET (GIVE SIGNAL + CONFIDENCE < 85% + MENTION DON'T TRADE):
-     * If candles are small, alternating colors (green-red-green-red), or EMAs are horizontal without slope:
-       THIS IS A CHOPPY RANGE. Still determine the technical bias ('UP' or 'DOWN') based on recent wick rejection, moving average lean, or S/R proximity.
-       Set "confidence": 70-75 (less than 85% threshold).
+   - LAW 1: TREND & MOVING AVERAGE CONFLUENCE IS SUPREME (TREND IS YOUR FRIEND):
+     * Binary options on 1-minute OTC charts require trading WITH dynamic momentum:
+       - When EMA 7 (green) is sloping downward below EMA 21 (red) and active candles are closing below EMA 7: The directional force is BEARISH -> predict 'DOWN' (PUT).
+       - When EMA 7 (green) is sloping upward above EMA 21 (red) and active candles are closing above EMA 7: The directional force is BULLISH -> predict 'UP' (CALL).
+     * NEVER bet against a strong active EMA slope without confirmed candlestick wick rejection!
+   - LAW 2: SUPPORT & RESISTANCE REVERSALS REQUIRE EXPLICIT WICK REJECTION:
+     * SUPPORT BOUNCE (UP / CALL): Only call a Support Bounce if the active candle has a prominent LOWER REJECTION WICK (Hammer, Pinbar, or demand absorption shadow). If candles are solid red closing at their lows, price is breaking down -> predict 'DOWN' (PUT) continuation!
+     * RESISTANCE REJECTION (DOWN / PUT): Only call a Resistance Rejection if the active candle has a prominent UPPER REJECTION WICK (Shooting Star, Pinbar, or supply rejection shadow). If candles are solid green closing at their highs, price is breaking out -> predict 'UP' (CALL) continuation!
+   - LAW 3: RECOGNIZING CANDLE EXHAUSTION:
+     * If price has printed 4 or 5 consecutive unbacked impulse candles in one direction and active candle shows a rejection wick at a major level, anticipate a 1-minute pullback reversal.
+   - LAW 4: CHOPPY / RANGE-BOUND MARKET (CONFIDENCE < 85% + MENTION "DO NOT TRADE"):
+     * If candles are small, alternating colors (green-red-green-red), or EMAs are tangled horizontally without slope:
+       THIS IS A CHOPPY RANGE. Still determine technical lean ('UP' or 'DOWN') based on recent wick rejection or S/R proximity, BUT:
+       Set "confidence": 70-74 (strictly less than 85% threshold).
        In "reasoning_summary": Explicitly provide the directional scenario and append: "Confidence is below 85% threshold. DO NOT TRADE."
-     * Only assign >= 85% confidence when trend direction, EMA slope, and candle momentum are clearly aligned.
+     * Only assign >= 85% confidence when trend direction, EMA slope, and candle momentum clearly align.
 
 5. RETURN ONLY VALID JSON MATCHING THIS EXACT SCHEMA:
 {

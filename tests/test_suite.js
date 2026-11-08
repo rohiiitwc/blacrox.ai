@@ -214,9 +214,12 @@ async function runTests() {
     // Verify All-in-One signal, Individual win rates, and signal alignment
     assert.ok(uploadData.analysis.all_in_one_win_rate >= 70, 'Must have All-in-One win rate');
     assert.ok(uploadData.ai_results.every(r => r.win_rate >= 70), 'Every individual model must have individual win rate');
+    const winRates = uploadData.ai_results.map(r => r.win_rate);
+    const uniqueRates = new Set(winRates);
+    assert.ok(uniqueRates.size >= 2, 'Individual AI models must have distinct specialized win rates, not identical clones');
     const masterDecision = uploadData.analysis.consensus_decision;
     assert.ok(uploadData.ai_results.every(r => r.decision === masterDecision), 'AI models must align on the exact same signal without conflicting signals');
-    console.log(`  ✓ Multi-AI analysis completed (Master Signal: ${uploadData.analysis.all_in_one_signal || masterDecision}, All-in-One Win Rate: ${uploadData.analysis.all_in_one_win_rate}%, Unanimous 3/3 Alignment)`);
+    console.log(`  ✓ Multi-AI analysis completed (Master Signal: ${uploadData.analysis.all_in_one_signal || masterDecision}, All-in-One Win Rate: ${uploadData.analysis.all_in_one_win_rate}%, Unanimous 3/3 Alignment, Distinct Win Rates: ${Array.from(uniqueRates).join('%, ')}%)`);
 
     // 9. UNSUPPORTED FILE FORMAT REJECTION TEST
     console.log('Test 9: Invalid File Format Validation...');

@@ -293,7 +293,8 @@ function createFallbackDb() {
               response_time_ms: params[20],
               status: params[21],
               error_message: params[22],
-              raw_response: params[23]
+              raw_response: params[23],
+              win_rate: params[24] !== undefined ? params[24] : params[4]
             });
             saveStore();
             return { lastInsertRowid: id, changes: 1 };
@@ -434,6 +435,7 @@ function initSchema() {
     try { db.exec("ALTER TABLE ai_results ADD COLUMN support_level TEXT DEFAULT '';"); } catch (e) {}
     try { db.exec("ALTER TABLE ai_results ADD COLUMN resistance_level TEXT DEFAULT '';"); } catch (e) {}
     try { db.exec("ALTER TABLE ai_results ADD COLUMN current_price TEXT DEFAULT '';"); } catch (e) {}
+    try { db.exec("ALTER TABLE ai_results ADD COLUMN win_rate REAL DEFAULT NULL;"); } catch (e) {}
   } catch (err) {
     console.error('Schema initialization warning:', err.message);
   }
