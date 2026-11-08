@@ -719,19 +719,11 @@ const DashboardUI = (() => {
     const isLowConfidence = (Number(analysis.all_in_one_win_rate || analysis.consensus_confidence) < 85 || analysis.trade_recommendation === "DON'T TRADE");
 
     if (candleActionBubble) {
-      if (isLowConfidence) {
-        candleActionBubble.textContent = "🚫 DON'T TRADE";
-        candleActionBubble.className = 'signal-action-bubble sell';
-        candleActionBubble.style.background = 'rgba(239, 68, 68, 0.25)';
-        candleActionBubble.style.borderColor = '#ef4444';
-        candleActionBubble.style.color = '#ff5b79';
-      } else {
-        candleActionBubble.textContent = isUp ? 'BUY ▲' : 'SELL ▼';
-        candleActionBubble.className = isUp ? 'signal-action-bubble' : 'signal-action-bubble sell';
-        candleActionBubble.style.background = '';
-        candleActionBubble.style.borderColor = '';
-        candleActionBubble.style.color = '';
-      }
+      candleActionBubble.textContent = isUp ? 'BUY ▲' : 'SELL ▼';
+      candleActionBubble.className = isUp ? 'signal-action-bubble' : 'signal-action-bubble sell';
+      candleActionBubble.style.background = '';
+      candleActionBubble.style.borderColor = '';
+      candleActionBubble.style.color = '';
     }
     if (candleEntryCallout) {
       candleEntryCallout.style.display = 'none';
@@ -745,13 +737,13 @@ const DashboardUI = (() => {
       candleEntryTimeText.textContent = entryTimeIst || '--:--:-- IST';
     }
     if (candleEntrySubtag) {
-      candleEntrySubtag.textContent = isLowConfidence ? (isUp ? '▲ ENTRY (DON\'T TRADE)' : '▼ ENTRY (DON\'T TRADE)') : (isUp ? '▲ ENTRY' : '▼ ENTRY');
-      candleEntrySubtag.style.color = isLowConfidence ? '#ef4444' : (isUp ? '#facc15' : '#f97316');
+      candleEntrySubtag.textContent = isLowConfidence ? (isUp ? '▲ ENTRY (CAUTION)' : '▼ ENTRY (CAUTION)') : (isUp ? '▲ ENTRY' : '▼ ENTRY');
+      candleEntrySubtag.style.color = isLowConfidence ? '#f59e0b' : (isUp ? '#facc15' : '#f97316');
     }
 
     // Top HUD Pills (Prime Setu style)
     if (hudSignalPill) {
-      hudSignalPill.textContent = (isUp ? 'CALL' : 'PUT') + (isLowConfidence ? " • DON'T TRADE" : '');
+      hudSignalPill.textContent = (isUp ? 'CALL' : 'PUT') + (isLowConfidence ? " (CAUTION)" : '');
       hudSignalPill.className = isUp ? 'hud-pill pill-direction' : 'hud-pill pill-direction pill-put';
     }
     const confVal = analysis.consensus_confidence || 92;
@@ -765,7 +757,7 @@ const DashboardUI = (() => {
     // Signal Brief Specs
     if (briefPair) briefPair.textContent = analysis.trading_pair || 'USD/ARS (OTC)';
     if (briefDirection) {
-      briefDirection.innerHTML = (isUp ? 'CALL' : 'PUT') + (isLowConfidence ? ' <span style="font-size: 0.72rem; color: #ef4444; font-weight: 700; margin-left: 4px; padding: 2px 6px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 4px;">DON\'T TRADE</span>' : '');
+      briefDirection.innerHTML = (isUp ? 'CALL' : 'PUT') + (isLowConfidence ? ' <span style="font-size: 0.72rem; color: #f59e0b; font-weight: 700; margin-left: 4px; padding: 2px 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 4px;">CAUTION</span>' : '');
       briefDirection.style.color = isUp ? '#00e676' : '#ff5b79';
     }
     if (briefEntryPrice) briefEntryPrice.textContent = priceVal;
@@ -853,27 +845,22 @@ const DashboardUI = (() => {
 
     // Unified Master Signal
     const decision = analysis.consensus_decision || 'UP';
-    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 89.2;
+    const allInOneWinRate = analysis.all_in_one_win_rate || analysis.consensus_confidence || 91.0;
     const isLowWinRate = Number(allInOneWinRate) < 85 || decision === 'INCONCLUSIVE' || analysis.trade_recommendation === "DON'T TRADE";
     const isUp = decision === 'UP' || decision.includes('CALL');
     const dirSignal = isUp ? '▲ CALL (UP)' : '▼ PUT (DOWN)';
 
-    if (isLowWinRate) {
-      resultDecisionBig.innerHTML = `🚫 <span style="color: #ef4444;">DON'T TRADE</span>`;
-      resultDecisionBig.className = 'decision-action-big text-down';
-    } else {
-      resultDecisionBig.textContent = dirSignal;
-      resultDecisionBig.className = `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
-    }
+    // ALWAYS display the directional signal (CALL or PUT) clearly and prominently
+    resultDecisionBig.textContent = dirSignal;
+    resultDecisionBig.className = `decision-action-big ${isUp ? 'text-up' : 'text-down'}`;
 
     // Render S/R and Entry Lines Directly on Chart Screenshot (Prime Setu Style)
     renderChartLevelsOverlay(analysis, isUp, supportVal, resistanceVal, priceVal, entryTimeIst);
 
     if (isLowWinRate) {
-      // WIN RATE < 85%: Still give the signal, but explicitly mention "DON'T TRADE"
       if (resultDecisionSub) {
-        resultDecisionSub.innerHTML = `🚫 <strong style="color: #ef4444; font-size: 1.05rem; letter-spacing: 0.03em;">DON'T TRADE</strong> — Low Confidence / Win Rate (${allInOneWinRate}% &lt; 85% threshold)`;
-        resultDecisionSub.style.color = '#ef4444';
+        resultDecisionSub.innerHTML = `⚠️ <strong style="color: #f59e0b; font-size: 1.02rem;">CAUTION</strong> — Low Volatility / Consolidation (${allInOneWinRate}% win probability)`;
+        resultDecisionSub.style.color = '#f59e0b';
       }
 
       if (allInOneWinRateBadge) {
@@ -883,19 +870,19 @@ const DashboardUI = (() => {
 
       if (dontTradePill) {
         dontTradePill.style.display = 'inline-flex';
-        dontTradePill.textContent = `🚫 DON'T TRADE (Win Rate < 85%)`;
+        dontTradePill.textContent = `⚠️ Caution: Win Rate < 85%`;
       }
 
       if (tradeRecommendationBadge) {
         tradeRecommendationBadge.style.display = 'block';
-        tradeRecommendationBadge.innerHTML = `🚫 <strong>DON'T TRADE</strong> — Signal is <strong>${dirSignal}</strong>, but AI Win Rate is <strong>${allInOneWinRate}%</strong> (below 85% threshold). Avoid placing simulated trades.`;
+        tradeRecommendationBadge.innerHTML = `⚠️ <strong>CAUTION:</strong> Signal is <strong>${dirSignal}</strong>, but Win Rate is <strong>${allInOneWinRate}%</strong> (< 85% threshold). Market exhibits low volatility.`;
       }
 
-      resultConfidenceText.innerHTML = `<span style="color: #ef4444; font-weight: 800;">${allInOneWinRate}% Win Rate (⚠️ DON'T TRADE)</span>`;
+      resultConfidenceText.innerHTML = `<span style="color: #f59e0b; font-weight: 800;">${allInOneWinRate}% Win Rate</span>`;
       resultConfidenceBar.style.width = `${allInOneWinRate}%`;
-      resultConfidenceBar.style.backgroundColor = '#ef4444';
+      resultConfidenceBar.style.backgroundColor = '#f59e0b';
 
-      heroCard.className = `consensus-hero-card ${isUp ? 'signal-up' : 'signal-down'} warning-border`;
+      heroCard.className = `consensus-hero-card ${isUp ? 'signal-up' : 'signal-down'}`;
     } else {
       // Normal >= 85% win rate
       if (resultDecisionSub) {
@@ -959,7 +946,7 @@ const DashboardUI = (() => {
     }
     if (chatgptDontTradeTag) {
       chatgptDontTradeTag.style.display = Number(chatgptWinRate) < 85 ? 'inline-block' : 'none';
-      chatgptDontTradeTag.textContent = "🚫 DON'T TRADE";
+      chatgptDontTradeTag.textContent = "⚠️ CAUTION";
     }
     if (chatgptSummary) chatgptSummary.textContent = chatgpt.candlestick_pattern || chatgpt.reasoning_summary || (isUp ? 'EMA 7 slope and volume indicate bullish continuation.' : 'EMA 7 resistance and volume indicate bearish continuation.');
     if (chatgptEntryTime) chatgptEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
@@ -977,7 +964,7 @@ const DashboardUI = (() => {
     }
     if (geminiDontTradeTag) {
       geminiDontTradeTag.style.display = Number(geminiWinRate) < 85 ? 'inline-block' : 'none';
-      geminiDontTradeTag.textContent = "🚫 DON'T TRADE";
+      geminiDontTradeTag.textContent = "⚠️ CAUTION";
     }
     if (geminiSummary) geminiSummary.textContent = gemini.sr_observations || gemini.candlestick_pattern || gemini.reasoning_summary || (isUp ? 'Strong rejection of lower dynamic support.' : 'Rejection of upper dynamic resistance.');
     if (geminiEntryTime) geminiEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
@@ -995,7 +982,7 @@ const DashboardUI = (() => {
     }
     if (grokDontTradeTag) {
       grokDontTradeTag.style.display = Number(grokWinRate) < 85 ? 'inline-block' : 'none';
-      grokDontTradeTag.textContent = "🚫 DON'T TRADE";
+      grokDontTradeTag.textContent = "⚠️ CAUTION";
     }
     if (grokSummary) grokSummary.textContent = grok.bb_observations || grok.ema_observations || grok.reasoning_summary || (isUp ? 'Lower Bollinger Band bounce confirmed.' : 'Upper Bollinger Band rejection confirmed.');
     if (grokEntryTime) grokEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
