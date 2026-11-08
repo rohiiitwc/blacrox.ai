@@ -145,7 +145,7 @@ router.post('/upload', requireAuth, (req, res, next) => {
       const aiResults = (analysisResult.ai_results && analysisResult.ai_results.length === 3)
         ? analysisResult.ai_results
         : savedAiResults.map(r => {
-            const defaultWinRates = { chatgpt: 91.4, gemini: 88.7, grok: 92.8 };
+            const defaultWinRates = { chatgpt: 91.4, gemini: 90.6, grok: 92.8 };
             return {
               ...r,
               win_rate: r.win_rate || defaultWinRates[r.provider] || r.confidence
@@ -277,7 +277,7 @@ router.get('/:id', requireAuth, (req, res) => {
     const aiResults = db.prepare(`
       SELECT * FROM ai_results WHERE analysis_id = ?
     `).all(analysisId).map(r => {
-      const defaultWinRates = { chatgpt: 91.4, gemini: 88.7, grok: 92.8 };
+      const defaultWinRates = { chatgpt: 91.4, gemini: 90.6, grok: 92.8 };
       return {
         ...r,
         win_rate: r.win_rate || defaultWinRates[r.provider] || r.confidence

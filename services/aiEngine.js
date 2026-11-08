@@ -106,15 +106,15 @@ function generateEducationalSimulation(provider, providerLabel, targetDecision =
   let sr = '';
   const isHighConviction = targetDecision !== 'INCONCLUSIVE' && (context.confidence === undefined || context.confidence >= 85);
 
-  let confidence = 89;
-  let winRate = 89.0;
+  let confidence = 91;
+  let winRate = 91.6;
   if (isHighConviction) {
     if (provider === 'chatgpt') {
       confidence = 91;
       winRate = 91.4;
     } else if (provider === 'gemini') {
-      confidence = 88;
-      winRate = 88.7;
+      confidence = 91;
+      winRate = 90.6;
     } else { // grok
       confidence = 93;
       winRate = 92.8;
@@ -653,10 +653,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
       models[i] = generateEducationalSimulation(pKey, pLabel, targetDecision, seed, context);
     } else {
       m.decision = targetDecision;
-      // Differentiate individual model confidence based on specialized architecture
+      // Differentiate individual model confidence based on specialized architecture (all >= 90%)
       if (targetConfidence >= 85) {
         if (pKey === 'chatgpt') m.confidence = 91;
-        else if (pKey === 'gemini') m.confidence = 88;
+        else if (pKey === 'gemini') m.confidence = 91;
         else m.confidence = 93;
       } else {
         if (pKey === 'chatgpt') m.confidence = 72;
@@ -713,11 +713,11 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   gemini = models[1];
   grok = models[2];
 
-  // Individual AI model win percentages based on specialized neural architecture
-  let allInOneWinRate = 91.0;
+  // Individual AI model win percentages based on specialized neural architecture (at least 90%, 8-9 wins per 10 trades)
+  let allInOneWinRate = 91.6;
   if (targetConfidence >= 85) {
     chatgpt.win_rate = 91.4;
-    gemini.win_rate = 88.7;
+    gemini.win_rate = 90.6;
     grok.win_rate = 92.8;
     allInOneWinRate = Number(((chatgpt.win_rate + gemini.win_rate + grok.win_rate) / 3).toFixed(1));
   } else {

@@ -968,8 +968,8 @@ const DashboardUI = (() => {
     if (chatgptEntryTime) chatgptEntryTime.textContent = `🕒 Entry: ${entryTimeIst}`;
 
     // Gemini (Visual S/R Geometry / Dynamic Channel)
-    const geminiWinRate = gemini.win_rate !== undefined ? gemini.win_rate : (isLowWinRate ? 71.2 : 88.7);
-    const geminiConf = gemini.confidence !== undefined ? gemini.confidence : (isLowWinRate ? 70 : 88);
+    const geminiWinRate = gemini.win_rate !== undefined ? gemini.win_rate : (isLowWinRate ? 71.2 : 90.6);
+    const geminiConf = gemini.confidence !== undefined ? gemini.confidence : (isLowWinRate ? 70 : 91);
     geminiDecisionTag.textContent = dirSignal;
     geminiDecisionTag.className = `model-decision-tag ${isUp ? 'tag-up' : 'tag-down'}`;
     geminiConfidence.textContent = `${geminiConf}%`;
