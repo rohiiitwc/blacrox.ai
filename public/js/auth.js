@@ -44,6 +44,19 @@ const AuthUI = (() => {
     forgotForm.style.display = 'none';
     resetForm.style.display = 'none';
     document.querySelector('.auth-tabs').style.display = 'flex';
+
+    // Auto-fill last registered/logged-in email for seamless re-login
+    const loginEmailInput = document.getElementById('loginEmail');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    if (loginEmailInput) {
+      const lastEmail = API.getLastLoginEmail();
+      if (lastEmail && !loginEmailInput.value) {
+        loginEmailInput.value = lastEmail;
+      }
+      if (loginEmailInput.value && loginPasswordInput) {
+        setTimeout(() => loginPasswordInput.focus(), 60);
+      }
+    }
   }
 
   function showRegisterTab() {
@@ -249,7 +262,7 @@ const AuthUI = (() => {
 
     // Listen for session expiry event
     window.addEventListener('session-expired', (e) => {
-      openModal(e.detail?.message || 'Your session has expired. Please log in again.');
+      openModal(e.detail?.message || 'Your 2-hour session has completed. Please enter your password to continue.');
     });
 
     // Check URL params for reset token

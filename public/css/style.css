@@ -198,13 +198,26 @@ header.app-header {
   color: var(--color-bullish);
 }
 
-/* Nav Tabs - Modern Responsive & Touch-Swipeable */
+/* High-Tech Institutional Trading Terminal Navigation Deck */
 nav.app-nav {
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, rgba(13, 20, 36, 0.95) 0%, rgba(9, 14, 26, 0.98) 100%);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.nav-tabs-dock {
   display: flex;
-  gap: 0.75rem;
-  padding: 0 1.5rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
@@ -212,34 +225,150 @@ nav.app-nav {
   scrollbar-width: none;
 }
 
-nav.app-nav::-webkit-scrollbar {
+.nav-tabs-dock::-webkit-scrollbar {
   display: none;
 }
 
 .nav-tab {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  position: relative;
+  background: rgba(22, 33, 56, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 0.85rem 0.75rem;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 1rem;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: var(--transition);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   flex-shrink: 0;
-  min-height: 44px;
+  min-height: 42px;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .nav-tab:hover {
-  color: var(--text-primary);
+  background: rgba(30, 48, 80, 0.75);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #f1f5f9;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.4), 0 0 14px -2px rgba(56, 189, 248, 0.25);
 }
 
+.nav-tab:active {
+  transform: translateY(0);
+}
+
+/* Standout Illuminated Active State */
 .nav-tab.active {
-  color: var(--color-brand);
-  border-bottom-color: var(--color-brand);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.22) 0%, rgba(37, 99, 235, 0.32) 100%);
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 20px -2px rgba(14, 165, 233, 0.45), 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Radiant Laser Bottom Beam for Active Tab */
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #38bdf8, #00f5ff, #38bdf8, transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 10px #00f5ff, 0 0 16px rgba(56, 189, 248, 0.9);
+}
+
+/* Icon Box inside Tab */
+.nav-tab-icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  transition: transform 0.2s ease;
+}
+
+.nav-tab:hover .nav-tab-icon-box {
+  transform: scale(1.1);
+}
+
+/* Label text */
+.nav-tab-label {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Micro-Badges */
+.nav-tab-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.badge-live {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.badge-winrate {
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.badge-history {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #cbd5e1;
+}
+
+.badge-system {
+  background: rgba(99, 102, 241, 0.18);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+}
+
+/* Pulsing Beacons for Live status */
+.pulse-beacon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: beacon-pulse 1.8s infinite ease-in-out;
+}
+
+.beacon-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #818cf8;
+  box-shadow: 0 0 6px #818cf8;
+}
+
+@keyframes beacon-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
 }
 
 /* Main Layout */
@@ -1906,7 +2035,11 @@ table.data-table tr:hover td {
     display: none; /* Conserve header space on smaller screens */
   }
   nav.app-nav {
-    padding: 0 1rem;
+    padding: 0;
+  }
+  .nav-tabs-dock {
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
   }
   main.app-main {
     padding: 1rem 0.85rem;
@@ -2013,12 +2146,20 @@ table.data-table tr:hover td {
     min-height: 32px;
   }
   nav.app-nav {
-    padding: 0 0.75rem;
-    gap: 0.4rem;
+    padding: 0;
+  }
+  .nav-tabs-dock {
+    padding: 0.45rem 0.65rem;
+    gap: 0.45rem;
   }
   .nav-tab {
-    padding: 0.7rem 0.65rem;
+    padding: 0.45rem 0.7rem;
     font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+  .nav-tab-badge {
+    font-size: 0.58rem;
+    padding: 1px 5px;
   }
   main.app-main {
     padding: 0.75rem 0.5rem;

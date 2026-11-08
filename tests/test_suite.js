@@ -412,8 +412,53 @@ async function runTests() {
     }
     console.log('  ✓ All linked assets and scripts verified');
 
+    // 20. SERVERLESS COLD-START RE-HYDRATION & VAULT TOKEN VERIFICATION
+    console.log('Test 20: Serverless Cold-Start Re-Hydration & Vault Token Verification...');
+    const coldMail = `coldstart.${Date.now()}@example.com`;
+    const coldRegRes = await fetch(`${BASE_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: 'Cold Start User',
+        email: coldMail,
+        password: 'SecureColdPassword1!',
+        confirm_password: 'SecureColdPassword1!'
+      })
+    });
+    const coldRegData = await coldRegRes.json();
+    assert.strictEqual(coldRegRes.status, 201);
+    assert.ok(coldRegData.vaultToken, 'Registration must return a signed vaultToken');
+
+    // Simulate Vercel ephemeral container shutdown by clearing user from SQLite
+    db.prepare('DELETE FROM users WHERE email = ?').run(coldMail);
+    assert.strictEqual(db.prepare('SELECT id FROM users WHERE email = ?').get(coldMail), undefined);
+
+    // Re-login with vaultToken must succeed and re-hydrate user in fresh container
+    const coldLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: coldMail,
+        password: 'SecureColdPassword1!',
+        vault_token: coldRegData.vaultToken
+      })
+    });
+    const coldLoginData = await coldLoginRes.json();
+    assert.strictEqual(coldLoginRes.status, 200);
+    assert.strictEqual(coldLoginData.success, true);
+    assert.ok(coldLoginData.token, 'Must return fresh JWT session token');
+
+    // Verify user was re-hydrated into SQLite
+    const rehydratedUser = db.prepare('SELECT id, email, full_name FROM users WHERE email = ?').get(coldMail);
+    assert.ok(rehydratedUser, 'User must be re-hydrated in SQLite');
+    assert.strictEqual(rehydratedUser.email, coldMail);
+
+    // Clean up
+    db.prepare('DELETE FROM users WHERE email = ?').run(coldMail);
+    console.log('  ✓ Persistent user re-hydration across serverless cold-start container reset verified');
+
     console.log('\n=======================================================');
-    console.log('✅ ALL TEST SUITE CHECKS PASSED SUCCESSFULLY (19/19)');
+    console.log('✅ ALL TEST SUITE CHECKS PASSED SUCCESSFULLY (20/20)');
     console.log('=======================================================\n');
   } catch (err) {
     console.error('\n❌ TEST SUITE FAILURE:', err);

@@ -26,6 +26,17 @@ try {
 
 const dbPath = path.join(dbDir, 'blacrox.db');
 
+// In serverless cold-starts, seed SQLite from bundled repository data if fresh
+const bundledDbPath = path.join(__dirname, '../data/blacrox.db');
+if (isVercel && fs.existsSync(bundledDbPath) && !fs.existsSync(dbPath)) {
+  try {
+    fs.copyFileSync(bundledDbPath, dbPath);
+    console.log('Seeded SQLite database from repository bundled data.');
+  } catch (seedErr) {
+    console.warn('Could not seed database from bundle:', seedErr.message);
+  }
+}
+
 let db;
 try {
   const Database = require('better-sqlite3');
