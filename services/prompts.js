@@ -36,6 +36,9 @@ CRITICAL INSTRUCTIONS FOR 1-MINUTE CANDLE ANALYSIS:
        - chart_high_price >= resistance_level > current_price > support_level >= chart_low_price
        - Resistance Price MUST be strictly GREATER than Support Price: Resistance > Support.
        - Resistance Line on chart is visually HIGHER (lower Y% value) than Support Line (higher Y% value): resistance_y_percent < support_y_percent.
+       - The "resistance_level" number MUST MATCH the price scale directly across from the resistance wicks (resistance_y_percent).
+       - The "support_level" number MUST MATCH the price scale directly across from the support wicks (support_y_percent).
+       - NEVER output a resistance_level that is below current_price or closer to chart_low_price than to chart_high_price.
    - RESISTANCE LEVEL & Y%:
      * Locate the prominent swing high peaks / upper candle wicks where buyers failed and price reversed downward.
      * Extract the exact resistance price number from the price scale with full decimal precision.

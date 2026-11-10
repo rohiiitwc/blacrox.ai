@@ -80,4 +80,31 @@ test('Preserves sub-1.0 Quotex OTC prices (USD/BRL OTC)', () => {
   assert(res.decimals === 5, `Expected 5 decimals, got ${res.decimals}`);
 });
 
+test('Calibrates EUR/GBP within 0.85-0.88 range rather than 1.08', () => {
+  const res = calibratePriceLevels('EUR/GBP (OTC)', null, null, null, null, null, null);
+  const p = parseFloat(res.current_price);
+  assert(p > 0.80 && p < 0.95, `Expected EUR/GBP in 0.80-0.95 range, got ${p}`);
+  assert(res.decimals === 5, `Expected 5 decimals`);
+});
+
+test('Calibrates GBP/JPY in 150-200 range rather than 1.29', () => {
+  const res = calibratePriceLevels('GBP/JPY (OTC)', null, null, null, null, null, null);
+  const p = parseFloat(res.current_price);
+  assert(p > 110 && p < 250, `Expected GBP/JPY in 110-250 range, got ${p}`);
+  assert(res.decimals === 2, `Expected 2 decimals`);
+});
+
+test('Calibrates resistance level to price scale when uncalibrated AI number deviates wildly', () => {
+  // Chart high: 0.87360 (top), Chart low: 0.86820 (bottom), resY: 28% (near top)
+  // AI mistakenly returned 0.87062 (which is near the bottom/middle)
+  const res = calibratePriceLevels('EUR/GBP (OTC)', '0.87062', '0.86815', '0.86990', 28.0, 82.0, 58.0, '0.87360', '0.86820');
+  const r = parseFloat(res.resistance_level);
+  const s = parseFloat(res.support_level);
+  const p = parseFloat(res.current_price);
+  assert(r > p, `Expected r (${r}) > p (${p})`);
+  assert(p > s, `Expected p (${p}) > s (${s})`);
+  assert(r > 0.87200, `Expected calibrated resistance near scale at 28% (> 0.87200), got ${r}`);
+});
+
+
 

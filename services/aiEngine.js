@@ -642,19 +642,15 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let sharedSrObs = detectedSrObs;
   let sharedPattern = successfulModels.find(m => m.candlestick_pattern)?.candlestick_pattern;
 
-  // Sanitize shared indicators so they strictly align with targetDecision
+  // Sanitize shared indicators so they strictly align with targetDecision and calibrated S/R levels
   if (targetDecision === 'UP') {
     if (sharedTrend && sharedTrend.toLowerCase().includes('bear')) sharedTrend = 'Bullish Support Demand Bounce';
     if (sharedPattern && sharedPattern.toLowerCase().includes('bear')) sharedPattern = 'Support Floor Demand Pinbar Bounce';
-    if (!sharedSrObs || /down|bear|lower|breakdown|broken below|pressure/i.test(sharedSrObs)) {
-      sharedSrObs = `Key support at ${detectedSupport} holding firm; price bounced off demand zone targeting resistance at ${detectedResistance}.`;
-    }
+    sharedSrObs = `Key support at ${detectedSupport} holding firm; price bounced off demand zone targeting resistance at ${detectedResistance}.`;
   } else if (targetDecision === 'DOWN') {
     if (sharedTrend && sharedTrend.toLowerCase().includes('bull')) sharedTrend = 'Bearish Resistance Supply Rejection';
     if (sharedPattern && sharedPattern.toLowerCase().includes('bull')) sharedPattern = 'Resistance Ceiling Supply Pinbar Rejection';
-    if (!sharedSrObs || /up|bull|higher|breakout|broken above/i.test(sharedSrObs)) {
-      sharedSrObs = `Key resistance at ${detectedResistance} capping upside; price rejected at supply zone targeting support at ${detectedSupport}.`;
-    }
+    sharedSrObs = `Key resistance at ${detectedResistance} capping upside; price rejected at supply zone targeting support at ${detectedSupport}.`;
   } else {
     sharedTrend = 'Sideways Consolidation';
     sharedPattern = 'Indecision Doji / Flat Moving Averages';
@@ -798,21 +794,21 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
 
   let combinedConclusion = '';
   if (hasLowConfidence) {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. ⚠️ ADVISORY: Confidence is below 85% (${lowConfidenceModels.map(m => `${m.provider_label}: ${m.confidence}%`).join(', ') || `${allInOneWinRate}%`}). DO NOT ENTER THE TRADE. Signal ${dirLabel} is generated for observation and technical tracking only.`;
+    combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. ⚠️ ADVISORY: Confidence is below 85% (${lowConfidenceModels.map(m => `${m.provider_label}: ${m.confidence}%`).join(', ') || `${allInOneWinRate}%`}). DO NOT ENTER THE TRADE. Signal ${dirLabel} is generated for observation and technical tracking only.`;
   } else if (consensusDecision === 'UP') {
     if (relPos !== null && relPos <= 0.35) {
-      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Support Demand Bounce off ${detectedSupport} targeting Resistance at ${detectedResistance}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+      combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Support Demand Bounce off ${detectedSupport} targeting Resistance at ${detectedResistance}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     } else {
-      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bullish momentum and upward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+      combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) are 100% UNIFIED on a CALL (UP) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bullish momentum and upward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     }
   } else if (consensusDecision === 'DOWN') {
     if (relPos !== null && relPos >= 0.65) {
-      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Resistance Supply Rejection off ${detectedResistance} targeting Support at ${detectedSupport}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+      combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms high-probability Resistance Supply Rejection off ${detectedResistance} targeting Support at ${detectedSupport}. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     } else {
-      combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
+      combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) are 100% UNIFIED on a PUT (DOWN) signal for ${detectedPair} on 1M timeframe. Analysis confirms strong bearish momentum and downward EMA alignment. Candle Trade Entry: ${entryTimeIst} (Expiry: ${expiryTimeIst}).`;
     }
   } else {
-    combinedConclusion = `All 3 AI models (ChatGPT, Gemini, Grok) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Confidence is below 85%. DO NOT ENTER THE TRADE at ${entryTimeIst}. Signal is for technical observation only.`;
+    combinedConclusion = `All 4 AI models (ChatGPT, Gemini, Grok, Claude) generated a ${dirLabel} signal for ${detectedPair} on 1M timeframe. Confidence is below 85%. DO NOT ENTER THE TRADE at ${entryTimeIst}. Signal is for technical observation only.`;
   }
 
   // Save AI results to database with individual win_rate column

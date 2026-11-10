@@ -14,15 +14,20 @@ function getExpectedPriceRange(pair = '') {
   if (/INR/i.test(p)) return { min: 60, max: 120, decimals: 2, defaultPrice: 87.42 };
   if (/BRL/i.test(p)) return { min: 0.10, max: 10, decimals: 5, defaultPrice: 0.18920 };
   if (/PKR/i.test(p)) return { min: 200, max: 400, decimals: 2, defaultPrice: 279.05 };
-  if (/JPY/i.test(p)) return { min: 110, max: 200, decimals: 2, defaultPrice: 153.85 };
+  // JPY must precede EUR/GBP so cross-pairs like EUR/JPY or GBP/JPY use the 100-250 range
+  if (/JPY/i.test(p)) return { min: 110, max: 250, decimals: 2, defaultPrice: 153.85 };
   if (/BTC/i.test(p)) return { min: 30000, max: 150000, decimals: 2, defaultPrice: 76500.00 };
   if (/ETH/i.test(p)) return { min: 1500, max: 6000, decimals: 2, defaultPrice: 2850.00 };
   if (/SOL/i.test(p)) return { min: 50, max: 400, decimals: 2, defaultPrice: 188.50 };
+  if (/EUR\/GBP|EURGBP/i.test(p)) return { min: 0.75, max: 0.98, decimals: 5, defaultPrice: 0.86950 };
   if (/EUR/i.test(p)) return { min: 0.8, max: 1.3, decimals: 5, defaultPrice: 1.08380 };
   if (/GBP/i.test(p)) return { min: 1.0, max: 1.5, decimals: 5, defaultPrice: 1.29520 };
   if (/AED/i.test(p)) return { min: 0.5, max: 5.0, decimals: 5, defaultPrice: 1.29600 };
-  if (/NZD|AUD|CAD|CHF|SGD/i.test(p)) return { min: 0.4, max: 2.5, decimals: 5, defaultPrice: 0.60450 };
-  return { min: 0.1, max: 1000000, decimals: 5, defaultPrice: 1.29336 };
+  if (/AUD/i.test(p)) return { min: 0.5, max: 1.2, decimals: 5, defaultPrice: 0.70370 };
+  if (/NZD/i.test(p)) return { min: 0.4, max: 1.0, decimals: 5, defaultPrice: 0.60450 };
+  if (/CAD/i.test(p)) return { min: 1.0, max: 1.8, decimals: 5, defaultPrice: 1.38350 };
+  if (/CHF/i.test(p)) return { min: 0.7, max: 1.3, decimals: 5, defaultPrice: 0.88350 };
+  return { min: 0.1, max: 1000000, decimals: 5, defaultPrice: 1.08380 };
 }
 
 function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY, chartHigh, chartLow) {
@@ -88,17 +93,8 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
   const decimals = detectedDecimals > 0 ? detectedDecimals : expected.decimals;
 
   const tickUnit = Math.pow(10, -Math.min(decimals, 5));
+  const minSpread = Math.max(pVal * 0.0005, tickUnit * 5);
   const fallbackSpread = Math.max(pVal * 0.001, tickUnit * 10);
-
-  // If High/Low are provided and valid, verify bounds
-  if (!isNaN(hVal) && !isNaN(lVal) && hVal > lVal) {
-    if (isNaN(rVal) || rVal <= 0) rVal = hVal;
-    if (isNaN(sVal) || sVal <= 0) sVal = lVal;
-  }
-
-  // Fallback if rVal or sVal are completely invalid / missing
-  if (isNaN(rVal) || rVal <= 0) rVal = pVal + fallbackSpread;
-  if (isNaN(sVal) || sVal <= 0) sVal = Math.max(tickUnit, pVal - fallbackSpread);
 
   // Calibrate vertical Y% coordinates (0% = top, 100% = bottom)
   let finalResY = Number(resY);
@@ -107,6 +103,47 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
 
   if (isNaN(finalResY) || finalResY < 12 || finalResY > 80) finalResY = 25.0;
   if (isNaN(finalSupY) || finalSupY < 20 || finalSupY > 90) finalSupY = 75.0;
+  if (isNaN(finalPriceY) || finalPriceY < 15 || finalPriceY > 88) finalPriceY = 50.0;
+
+  // If High/Low scale extremes are provided and valid from chart scale
+  if (!isNaN(hVal) && !isNaN(lVal) && hVal > lVal) {
+    const scaleRange = hVal - lVal;
+    // Linear scale function for Quotex candlestick canvas (Y=15% at top wicks, Y=85% at bottom wicks)
+    const scalePriceAtY = (y) => {
+      const clampedY = Math.max(12, Math.min(88, Number(y)));
+      const relFromBottom = (85 - clampedY) / 70;
+      return lVal + (relFromBottom * scaleRange);
+    };
+
+    // If rVal is missing, invalid, or wildly deviates from where the line was placed on the scale:
+    // Sync rVal with the scale price at finalResY
+    if (isNaN(rVal) || rVal <= 0 || rVal < lVal || rVal > hVal * 1.05 || Math.abs(rVal - scalePriceAtY(finalResY)) > scaleRange * 0.35) {
+      rVal = scalePriceAtY(finalResY);
+    } else {
+      // rVal was read accurately from scale: calibrate finalResY to match rVal position exactly on scale
+      finalResY = Math.max(15, Math.min(80, 85 - (((rVal - lVal) / scaleRange) * 70)));
+    }
+
+    // If sVal is missing, invalid, or wildly deviates from where the line was placed on the scale:
+    // Sync sVal with the scale price at finalSupY
+    if (isNaN(sVal) || sVal <= 0 || sVal < lVal * 0.95 || sVal > hVal || Math.abs(sVal - scalePriceAtY(finalSupY)) > scaleRange * 0.35) {
+      sVal = scalePriceAtY(finalSupY);
+    } else {
+      // sVal was read accurately from scale: calibrate finalSupY to match sVal position exactly on scale
+      finalSupY = Math.max(25, Math.min(88, 85 - (((sVal - lVal) / scaleRange) * 70)));
+    }
+
+    // If pVal is missing or completely outside scale:
+    if (isNaN(pVal) || pVal < lVal || pVal > hVal) {
+      pVal = scalePriceAtY(finalPriceY);
+    } else {
+      finalPriceY = Math.max(16, Math.min(87, 85 - (((pVal - lVal) / scaleRange) * 70)));
+    }
+  }
+
+  // Fallback if rVal or sVal are completely invalid / missing
+  if (isNaN(rVal) || rVal <= 0) rVal = pVal + fallbackSpread;
+  if (isNaN(sVal) || sVal <= 0) sVal = Math.max(tickUnit, pVal - fallbackSpread);
 
   // Guarantee: Resistance > Support (swap if inverted by AI detection)
   if (rVal < sVal) {
@@ -120,31 +157,31 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
 
   // If Resistance == Support (identical levels detected), enforce minimal tick separation
   if (Math.abs(rVal - sVal) < (tickUnit * 0.5)) {
-    rVal = pVal + fallbackSpread;
-    sVal = Math.max(tickUnit, pVal - fallbackSpread);
+    rVal = pVal + minSpread;
+    sVal = Math.max(tickUnit, pVal - minSpread);
   }
 
-  // Ensure Resistance is above current price; if breakout or equal, maintain minimal separation
+  // Ensure Resistance is strictly above current price
   if (rVal <= pVal) {
-    if (!isNaN(hVal) && hVal > pVal) {
-      rVal = hVal;
+    if (!isNaN(hVal) && hVal > pVal + minSpread) {
+      rVal = Math.min(hVal, pVal + minSpread * 2);
     } else {
-      rVal = pVal + (tickUnit * 2);
+      rVal = pVal + minSpread;
     }
   }
 
-  // Ensure Support is below current price; if breakdown or equal, maintain minimal separation
+  // Ensure Support is strictly below current price
   if (sVal >= pVal) {
-    if (!isNaN(lVal) && lVal < pVal && lVal > 0) {
-      sVal = lVal;
+    if (!isNaN(lVal) && lVal < pVal - minSpread && lVal > 0) {
+      sVal = Math.max(lVal, pVal - minSpread * 2);
     } else {
-      sVal = Math.max(tickUnit, pVal - (tickUnit * 2));
+      sVal = Math.max(tickUnit, pVal - minSpread);
     }
   }
 
   // Resistance Y% must be visually higher (smaller Y%) than Support Y%
   if (finalResY >= finalSupY) {
-    finalResY = Math.max(15.0, finalSupY - 30.0);
+    finalResY = Math.max(15.0, finalSupY - 25.0);
   }
 
   if (isNaN(finalPriceY) || finalPriceY < finalResY || finalPriceY > finalSupY) {
