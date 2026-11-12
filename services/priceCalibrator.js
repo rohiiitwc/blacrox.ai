@@ -108,36 +108,27 @@ function calibratePriceLevels(pair, rawRes, rawSup, rawPrice, resY, supY, priceY
   // If High/Low scale extremes are provided and valid from chart scale
   if (!isNaN(hVal) && !isNaN(lVal) && hVal > lVal) {
     const scaleRange = hVal - lVal;
-    // Linear scale function for Quotex candlestick canvas (Y=15% at top wicks, Y=85% at bottom wicks)
+    const minValidBound = lVal - (scaleRange * 0.20);
+    const maxValidBound = hVal + (scaleRange * 0.20);
+    // Linear scale fallback used ONLY when an extracted price is missing or outside the chart's visible scale
     const scalePriceAtY = (y) => {
       const clampedY = Math.max(12, Math.min(88, Number(y)));
       const relFromBottom = (85 - clampedY) / 70;
       return lVal + (relFromBottom * scaleRange);
     };
 
-    // If rVal is missing, invalid, or wildly deviates from where the line was placed on the scale:
-    // Sync rVal with the scale price at finalResY
-    if (isNaN(rVal) || rVal <= 0 || rVal < lVal || rVal > hVal * 1.05 || Math.abs(rVal - scalePriceAtY(finalResY)) > scaleRange * 0.35) {
+    // Preserve exact OCR Resistance/Support/Current prices from Quotex floating boxes whenever valid & within chart scale;
+    // do NOT overwrite real chart prices using an assumed 15%-85% Y linear mapping (RSI panels / UI frames alter Y%).
+    if (isNaN(rVal) || rVal <= 0 || rVal < minValidBound || rVal > maxValidBound) {
       rVal = scalePriceAtY(finalResY);
-    } else {
-      // rVal was read accurately from scale: calibrate finalResY to match rVal position exactly on scale
-      finalResY = Math.max(15, Math.min(80, 85 - (((rVal - lVal) / scaleRange) * 70)));
     }
 
-    // If sVal is missing, invalid, or wildly deviates from where the line was placed on the scale:
-    // Sync sVal with the scale price at finalSupY
-    if (isNaN(sVal) || sVal <= 0 || sVal < lVal * 0.95 || sVal > hVal || Math.abs(sVal - scalePriceAtY(finalSupY)) > scaleRange * 0.35) {
+    if (isNaN(sVal) || sVal <= 0 || sVal < minValidBound || sVal > maxValidBound) {
       sVal = scalePriceAtY(finalSupY);
-    } else {
-      // sVal was read accurately from scale: calibrate finalSupY to match sVal position exactly on scale
-      finalSupY = Math.max(25, Math.min(88, 85 - (((sVal - lVal) / scaleRange) * 70)));
     }
 
-    // If pVal is missing or completely outside scale:
-    if (isNaN(pVal) || pVal < lVal || pVal > hVal) {
+    if (isNaN(pVal) || pVal <= 0 || pVal < minValidBound || pVal > maxValidBound) {
       pVal = scalePriceAtY(finalPriceY);
-    } else {
-      finalPriceY = Math.max(16, Math.min(87, 85 - (((pVal - lVal) / scaleRange) * 70)));
     }
   }
 

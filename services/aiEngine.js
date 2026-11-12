@@ -274,7 +274,7 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   try {
     if (imagePath && fs.existsSync(imagePath)) {
       const buffer = fs.readFileSync(imagePath);
-      imageHash = crypto.createHash('sha256').update(buffer).digest('hex');
+      imageHash = crypto.createHash('sha256').update(buffer).update('_engine_v4').digest('hex');
       try {
         db.prepare('UPDATE analyses SET image_hash = ? WHERE id = ?').run(imageHash, analysisId);
       } catch (e) {}
@@ -420,10 +420,10 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
     new Promise((_, reject) => setTimeout(() => reject(new Error(`${name} timed out after ${ms}ms`)), ms))
   ]);
 
-  // Run all 4 AI provider calls concurrently with fast timeout protection (Gemini capped at 12s so user never times out)
+  // Run all 4 AI provider calls concurrently with timeout protection (Gemini allows primary + fallback within Vercel 60s limit)
   const [chatgptResult, geminiResult, grokResult, claudeResult] = await Promise.allSettled([
     callWithTimeout(analyzeWithChatGPT(imagePath, mimeType), 4500, 'ChatGPT'),
-    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 12000, 'Gemini'),
+    callWithTimeout(analyzeWithGemini(imagePath, mimeType), 26000, 'Gemini'),
     callWithTimeout(analyzeWithGrok(imagePath, mimeType), 4500, 'Grok'),
     callWithTimeout(analyzeWithClaude(imagePath, mimeType), 4500, 'Claude')
   ]);
@@ -563,76 +563,40 @@ async function runMultiAiAnalysis(analysisId, imagePath, mimeType = 'image/jpeg'
   let targetConfidence = 89;
 
   if (primaryVisionModel) {
-    let rawDecision = primaryVisionModel.decision || 'INCONCLUSIVE';
-    let rawConfidence = primaryVisionModel.confidence || 75;
+    let rawDecision = String(primaryVisionModel.decision || '').toUpperCase().trim();
+    const rawConfidence = Number(primaryVisionModel.confidence) || 75;
+    const verdictText = `${primaryVisionModel.trend || ''} ${primaryVisionModel.candlestick_pattern || ''} ${primaryVisionModel.reasoning_summary || ''} ${primaryVisionModel.scenarios || ''}`.toLowerCase();
 
-    // INSTITUTIONAL MOMENTUM & CONFLUENCE VALIDATION
-    // Prevents counter-trend fading that caused 3-4 losses out of 5 trades
-    const allModelText = successfulModels.map(m => `${m.trend || ''} ${m.ema_observations || ''} ${m.candlestick_pattern || ''} ${m.sr_observations || ''}`).join(' ').toLowerCase();
-    const isExplicitBearishMomentum = /bear|downward|below ema|descending|breakdown|selling momentum/i.test(allModelText);
-    const isExplicitBullishMomentum = /bull|upward|above ema|ascending|breakout|buying momentum/i.test(allModelText);
-    const hasDemandBounceWick = /hammer|pinbar|demand bounce|lower wick|absorption|exhaustion/i.test(allModelText);
-    const hasSupplyRejectWick = /shooting star|pinbar|supply reject|upper wick|exhaustion/i.test(allModelText);
-    
-    // Genuine unresolvable sideways chop: ONLY when NO momentum exists and text explicitly diagnoses dead chop/doji churn
-    const isGenuineChop = (!isExplicitBearishMomentum && !isExplicitBullishMomentum) &&
-      (/choppy consolidation|flat horizontal|sideways chop|indecision doji churn|zero slope/i.test(allModelText) || rawDecision === 'INCONCLUSIVE');
+    // Respect explicit low-confidence chop detection from the vision model (< 85% => DO NOT ENTER TRADE advisory)
+    const isLowConfidenceChop = rawConfidence < 85 ||
+      rawDecision === 'INCONCLUSIVE' ||
+      /do not trade|not to enter|choppy consolidation|sideways chop|indecision chop/i.test(verdictText);
 
-    if (rawDecision === 'DOWN') {
-      if (relPos !== null && relPos <= 0.20 && hasDemandBounceWick) {
-        // Price sits directly on Support Floor AND printed an explicit hammer/absorption wick
-        rawDecision = 'UP';
-        rawConfidence = 89;
-      } else {
-        // Active downward momentum or breakdown continuation: ALWAYS RESPECT THE TREND!
+    if (!['UP', 'DOWN'].includes(rawDecision)) {
+      if (/bear|downward|selling|put|breakdown|rejection/i.test(verdictText) && !/bull|upward|buying|call|bounce/i.test(verdictText)) {
         rawDecision = 'DOWN';
-        rawConfidence = Math.max(89, rawConfidence);
-      }
-    } else if (rawDecision === 'UP') {
-      if (relPos !== null && relPos >= 0.80 && hasSupplyRejectWick) {
-        // Price sits directly on Resistance Ceiling AND printed an explicit shooting star/pinbar wick
-        rawDecision = 'DOWN';
-        rawConfidence = 89;
-      } else {
-        // Active upward momentum or breakout continuation: ALWAYS RESPECT THE TREND!
+      } else if (/bull|upward|buying|call|bounce|breakout/i.test(verdictText)) {
         rawDecision = 'UP';
-        rawConfidence = Math.max(89, rawConfidence);
+      } else if (relPos !== null) {
+        rawDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
+      } else {
+        rawDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
       }
     }
 
-    // STRICT MOMENTUM CONFLUENCE: Never allow counter-trend fading into strong unexhausted momentum
-    if (isExplicitBearishMomentum && !hasDemandBounceWick && rawDecision === 'UP') {
-      rawDecision = 'DOWN';
-      rawConfidence = Math.max(89, rawConfidence);
-    } else if (isExplicitBullishMomentum && !hasSupplyRejectWick && rawDecision === 'DOWN') {
-      rawDecision = 'UP';
-      rawConfidence = Math.max(89, rawConfidence);
-    }
-
-    if (isGenuineChop) {
-      if (!['UP', 'DOWN'].includes(rawDecision)) {
-        if (relPos !== null) {
-          rawDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
-        } else {
-          rawDecision = isExplicitBullishMomentum ? 'UP' : (isExplicitBearishMomentum ? 'DOWN' : 'UP');
-        }
-      }
-      targetDecision = rawDecision;
-      targetConfidence = 74;
+    // Trust the live vision model's directional call directly without brittle keyword-flipping overrides
+    targetDecision = rawDecision;
+    if (isLowConfidenceChop) {
+      targetConfidence = Math.min(82, Math.max(68, rawConfidence < 85 ? rawConfidence : 74));
     } else {
-      if (!['UP', 'DOWN'].includes(rawDecision)) {
-        rawDecision = relPos !== null ? (relPos <= 0.5 ? 'UP' : 'DOWN') : (isExplicitBearishMomentum ? 'DOWN' : 'UP');
-      }
-      targetDecision = rawDecision;
-      // High-conviction signal (89-94%) for actionable binary options trading
-      targetConfidence = Math.min(94, Math.max(89, rawConfidence));
+      targetConfidence = Math.min(95, Math.max(89, rawConfidence));
     }
   } else {
-    // If vision call had a temporary network glitch: provide educational simulated guidance
+    // Fallback when vision provider is temporarily unavailable
     if (relPos !== null) {
       targetDecision = relPos <= 0.5 ? 'UP' : 'DOWN';
     } else {
-      targetDecision = isExplicitBearishMomentum ? 'DOWN' : (isExplicitBullishMomentum ? 'UP' : (seed % 2 === 0 ? 'UP' : 'DOWN'));
+      targetDecision = seed % 2 === 0 ? 'UP' : 'DOWN';
     }
     targetConfidence = 89;
   }

@@ -94,16 +94,20 @@ test('Calibrates GBP/JPY in 150-200 range rather than 1.29', () => {
   assert(res.decimals === 2, `Expected 2 decimals`);
 });
 
-test('Calibrates resistance level to price scale when uncalibrated AI number deviates wildly', () => {
-  // Chart high: 0.87360 (top), Chart low: 0.86820 (bottom), resY: 28% (near top)
-  // AI mistakenly returned 0.87062 (which is near the bottom/middle)
-  const res = calibratePriceLevels('EUR/GBP (OTC)', '0.87062', '0.86815', '0.86990', 28.0, 82.0, 58.0, '0.87360', '0.86820');
-  const r = parseFloat(res.resistance_level);
-  const s = parseFloat(res.support_level);
-  const p = parseFloat(res.current_price);
-  assert(r > p, `Expected r (${r}) > p (${p})`);
+test('Preserves valid extracted S/R on chart scale even if high/low OCR is wider, and calibrates out-of-scale outliers', () => {
+  // Valid Quotex grey box S/R (0.87062 / 0.86815) must NOT be overwritten when inside chart scale
+  const preserved = calibratePriceLevels('EUR/GBP (OTC)', '0.87062', '0.86815', '0.86990', 28.0, 82.0, 58.0, '0.87360', '0.86820');
+  assert(preserved.resistance_level === '0.87062', `Expected exact screenshot resistance 0.87062, got ${preserved.resistance_level}`);
+  assert(preserved.support_level === '0.86815', `Expected exact screenshot support 0.86815, got ${preserved.support_level}`);
+  assert(preserved.current_price === '0.86990', `Expected exact current price 0.86990, got ${preserved.current_price}`);
+
+  // Out-of-scale hallucination (0.89500 when chart scale is 0.86820 - 0.87080) MUST be calibrated onto the scale
+  const calibrated = calibratePriceLevels('EUR/GBP (OTC)', '0.89500', '0.86815', '0.86990', 28.0, 82.0, 58.0, '0.87080', '0.86820');
+  const r = parseFloat(calibrated.resistance_level);
+  const p = parseFloat(calibrated.current_price);
+  const s = parseFloat(calibrated.support_level);
+  assert(r > p && r <= 0.87100, `Expected out-of-scale resistance calibrated into chart range (> ${p}, <= 0.87100), got ${r}`);
   assert(p > s, `Expected p (${p}) > s (${s})`);
-  assert(r > 0.87200, `Expected calibrated resistance near scale at 28% (> 0.87200), got ${r}`);
 });
 
 

@@ -21,8 +21,8 @@ function getGeminiApiKey() {
 async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
   const startTime = Date.now();
   const apiKey = getGeminiApiKey();
-  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
-  const candidateModels = Array.from(new Set([primaryModel, 'gemini-3.1-flash-lite', 'gemini-flash-latest']));
+  const primaryModel = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  const candidateModels = Array.from(new Set([primaryModel, 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest']));
 
   if (!apiKey || apiKey.trim() === '' || apiKey.startsWith('AIzaSy-placeholder')) {
     return {
@@ -45,19 +45,26 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
     for (const m of candidateModels) {
       selectedModel = m;
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+      const generationConfig = {
+        response_mime_type: 'application/json',
+        temperature: 0.0
+      };
+      if (!m.includes('lite')) {
+        generationConfig.thinking_config = { thinking_budget: 0 };
+      }
       try {
         response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          signal: AbortSignal.timeout(10000),
+          signal: AbortSignal.timeout(12000),
           body: JSON.stringify({
             contents: [
               {
                 parts: [
                   {
-                    text: `${SYSTEM_CHART_PROMPT}\n\nPlease inspect this Quotex trading chart screenshot with maximum precision. Accurately identify the exact trading pair (e.g. GBP/NZD (OTC)), the candlestick chart horizontal boundaries (chart_left_x_percent and chart_right_x_percent), the exact swing high Resistance price and vertical Y% touching the upper candle wicks, the exact swing low Support price and vertical Y% touching the lower candle wicks, the active candle Current price and vertical Y%, and evaluate the upcoming 1-minute candle direction based on momentum and S/R interaction.`
+                    text: `${SYSTEM_CHART_PROMPT}\n\nInspect this Quotex chart carefully. Read exact Support and Resistance numbers directly from the chart's grey swing-point price boxes or Y-axis tick lines, read current_price from the active right-axis price pill, and predict the next 1-minute candle direction from the rightmost 5-8 candles, Alligator/EMA slope, candle momentum/wicks, and RSI.`
                   },
                   {
                     inline_data: {
@@ -68,10 +75,7 @@ async function analyzeWithGemini(imagePath, mimeType = 'image/jpeg') {
                 ]
               }
             ],
-            generationConfig: {
-              response_mime_type: 'application/json',
-              temperature: 0.0
-            }
+            generationConfig
           })
         });
 
